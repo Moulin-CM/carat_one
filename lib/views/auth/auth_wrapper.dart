@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'welcome_view.dart';
-import '../invoice/invoice_list_view.dart';
+import '../dashboard/dashboard_view.dart';
 
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
@@ -20,9 +20,9 @@ class AuthWrapper extends StatelessWidget {
           );
         }
 
-        // If user is logged in, show invoice list
+        // If user is logged in, show dashboard
         if (snapshot.hasData && snapshot.data != null) {
-          return const InvoiceListView();
+          return const DashboardView();
         }
 
         // If user is not logged in, show welcome screen

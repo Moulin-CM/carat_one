@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../models/invoice_model.dart';
 import '../../viewmodels/invoice_form_viewmodel.dart';
+import '../../viewmodels/reminder_viewmodel.dart';
+import '../../services/email_service.dart';
+import '../../services/notification_service.dart';
 
 class InvoiceFormView extends StatelessWidget {
   final InvoiceModel? invoice;
@@ -72,12 +75,23 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
           ],
         ),
         actions: [
-          if (isEditing)
+          if (isEditing) ...[
+            IconButton(
+              icon: const Icon(Icons.notifications_rounded),
+              onPressed: () => _showReminderDialog(context, viewModel),
+              tooltip: 'Set Reminder',
+            ),
+            IconButton(
+              icon: const Icon(Icons.email_rounded),
+              onPressed: () => _emailInvoice(context, viewModel.invoice),
+              tooltip: 'Email Invoice',
+            ),
             IconButton(
               icon: const Icon(Icons.list_rounded),
               onPressed: () => Navigator.pop(context, true),
               tooltip: 'Back to List',
             ),
+          ],
         ],
       ),
       body: Stack(
@@ -660,6 +674,36 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('PDF generated and saved successfully!')),
         );
+        
+        // Ask if user wants to email the invoice
+        final currentInvoice = viewModel.invoice;
+        if (currentInvoice.buyerEmail.isNotEmpty) {
+          final emailInvoice = await showDialog<bool>(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Email Invoice?'),
+              content: Text(
+                'Would you like to email this invoice to ${currentInvoice.buyerEmail}?',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('Later'),
+                ),
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  style: ElevatedButton.styleFrom(backgroundColor: _accent),
+                  child: const Text('Email Now'),
+                ),
+              ],
+            ),
+          );
+          
+          if (emailInvoice == true && context.mounted) {
+            await _emailInvoice(context, currentInvoice);
+          }
+        }
+        
         if (!viewModel.isEditing) {
           Navigator.pop(context, true);
         }
@@ -672,6 +716,188 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
         );
       }
     }
+  }
+
+  Future<void> _emailInvoice(BuildContext context, InvoiceModel invoice) async {
+    try {
+      await EmailService.shareInvoiceViaEmail(invoice);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Opening email client...'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _showReminderDialog(BuildContext context, InvoiceFormViewModel viewModel) async {
+    final invoice = viewModel.invoice;
+    final reminderViewModel = ReminderViewModel();
+    final existingReminders = await reminderViewModel.getInvoiceReminders(invoice.id!);
+    
+    DateTime selectedDate = invoice.dueDate.subtract(const Duration(days: 1));
+    if (selectedDate.isBefore(DateTime.now())) {
+      selectedDate = DateTime.now().add(const Duration(hours: 1));
+    }
+
+    await showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.notifications_active_rounded, color: Color(0xFF4F8AF4)),
+              SizedBox(width: 8),
+              Text('Set Reminder'),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (existingReminders.isNotEmpty) ...[
+                  const Text(
+                    'Active Reminders:',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                  const SizedBox(height: 8),
+                  ...existingReminders.map((reminder) => Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.blue.shade200),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.schedule, size: 16, color: Colors.blue.shade700),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Reminder: ${DateFormat('dd MMM yyyy, hh:mm a').format(reminder.reminderDate)}',
+                            style: TextStyle(fontSize: 12, color: Colors.blue.shade700),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close, size: 18),
+                          onPressed: () async {
+                            await reminderViewModel.cancelReminder(reminder.notificationId);
+                            final updated = await reminderViewModel.getInvoiceReminders(invoice.id!);
+                            setState(() {
+                              // Refresh dialog
+                            });
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                              _showReminderDialog(context, viewModel);
+                            }
+                          },
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                      ],
+                    ),
+                  )),
+                  const SizedBox(height: 16),
+                ],
+                const Text(
+                  'Reminder Date & Time:',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                ),
+                const SizedBox(height: 8),
+                InkWell(
+                  onTap: () async {
+                    final date = await showDatePicker(
+                      context: context,
+                      initialDate: selectedDate,
+                      firstDate: DateTime.now(),
+                      lastDate: invoice.dueDate,
+                    );
+                    if (date != null) {
+                      final time = await showTimePicker(
+                        context: context,
+                        initialTime: TimeOfDay.fromDateTime(selectedDate),
+                      );
+                      if (time != null) {
+                        setState(() {
+                          selectedDate = DateTime(
+                            date.year,
+                            date.month,
+                            date.day,
+                            time.hour,
+                            time.minute,
+                          );
+                        });
+                      }
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade300),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.calendar_today, size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          DateFormat('dd MMM yyyy, hh:mm a').format(selectedDate),
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Due Date: ${DateFormat('dd MMM yyyy').format(invoice.dueDate)}',
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final success = await reminderViewModel.setReminder(invoice, selectedDate);
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        success
+                            ? 'Reminder set successfully!'
+                            : reminderViewModel.errorMessage ?? 'Failed to set reminder',
+                      ),
+                      backgroundColor: success ? Colors.green : Colors.red,
+                    ),
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4F8AF4)),
+              child: const Text('Set Reminder'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

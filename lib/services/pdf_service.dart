@@ -9,7 +9,8 @@ import 'package:cross_file/cross_file.dart';
 import '../models/invoice_model.dart';
 
 class PdfService {
-  static Future<void> generateInvoice(InvoiceModel invoice) async {
+  /// Generate PDF document (returns the document without saving)
+  static Future<pw.Document> generatePdfDocument(InvoiceModel invoice) async {
     final pdf = pw.Document();
     final dateFormat = DateFormat('dd-MM-yyyy');
 
@@ -86,6 +87,13 @@ class PdfService {
       ),
     );
 
+    return pdf;
+  }
+
+  /// Generate, save and share PDF invoice
+  static Future<void> generateInvoice(InvoiceModel invoice) async {
+    final pdf = await generatePdfDocument(invoice);
+    
     // Save and share PDF
     final output = await getApplicationDocumentsDirectory();
     // Use buyer name as filename, sanitize it for filesystem

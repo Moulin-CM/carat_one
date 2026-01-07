@@ -1,7 +1,7 @@
 name: invoice_generator
 description: Cross-platform invoice generator matching exact template format
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.0.2+2
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -15,6 +15,10 @@ dependencies:
   path_provider: ^2.1.1
   share_plus: ^7.2.1
   cross_file: ^0.3.3
+  file_picker: ^8.1.4
+  url_launcher: ^6.3.1
+  flutter_local_notifications: ^18.0.1
+  timezone: ^0.9.4
   shared_preferences: ^2.2.2
   cupertino_icons: ^1.0.6
   provider: ^6.1.2
@@ -40,4 +44,7 @@ flutter_launcher_icons:
   image_path: "assets/icon/app_icon.png"
   adaptive_icon_background: "#1a1a2e"
   adaptive_icon_foreground: "assets/icon/app_icon.png"
+  android_icon: "assets/icon/app_icon.png"
+  android_adaptive_icon_background: "#1a1a2e"
+  android_adaptive_icon_foreground: "assets/icon/app_icon.png"
 

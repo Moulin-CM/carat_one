@@ -5,10 +5,9 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:printing/printing.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:cross_file/cross_file.dart';
 import '../../models/invoice_model.dart';
 import '../../viewmodels/invoice_list_viewmodel.dart';
-import '../profile/profile_view.dart';
+import '../../services/email_service.dart';
 import 'invoice_form_view.dart';
 
 class InvoiceListView extends StatelessWidget {
@@ -66,61 +65,31 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
             onPressed: () => viewModel.loadInvoices(),
             tooltip: 'Refresh',
           ),
-          PopupMenuButton(
-            icon: const Icon(Icons.more_vert_rounded),
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'profile',
-                child: Row(
-                  children: [
-                    Icon(Icons.person_outline_rounded, size: 20),
-                    SizedBox(width: 8),
-                    Text('Profile'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'logout',
-                child: Row(
-                  children: [
-                    Icon(Icons.logout_rounded, size: 20, color: Colors.red),
-                    SizedBox(width: 8),
-                    Text('Logout', style: TextStyle(color: Colors.red)),
-                  ],
-                ),
-              ),
-            ],
-            onSelected: (value) async {
-              if (value == 'logout') {
-                await _handleLogout(context, viewModel);
-              } else if (value == 'profile') {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const ProfileView(),
-                  ),
-                );
-              }
-            },
-          ),
         ],
       ),
       body: Stack(
         children: [
           _buildBackdrop(),
           SafeArea(
-            child: viewModel.isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : viewModel.isEmpty
-                    ? _buildEmptyState()
-                    : RefreshIndicator(
-                        onRefresh: () => viewModel.loadInvoices(),
-                        child: ListView.builder(
-                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
-                          itemCount: viewModel.invoices.length,
-                          itemBuilder: (context, index) => _buildInvoiceCard(context, viewModel.invoices[index], viewModel),
-                        ),
-                      ),
+            child: Column(
+              children: [
+                _buildSearchAndFilter(context, viewModel),
+                Expanded(
+                  child: viewModel.isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : viewModel.isEmpty
+                          ? _buildEmptyState()
+                          : RefreshIndicator(
+                              onRefresh: () => viewModel.loadInvoices(),
+                              child: ListView.builder(
+                                padding: const EdgeInsets.fromLTRB(16, 8, 16, 110),
+                                itemCount: viewModel.invoices.length,
+                                itemBuilder: (context, index) => _buildInvoiceCard(context, viewModel.invoices[index], viewModel),
+                              ),
+                            ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -194,6 +163,170 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
     );
   }
 
+  Widget _buildSearchAndFilter(BuildContext context, InvoiceListViewModel viewModel) {
+    final hasFilters = viewModel.searchQuery.isNotEmpty || viewModel.startDate != null || viewModel.endDate != null;
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      color: Colors.transparent,
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.04),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: TextField(
+                    onChanged: (value) => viewModel.setSearchQuery(value),
+                    decoration: InputDecoration(
+                      hintText: 'Search invoices...',
+                      prefixIcon: Icon(Icons.search_rounded, color: _accent),
+                      suffixIcon: hasFilters
+                          ? IconButton(
+                              icon: Icon(Icons.clear_rounded, color: Colors.grey[600]),
+                              onPressed: () => viewModel.clearFilters(),
+                            )
+                          : null,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide.none,
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              IconButton(
+                icon: Icon(Icons.filter_list_rounded, color: _accent),
+                onPressed: () => _showFilterDialog(context, viewModel),
+                tooltip: 'Filter',
+              ),
+            ],
+          ),
+          if (hasFilters)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Row(
+                children: [
+                  if (viewModel.startDate != null || viewModel.endDate != null)
+                    Chip(
+                      label: Text(
+                        viewModel.startDate != null && viewModel.endDate != null
+                            ? '${DateFormat('dd MMM').format(viewModel.startDate!)} - ${DateFormat('dd MMM').format(viewModel.endDate!)}'
+                            : viewModel.startDate != null
+                                ? 'From ${DateFormat('dd MMM').format(viewModel.startDate!)}'
+                                : viewModel.endDate != null
+                                    ? 'Until ${DateFormat('dd MMM').format(viewModel.endDate!)}'
+                                    : '',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                      onDeleted: () => viewModel.setDateRange(null, null),
+                    ),
+                  const Spacer(),
+                  TextButton.icon(
+                    onPressed: () => viewModel.clearFilters(),
+                    icon: const Icon(Icons.clear_all_rounded, size: 16),
+                    label: const Text('Clear filters'),
+                    style: TextButton.styleFrom(
+                      textStyle: const TextStyle(fontSize: 12),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showFilterDialog(BuildContext context, InvoiceListViewModel viewModel) async {
+    DateTime? startDate = viewModel.startDate;
+    DateTime? endDate = viewModel.endDate;
+
+    final result = await showDialog<Map<String, DateTime?>>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Filter by Date Range'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              title: const Text('Start Date'),
+              subtitle: Text(startDate != null ? DateFormat('dd MMM yyyy').format(startDate!) : 'Not set'),
+              trailing: IconButton(
+                icon: const Icon(Icons.calendar_today_rounded),
+                onPressed: () async {
+                  final date = await showDatePicker(
+                    context: context,
+                    initialDate: startDate ?? DateTime.now(),
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime(2100),
+                  );
+                  if (date != null && context.mounted) {
+                    startDate = date;
+                    Navigator.pop(context);
+                    if (context.mounted) {
+                      _showFilterDialog(context, viewModel);
+                    }
+                  }
+                },
+              ),
+            ),
+            ListTile(
+              title: const Text('End Date'),
+              subtitle: Text(endDate != null ? DateFormat('dd MMM yyyy').format(endDate!) : 'Not set'),
+              trailing: IconButton(
+                icon: const Icon(Icons.calendar_today_rounded),
+                onPressed: () async {
+                  final date = await showDatePicker(
+                    context: context,
+                    initialDate: endDate ?? DateTime.now(),
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime(2100),
+                  );
+                  if (date != null && context.mounted) {
+                    endDate = date;
+                    Navigator.pop(context);
+                    if (context.mounted) {
+                      _showFilterDialog(context, viewModel);
+                    }
+                  }
+                },
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, {'start': null, 'end': null}),
+            child: const Text('Clear'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, {'start': startDate, 'end': endDate}),
+            child: const Text('Apply'),
+          ),
+        ],
+      ),
+    );
+
+    if (result != null) {
+      viewModel.setDateRange(result['start'], result['end']);
+    }
+  }
+
   Widget _buildEmptyState() {
     return Center(
       child: Column(
@@ -254,6 +387,29 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
     await Printing.layoutPdf(
       onLayout: (format) async => bytes,
     );
+  }
+
+  Future<void> _emailInvoice(BuildContext context, InvoiceModel invoice) async {
+    try {
+      await EmailService.shareInvoiceViaEmail(invoice);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Opening email client...'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _sharePdf(InvoiceModel invoice) async {
@@ -319,6 +475,12 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
             PopupMenuButton(
               itemBuilder: (context) => [
                 const PopupMenuItem(
+                  value: 'email',
+                  child: Row(
+                    children: [Icon(Icons.email_rounded, size: 20), SizedBox(width: 8), Text('Email Invoice')],
+                  ),
+                ),
+                const PopupMenuItem(
                   value: 'share',
                   child: Row(
                     children: [Icon(Icons.share, size: 20), SizedBox(width: 8), Text('Share')],
@@ -338,7 +500,9 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
                 ),
               ],
               onSelected: (value) async {
-                if (value == 'share') {
+                if (value == 'email') {
+                  await _emailInvoice(context, invoice);
+                } else if (value == 'share') {
                   await _sharePdf(invoice);
                 } else if (value == 'edit') {
                   final result = await Navigator.push(
@@ -398,53 +562,5 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
     }
   }
 
-  Future<void> _handleLogout(BuildContext context, InvoiceListViewModel viewModel) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Logout'),
-        content: const Text('Are you sure you want to logout?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Logout'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm == true && context.mounted) {
-      try {
-        await viewModel.logout();
-        // Navigation will be handled by AuthWrapper automatically
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Logged out successfully'),
-              backgroundColor: Colors.green,
-            ),
-          );
-        }
-      } catch (e) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Error logging out: $e'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
-    }
-  }
 }
 

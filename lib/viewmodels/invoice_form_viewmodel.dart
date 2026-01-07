@@ -4,6 +4,8 @@ import '../services/invoice_storage_service.dart';
 import '../services/user_service.dart';
 import '../services/auth_service.dart';
 import '../services/pdf_service.dart';
+import '../services/invoice_number_service.dart';
+import '../services/settings_service.dart';
 
 class InvoiceFormViewModel extends ChangeNotifier {
   final AuthService _authService = AuthService();
@@ -21,6 +23,46 @@ class InvoiceFormViewModel extends ChangeNotifier {
     }
     if (invoice == null) {
       _loadUserProfile();
+      _loadAutoInvoiceNumber();
+      _loadSettings();
+    }
+  }
+
+  Future<void> _loadAutoInvoiceNumber() async {
+    if (_invoice.invoiceNo.isEmpty) {
+      final settings = await SettingsService.getSettings();
+      final nextNumber = await InvoiceNumberService.getNextInvoiceNumber();
+      
+      // Use starting number from settings if it's higher than current
+      final startNumber = settings.startingInvoiceNumber;
+      final currentNumber = await InvoiceNumberService.getCurrentInvoiceNumber();
+      final actualNextNumber = startNumber > currentNumber ? startNumber : nextNumber;
+      
+      // Format invoice number with prefix if set
+      String invoiceNo;
+      if (settings.invoiceNumberPrefix.isNotEmpty) {
+        invoiceNo = '${settings.invoiceNumberPrefix}$actualNextNumber';
+      } else {
+        invoiceNo = actualNextNumber.toString();
+      }
+      
+      _invoice.invoiceNo = invoiceNo;
+      notifyListeners();
+    }
+  }
+
+  Future<void> _loadSettings() async {
+    try {
+      final settings = await SettingsService.getSettings();
+      _invoice.cgstRate = settings.cgstRate;
+      _invoice.sgstRate = settings.sgstRate;
+      _invoice.igstRate = settings.igstRate;
+      if (settings.defaultTerms.isNotEmpty && _invoice.terms.isEmpty) {
+        _invoice.terms = settings.defaultTerms;
+      }
+      notifyListeners();
+    } catch (_) {
+      // If settings loading fails, use default values
     }
   }
 
@@ -198,6 +240,14 @@ class InvoiceFormViewModel extends ChangeNotifier {
       // Ensure invoice has an ID
       if (_invoice.id.isEmpty) {
         _invoice.id = DateTime.now().millisecondsSinceEpoch.toString();
+      }
+
+      // Save invoice number if it's a new invoice
+      if (!isEditing && _invoice.invoiceNo.isNotEmpty) {
+        final invoiceNumber = int.tryParse(_invoice.invoiceNo);
+        if (invoiceNumber != null) {
+          await InvoiceNumberService.saveInvoiceNumber(invoiceNumber);
+        }
       }
 
       // Save invoice
