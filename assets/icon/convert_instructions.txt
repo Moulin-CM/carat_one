@@ -1,0 +1,18 @@
+To convert the SVG icon to PNG:
+
+Option 1: Online Converter
+- Go to https://cloudconvert.com/svg-to-png or similar
+- Upload app_icon.svg
+- Set output size to 1024x1024 pixels
+- Download and save as app_icon.png in this directory
+
+Option 2: Using ImageMagick (if installed)
+- Run: convert -background none -size 1024x1024 app_icon.svg app_icon.png
+
+Option 3: Using Inkscape (if installed)
+- Run: inkscape --export-type=png --export-width=1024 --export-height=1024 app_icon.svg
+
+After creating app_icon.png, run:
+flutter pub get
+flutter pub run flutter_launcher_icons
+

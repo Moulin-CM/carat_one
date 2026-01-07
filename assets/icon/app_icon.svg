@@ -1,0 +1,70 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Dark blue to black gradient background -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#16213e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0f0f1e;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Diamond gradient - blue shades -->
+    <linearGradient id="diamondGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#5b9bd5;stop-opacity:1" />
+      <stop offset="25%" style="stop-color:#4a90e2;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#357abd;stop-opacity:1" />
+      <stop offset="75%" style="stop-color:#2e5c8a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1e3a5f;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Diamond highlight for 3D effect -->
+    <linearGradient id="diamondHighlight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.9" />
+      <stop offset="30%" style="stop-color:#b8d4f0;stop-opacity:0.7" />
+      <stop offset="60%" style="stop-color:#7fb3d3;stop-opacity:0.5" />
+      <stop offset="100%" style="stop-color:#4a90e2;stop-opacity:0.3" />
+    </linearGradient>
+    
+    <!-- Diamond shine effect -->
+    <radialGradient id="diamondShine" cx="40%" cy="30%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.8" />
+      <stop offset="50%" style="stop-color:#e8f4f8;stop-opacity:0.4" />
+      <stop offset="100%" style="stop-color:#4a90e2;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+  
+  <!-- Rounded square background -->
+  <rect width="1024" height="1024" rx="200" ry="200" fill="url(#bgGradient)"/>
+  
+  <!-- Diamond shape - main body with facets -->
+  <g transform="translate(512, 440)">
+    <!-- Main diamond body -->
+    <path d="M0,-160 L180,0 L0,160 L-180,0 Z" fill="url(#diamondGradient)" stroke="#2e5c8a" stroke-width="4"/>
+    
+    <!-- Top-left facet (highlight) -->
+    <path d="M0,-160 L180,0 L0,-40 Z" fill="url(#diamondHighlight)" opacity="0.8"/>
+    
+    <!-- Top-right facet (slightly darker) -->
+    <path d="M0,-160 L0,-40 L-180,0 Z" fill="url(#diamondHighlight)" opacity="0.6"/>
+    
+    <!-- Bottom-left facet -->
+    <path d="M0,-40 L180,0 L0,160 Z" fill="url(#diamondHighlight)" opacity="0.4"/>
+    
+    <!-- Bottom-right facet (darkest) -->
+    <path d="M0,-40 L0,160 L-180,0 Z" fill="url(#diamondHighlight)" opacity="0.3"/>
+    
+    <!-- Inner shine effect -->
+    <ellipse cx="-60" cy="-60" rx="100" ry="100" fill="url(#diamondShine)"/>
+    
+    <!-- Additional facet lines for diamond cut effect -->
+    <path d="M0,-160 L-90,-80 L0,0 Z" fill="#ffffff" opacity="0.2"/>
+    <path d="M0,-160 L90,-80 L0,0 Z" fill="#ffffff" opacity="0.15"/>
+    <path d="M0,0 L90,80 L0,160 Z" fill="#000000" opacity="0.1"/>
+    <path d="M0,0 L-90,80 L0,160 Z" fill="#000000" opacity="0.15"/>
+  </g>
+  
+  <!-- Large bold white "C" letter overlaid on diamond -->
+  <text x="512" y="480" font-family="Arial, Helvetica, sans-serif" font-size="320" font-weight="bold" fill="#ffffff" text-anchor="middle" dominant-baseline="central" letter-spacing="-10">C</text>
+  
+  <!-- Brand name "CaratOne" below in white -->
+  <text x="512" y="750" font-family="Arial, Helvetica, sans-serif" font-size="90" font-weight="normal" fill="#ffffff" text-anchor="middle" letter-spacing="3">CaratOne</text>
+</svg>
