@@ -1,35 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import '../../viewmodels/dashboard_viewmodel.dart';
-import '../invoice/invoice_list_view.dart';
-import '../invoice/invoice_form_view.dart';
-import '../settings/settings_view.dart';
-import '../profile/profile_view.dart';
-import '../reminders/reminders_view.dart';
-import '../inventory/inventory_dashboard_view.dart';
-import '../inventory/inventory_list_view.dart';
+import '../../viewmodels/inventory_viewmodel.dart';
+import 'inventory_list_view.dart';
+import 'inventory_form_view.dart';
 
-class DashboardView extends StatelessWidget {
-  const DashboardView({super.key});
+class InventoryDashboardView extends StatelessWidget {
+  const InventoryDashboardView({super.key});
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => DashboardViewModel()..loadInvoices(),
-      child: const _DashboardViewContent(),
+      create: (_) => InventoryViewModel()..loadItems(),
+      child: const _InventoryDashboardViewContent(),
     );
   }
 }
 
-class _DashboardViewContent extends StatelessWidget {
-  const _DashboardViewContent();
+class _InventoryDashboardViewContent extends StatelessWidget {
+  const _InventoryDashboardViewContent();
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = context.watch<DashboardViewModel>();
+    final viewModel = context.watch<InventoryViewModel>();
     final accent = const Color(0xFF4F8AF4);
     final deepAccent = const Color(0xFF1E3C72);
+    final currencyFormat = NumberFormat.currency(symbol: '₹', decimalDigits: 0);
 
     if (viewModel.isLoading) {
       return Scaffold(
@@ -55,103 +51,15 @@ class _DashboardViewContent extends StatelessWidget {
                 child: Icon(Icons.dashboard_rounded, color: accent),
               ),
               const SizedBox(width: 10),
-              const Text('Dashboard'),
+              const Text('Inventory Dashboard'),
             ],
           ),
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
-            onPressed: () => viewModel.loadInvoices(),
+            onPressed: () => viewModel.loadItems(),
             tooltip: 'Refresh',
-          ),
-          PopupMenuButton(
-            icon: const Icon(Icons.more_vert_rounded),
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'inventory',
-                child: Row(
-                  children: [
-                    Icon(Icons.inventory_2_rounded, size: 20),
-                    SizedBox(width: 8),
-                    Text('Inventory'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'reminders',
-                child: Row(
-                  children: [
-                    Icon(Icons.notifications_active_rounded, size: 20),
-                    SizedBox(width: 8),
-                    Text('Reminders'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'settings',
-                child: Row(
-                  children: [
-                    Icon(Icons.settings_rounded, size: 20),
-                    SizedBox(width: 8),
-                    Text('Settings'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'profile',
-                child: Row(
-                  children: [
-                    Icon(Icons.person_outline_rounded, size: 20),
-                    SizedBox(width: 8),
-                    Text('Profile'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'logout',
-                child: Row(
-                  children: [
-                    Icon(Icons.logout_rounded, size: 20, color: Colors.red),
-                    SizedBox(width: 8),
-                    Text('Logout', style: TextStyle(color: Colors.red)),
-                  ],
-                ),
-              ),
-            ],
-            onSelected: (value) async {
-              if (value == 'inventory') {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const InventoryDashboardView(),
-                  ),
-                );
-              } else if (value == 'reminders') {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const RemindersView(),
-                  ),
-                );
-              } else if (value == 'settings') {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const SettingsView(),
-                  ),
-                );
-              } else if (value == 'logout') {
-                await _handleLogout(context, viewModel);
-              } else if (value == 'profile') {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const ProfileView(),
-                  ),
-                );
-              }
-            },
           ),
         ],
       ),
@@ -160,15 +68,15 @@ class _DashboardViewContent extends StatelessWidget {
           _buildBackdrop(accent, deepAccent),
           SafeArea(
             child: RefreshIndicator(
-              onRefresh: () => viewModel.loadInvoices(),
+              onRefresh: () => viewModel.loadItems(),
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildStatsCards(context, viewModel, accent, deepAccent),
+                    _buildStatsCards(context, viewModel, accent, deepAccent, currencyFormat),
                     const SizedBox(height: 20),
-                    _buildRecentInvoices(context, viewModel, accent, deepAccent),
+                    _buildRecentItems(context, viewModel, accent, deepAccent, currencyFormat),
                     const SizedBox(height: 20),
                     _buildQuickActions(context, accent),
                   ],
@@ -182,11 +90,11 @@ class _DashboardViewContent extends StatelessWidget {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const InvoiceFormView()),
+            MaterialPageRoute(builder: (_) => const InventoryFormView()),
           );
         },
         icon: const Icon(Icons.add_rounded),
-        label: const Text('New Invoice'),
+        label: const Text('Add Stock'),
         backgroundColor: accent,
       ),
     );
@@ -229,18 +137,22 @@ class _DashboardViewContent extends StatelessWidget {
     );
   }
 
-  Widget _buildStatsCards(BuildContext context, DashboardViewModel viewModel, Color accent, Color deepAccent) {
-    final currencyFormat = NumberFormat.currency(symbol: '₹', decimalDigits: 0);
-
+  Widget _buildStatsCards(
+    BuildContext context,
+    InventoryViewModel viewModel,
+    Color accent,
+    Color deepAccent,
+    NumberFormat currencyFormat,
+  ) {
     return Column(
       children: [
         Row(
           children: [
             Expanded(
               child: _buildStatCard(
-                'Total Invoices',
-                viewModel.totalInvoices.toString(),
-                Icons.receipt_long_rounded,
+                'Total Items',
+                viewModel.totalItems.toString(),
+                Icons.inventory_2_rounded,
                 accent,
                 deepAccent,
               ),
@@ -248,10 +160,34 @@ class _DashboardViewContent extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: _buildStatCard(
-                'Total Revenue',
-                currencyFormat.format(viewModel.totalRevenue),
+                'Total Carat',
+                viewModel.totalCarat.toStringAsFixed(2),
+                Icons.scale_rounded,
+                Colors.orange,
+                deepAccent,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _buildStatCard(
+                'Total Value',
+                currencyFormat.format(viewModel.totalValue),
                 Icons.currency_rupee_rounded,
                 Colors.green,
+                deepAccent,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildStatCard(
+                'Avg Price/Carat',
+                currencyFormat.format(viewModel.averagePricePerCarat),
+                Icons.trending_up_rounded,
+                Colors.purple,
                 deepAccent,
               ),
             ),
@@ -263,19 +199,19 @@ class _DashboardViewContent extends StatelessWidget {
             Expanded(
               child: _buildStatCard(
                 'This Month',
-                viewModel.thisMonthInvoices.toString(),
+                viewModel.thisMonthItems.toString(),
                 Icons.calendar_month_rounded,
-                Colors.orange,
+                Colors.blue,
                 deepAccent,
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: _buildStatCard(
-                'Month Revenue',
-                currencyFormat.format(viewModel.thisMonthRevenue),
-                Icons.trending_up_rounded,
-                Colors.purple,
+                'Month Value',
+                currencyFormat.format(viewModel.thisMonthValue),
+                Icons.account_balance_wallet_rounded,
+                Colors.teal,
                 deepAccent,
               ),
             ),
@@ -320,7 +256,7 @@ class _DashboardViewContent extends StatelessWidget {
           Text(
             value,
             style: TextStyle(
-              fontSize: 24,
+              fontSize: 22,
               fontWeight: FontWeight.w800,
               color: deepAccent,
             ),
@@ -339,8 +275,14 @@ class _DashboardViewContent extends StatelessWidget {
     );
   }
 
-  Widget _buildRecentInvoices(BuildContext context, DashboardViewModel viewModel, Color accent, Color deepAccent) {
-    final recent = viewModel.recentInvoices;
+  Widget _buildRecentItems(
+    BuildContext context,
+    InventoryViewModel viewModel,
+    Color accent,
+    Color deepAccent,
+    NumberFormat currencyFormat,
+  ) {
+    final recent = viewModel.recentItems;
     final dateFormat = DateFormat('dd MMM yyyy');
 
     return Container(
@@ -372,7 +314,7 @@ class _DashboardViewContent extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               const Text(
-                'Recent Invoices',
+                'Recent Items',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
               ),
             ],
@@ -383,16 +325,17 @@ class _DashboardViewContent extends StatelessWidget {
               padding: const EdgeInsets.all(20),
               child: Center(
                 child: Text(
-                  'No invoices yet',
+                  'No inventory items yet',
                   style: TextStyle(color: Colors.grey[600]),
                 ),
               ),
             )
           else
-            ...recent.map((invoice) => _buildRecentInvoiceItem(
+            ...recent.take(5).map((item) => _buildRecentItemCard(
                   context,
-                  invoice,
+                  item,
                   dateFormat,
+                  currencyFormat,
                   accent,
                   deepAccent,
                 )),
@@ -405,10 +348,10 @@ class _DashboardViewContent extends StatelessWidget {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const InvoiceListView()),
+                      MaterialPageRoute(builder: (_) => const InventoryListView()),
                     );
                   },
-                  child: const Text('View All Invoices'),
+                  child: const Text('View All Items'),
                 ),
               ),
             ),
@@ -417,10 +360,11 @@ class _DashboardViewContent extends StatelessWidget {
     );
   }
 
-  Widget _buildRecentInvoiceItem(
+  Widget _buildRecentItemCard(
     BuildContext context,
-    invoice,
+    item,
     DateFormat dateFormat,
+    NumberFormat currencyFormat,
     Color accent,
     Color deepAccent,
   ) {
@@ -429,7 +373,7 @@ class _DashboardViewContent extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => InvoiceFormView(invoice: invoice),
+            builder: (_) => InventoryFormView(item: item),
           ),
         );
       },
@@ -448,7 +392,7 @@ class _DashboardViewContent extends StatelessWidget {
                 color: accent.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(Icons.insert_drive_file_rounded, color: accent, size: 20),
+              child: Icon(Icons.diamond_rounded, color: accent, size: 20),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -456,7 +400,7 @@ class _DashboardViewContent extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    invoice.buyerName.isNotEmpty ? invoice.buyerName : 'Unnamed Buyer',
+                    item.diamondName.isNotEmpty ? item.diamondName : 'Unnamed Diamond',
                     style: const TextStyle(
                       fontWeight: FontWeight.w700,
                       fontSize: 14,
@@ -464,7 +408,7 @@ class _DashboardViewContent extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${invoice.invoiceNo} • ${dateFormat.format(invoice.invoiceDate)}',
+                    '${dateFormat.format(item.addedDate)} • ${item.carat.toStringAsFixed(2)} ct',
                     style: TextStyle(
                       color: Colors.grey[600],
                       fontSize: 12,
@@ -474,7 +418,7 @@ class _DashboardViewContent extends StatelessWidget {
               ),
             ),
             Text(
-              '₹${invoice.grandTotal.toStringAsFixed(0)}',
+              currencyFormat.format(item.totalPrice),
               style: TextStyle(
                 fontWeight: FontWeight.w700,
                 color: deepAccent,
@@ -528,47 +472,13 @@ class _DashboardViewContent extends StatelessWidget {
               Expanded(
                 child: _buildQuickActionButton(
                   context,
-                  'New Invoice',
+                  'Add Stock',
                   Icons.add_rounded,
                   accent,
                   () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const InvoiceFormView()),
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildQuickActionButton(
-                  context,
-                  'All Invoices',
-                  Icons.list_rounded,
-                  Colors.blue,
-                  () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const InvoiceListView()),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _buildQuickActionButton(
-                  context,
-                  'Inventory',
-                  Icons.inventory_2_rounded,
-                  Colors.purple,
-                  () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const InventoryDashboardView()),
+                      MaterialPageRoute(builder: (_) => const InventoryFormView()),
                     );
                   },
                 ),
@@ -578,8 +488,8 @@ class _DashboardViewContent extends StatelessWidget {
                 child: _buildQuickActionButton(
                   context,
                   'All Items',
-                  Icons.diamond_rounded,
-                  Colors.orange,
+                  Icons.list_rounded,
+                  Colors.blue,
                   () {
                     Navigator.push(
                       context,
@@ -627,55 +537,6 @@ class _DashboardViewContent extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Future<void> _handleLogout(BuildContext context, DashboardViewModel viewModel) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Logout'),
-        content: const Text('Are you sure you want to logout?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Logout'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm == true && context.mounted) {
-      try {
-        await viewModel.logout();
-        // Navigation will be handled by AuthWrapper automatically
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Logged out successfully'),
-              backgroundColor: Colors.green,
-            ),
-          );
-        }
-      } catch (e) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Error logging out: $e'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
-    }
   }
 }
 

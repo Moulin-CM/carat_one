@@ -1,0 +1,566 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
+import '../../models/inventory_model.dart';
+import '../../viewmodels/inventory_viewmodel.dart';
+import 'inventory_form_view.dart';
+
+class InventoryListView extends StatelessWidget {
+  const InventoryListView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (_) => InventoryViewModel()..loadItems(),
+      child: const _InventoryListViewContent(),
+    );
+  }
+}
+
+class _InventoryListViewContent extends StatefulWidget {
+  const _InventoryListViewContent();
+
+  @override
+  State<_InventoryListViewContent> createState() => _InventoryListViewContentState();
+}
+
+class _InventoryListViewContentState extends State<_InventoryListViewContent> {
+  final Color _accent = const Color(0xFF4F8AF4);
+  final Color _deepAccent = const Color(0xFF1E3C72);
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final viewModel = context.watch<InventoryViewModel>();
+    final currencyFormat = NumberFormat.currency(symbol: '₹', decimalDigits: 0);
+    final dateFormat = DateFormat('dd MMM yyyy');
+
+    // Filter items based on search query
+    final filteredItems = _searchQuery.isEmpty
+        ? viewModel.items
+        : viewModel.items.where((item) {
+            final query = _searchQuery.toLowerCase();
+            return item.diamondName.toLowerCase().contains(query) ||
+                (item.description?.toLowerCase() ?? '').contains(query);
+          }).toList();
+
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        title: Padding(
+          padding: const EdgeInsets.only(left: 16),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withOpacity(0.8),
+                ),
+                child: Icon(Icons.inventory_2_rounded, color: _accent),
+              ),
+              const SizedBox(width: 10),
+              const Text('Inventory'),
+            ],
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded),
+            onPressed: () => viewModel.loadItems(),
+            tooltip: 'Refresh',
+          ),
+        ],
+      ),
+      body: Stack(
+        children: [
+          _buildBackdrop(),
+          SafeArea(
+            child: Column(
+              children: [
+                _buildSearchBar(viewModel),
+                Expanded(
+                  child: viewModel.isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : filteredItems.isEmpty
+                          ? _buildEmptyState()
+                          : RefreshIndicator(
+                              onRefresh: () => viewModel.loadItems(),
+                              child: ListView.builder(
+                                padding: const EdgeInsets.fromLTRB(16, 8, 16, 110),
+                                itemCount: filteredItems.length,
+                                itemBuilder: (context, index) => _buildInventoryCard(
+                                  context,
+                                  filteredItems[index],
+                                  viewModel,
+                                  currencyFormat,
+                                  dateFormat,
+                                ),
+                              ),
+                            ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const InventoryFormView(),
+                ),
+              );
+              if (result == true && context.mounted) {
+                viewModel.loadItems();
+              }
+            },
+            icon: const Icon(Icons.add_rounded),
+            label: const Text('Add Inventory', style: TextStyle(fontWeight: FontWeight.w700)),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              backgroundColor: _accent,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              elevation: 8,
+              shadowColor: _accent.withOpacity(0.4),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBackdrop() {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color(0xFFE7EEFF),
+            Color(0xFFF9FBFF),
+          ],
+        ),
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            top: -100,
+            right: -80,
+            child: _blurredCircle(220, _accent.withOpacity(0.22)),
+          ),
+          Positioned(
+            top: 140,
+            left: -90,
+            child: _blurredCircle(200, _deepAccent.withOpacity(0.12)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _blurredCircle(double size, Color color) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(shape: BoxShape.circle, color: color),
+    );
+  }
+
+  Widget _buildSearchBar(InventoryViewModel viewModel) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
+        border: Border.all(
+          color: Colors.white.withOpacity(0.8),
+          width: 1,
+        ),
+      ),
+      child: TextField(
+        controller: _searchController,
+        style: const TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.w500,
+          color: Color(0xFF1E3C72),
+        ),
+        decoration: InputDecoration(
+          hintText: 'Search inventory...',
+          hintStyle: TextStyle(
+            color: Colors.grey[500],
+            fontSize: 15,
+            fontWeight: FontWeight.w400,
+          ),
+          prefixIcon: Container(
+            margin: const EdgeInsets.only(left: 10, right: 10),
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: _accent.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Icons.search_rounded,
+                color: _accent,
+                size: 20,
+              ),
+            ),
+          ),
+          prefixIconConstraints: const BoxConstraints(
+            minWidth: 56,
+            minHeight: 38,
+          ),
+          suffixIcon: _searchQuery.isNotEmpty
+              ? Container(
+                  margin: const EdgeInsets.only(right: 10),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: () {
+                        _searchController.clear();
+                        setState(() => _searchQuery = '');
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          Icons.close_rounded,
+                          size: 18,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                    ),
+                  ),
+                )
+              : null,
+          suffixIconConstraints: const BoxConstraints(
+            minWidth: 48,
+            minHeight: 38,
+          ),
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 18),
+          filled: false,
+        ),
+        onChanged: (value) {
+          setState(() => _searchQuery = value);
+        },
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 20,
+                ),
+              ],
+            ),
+            child: Icon(
+              Icons.inventory_2_outlined,
+              size: 64,
+              color: Colors.grey[400],
+            ),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'No inventory items yet',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[700],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Add your first diamond stock to get started',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[600],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInventoryCard(
+    BuildContext context,
+    InventoryModel item,
+    InventoryViewModel viewModel,
+    NumberFormat currencyFormat,
+    DateFormat dateFormat,
+  ) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
+        border: Border.all(color: Colors.white.withOpacity(0.8)),
+      ),
+      child: InkWell(
+        onTap: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => InventoryFormView(item: item),
+            ),
+          );
+          if (result == true && context.mounted) {
+            viewModel.loadItems();
+          }
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: _accent.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(Icons.diamond_rounded, color: _accent, size: 24),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item.diamondName.isNotEmpty ? item.diamondName : 'Unnamed Diamond',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Added: ${dateFormat.format(item.addedDate)}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  PopupMenuButton(
+                    icon: const Icon(Icons.more_vert_rounded),
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(
+                        value: 'edit',
+                        child: Row(
+                          children: [
+                            Icon(Icons.edit_rounded, size: 20),
+                            SizedBox(width: 8),
+                            Text('Edit'),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            Icon(Icons.delete_rounded, size: 20, color: Colors.red),
+                            SizedBox(width: 8),
+                            Text('Delete', style: TextStyle(color: Colors.red)),
+                          ],
+                        ),
+                      ),
+                    ],
+                    onSelected: (value) async {
+                      if (value == 'edit') {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => InventoryFormView(item: item),
+                          ),
+                        );
+                        if (result == true && context.mounted) {
+                          viewModel.loadItems();
+                        }
+                      } else if (value == 'delete') {
+                        _confirmDelete(context, item, viewModel);
+                      }
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF5F7FB),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _buildInfoItem(
+                        'Carat',
+                        '${item.carat.toStringAsFixed(2)} ct',
+                        Icons.scale_rounded,
+                      ),
+                    ),
+                    Container(
+                      width: 1,
+                      height: 30,
+                      color: Colors.grey[300],
+                    ),
+                    Expanded(
+                      child: _buildInfoItem(
+                        'Price/Carat',
+                        currencyFormat.format(item.pricePerCarat),
+                        Icons.currency_rupee_rounded,
+                      ),
+                    ),
+                    Container(
+                      width: 1,
+                      height: 30,
+                      color: Colors.grey[300],
+                    ),
+                    Expanded(
+                      child: _buildInfoItem(
+                        'Total',
+                        currencyFormat.format(item.totalPrice),
+                        Icons.account_balance_wallet_rounded,
+                        isTotal: true,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (item.description != null && item.description!.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Text(
+                  item.description!,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey[700],
+                    fontStyle: FontStyle.italic,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoItem(String label, String value, IconData icon, {bool isTotal = false}) {
+    return Column(
+      children: [
+        Icon(icon, size: 18, color: isTotal ? Colors.green : _accent),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: isTotal ? 15 : 13,
+            fontWeight: isTotal ? FontWeight.w700 : FontWeight.w600,
+            color: isTotal ? Colors.green.shade800 : _deepAccent,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            color: Colors.grey[600],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _confirmDelete(BuildContext context, InventoryModel item, InventoryViewModel viewModel) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Delete Inventory Item'),
+        content: Text('Are you sure you want to delete "${item.diamondName}"? This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true && context.mounted) {
+      final success = await viewModel.deleteItem(item.id);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(success ? 'Item deleted successfully' : 'Failed to delete item'),
+            backgroundColor: success ? Colors.green : Colors.red,
+          ),
+        );
+      }
+    }
+  }
+}
+

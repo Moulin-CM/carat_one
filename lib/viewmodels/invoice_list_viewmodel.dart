@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import '../models/invoice_model.dart';
 import '../services/invoice_storage_service.dart';
 import '../services/auth_service.dart';
+import 'invoice_form_viewmodel.dart';
 
 class InvoiceListViewModel extends ChangeNotifier {
   final AuthService _authService = AuthService();
@@ -97,6 +98,10 @@ class InvoiceListViewModel extends ChangeNotifier {
 
   Future<bool> deleteInvoice(String invoiceId) async {
     try {
+      // Restore inventory before deleting invoice
+      await InvoiceFormViewModel.restoreInventoryOnDelete(invoiceId);
+      
+      // Delete invoice
       await InvoiceStorageService.deleteInvoice(invoiceId);
       await loadInvoices(); // Reload list after deletion
       return true;

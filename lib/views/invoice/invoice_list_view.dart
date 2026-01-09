@@ -32,6 +32,18 @@ class _InvoiceListViewContent extends StatefulWidget {
 class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
   final Color _accent = const Color(0xFF4F8AF4);
   final Color _deepAccent = const Color(0xFF1E3C72);
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -165,9 +177,19 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
 
   Widget _buildSearchAndFilter(BuildContext context, InvoiceListViewModel viewModel) {
     final hasFilters = viewModel.searchQuery.isNotEmpty || viewModel.startDate != null || viewModel.endDate != null;
+    final hasSearchText = viewModel.searchQuery.isNotEmpty;
+
+    // Sync search controller with viewModel
+    if (_searchController.text != viewModel.searchQuery) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _searchController.text != viewModel.searchQuery) {
+          _searchController.text = viewModel.searchQuery;
+        }
+      });
+    }
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
       color: Colors.transparent,
       child: Column(
         children: [
@@ -177,71 +199,165 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
                 child: Container(
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.04),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
+                        blurRadius: 16,
+                        offset: const Offset(0, 8),
                       ),
                     ],
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.8),
+                      width: 1,
+                    ),
                   ),
                   child: TextField(
+                    controller: _searchController,
                     onChanged: (value) => viewModel.setSearchQuery(value),
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF1E3C72),
+                    ),
                     decoration: InputDecoration(
                       hintText: 'Search invoices...',
-                      prefixIcon: Icon(Icons.search_rounded, color: _accent),
-                      suffixIcon: hasFilters
-                          ? IconButton(
-                              icon: Icon(Icons.clear_rounded, color: Colors.grey[600]),
-                              onPressed: () => viewModel.clearFilters(),
+                      hintStyle: TextStyle(
+                        color: Colors.grey[500],
+                        fontSize: 15,
+                        fontWeight: FontWeight.w400,
+                      ),
+                      prefixIcon: Container(
+                        margin: const EdgeInsets.only(left: 4, right: 8),
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: _accent.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            Icons.search_rounded,
+                            color: _accent,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                      prefixIconConstraints: const BoxConstraints(
+                        minWidth: 56,
+                        minHeight: 48,
+                      ),
+                      suffixIcon: hasSearchText
+                          ? Container(
+                              margin: const EdgeInsets.only(right: 4),
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(12),
+                                  onTap: () {
+                                    _searchController.clear();
+                                    viewModel.setSearchQuery('');
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[100],
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Icon(
+                                      Icons.close_rounded,
+                                      size: 18,
+                                      color: Colors.grey[700],
+                                    ),
+                                  ),
+                                ),
+                              ),
                             )
                           : null,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(14),
-                        borderSide: BorderSide.none,
+                      suffixIconConstraints: const BoxConstraints(
+                        minWidth: 48,
+                        minHeight: 48,
                       ),
-                      filled: true,
-                      fillColor: Colors.white,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 18),
+                      filled: false,
                     ),
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
-              IconButton(
-                icon: Icon(Icons.filter_list_rounded, color: _accent),
-                onPressed: () => _showFilterDialog(context, viewModel),
-                tooltip: 'Filter',
+              const SizedBox(width: 12),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.04),
+                      blurRadius: 16,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.8),
+                    width: 1,
+                  ),
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(20),
+                    onTap: () => _showFilterDialog(context, viewModel),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      child: Icon(
+                        Icons.filter_list_rounded,
+                        color: (viewModel.startDate != null || viewModel.endDate != null)
+                            ? _accent
+                            : Colors.grey[600],
+                        size: 22,
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
           if (hasFilters)
             Padding(
-              padding: const EdgeInsets.only(top: 8),
+              padding: const EdgeInsets.only(top: 12),
               child: Row(
                 children: [
                   if (viewModel.startDate != null || viewModel.endDate != null)
-                    Chip(
-                      label: Text(
-                        viewModel.startDate != null && viewModel.endDate != null
-                            ? '${DateFormat('dd MMM').format(viewModel.startDate!)} - ${DateFormat('dd MMM').format(viewModel.endDate!)}'
-                            : viewModel.startDate != null
-                                ? 'From ${DateFormat('dd MMM').format(viewModel.startDate!)}'
-                                : viewModel.endDate != null
-                                    ? 'Until ${DateFormat('dd MMM').format(viewModel.endDate!)}'
-                                    : '',
-                        style: const TextStyle(fontSize: 12),
+                    Container(
+                      margin: const EdgeInsets.only(right: 8),
+                      child: Chip(
+                        avatar: Icon(Icons.calendar_today_rounded, size: 16, color: _accent),
+                        label: Text(
+                          viewModel.startDate != null && viewModel.endDate != null
+                              ? '${DateFormat('dd MMM').format(viewModel.startDate!)} - ${DateFormat('dd MMM').format(viewModel.endDate!)}'
+                              : viewModel.startDate != null
+                                  ? 'From ${DateFormat('dd MMM').format(viewModel.startDate!)}'
+                                  : viewModel.endDate != null
+                                      ? 'Until ${DateFormat('dd MMM').format(viewModel.endDate!)}'
+                                      : '',
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                        ),
+                        onDeleted: () => viewModel.setDateRange(null, null),
+                        deleteIcon: const Icon(Icons.close_rounded, size: 16),
+                        backgroundColor: _accent.withOpacity(0.1),
                       ),
-                      onDeleted: () => viewModel.setDateRange(null, null),
                     ),
                   const Spacer(),
                   TextButton.icon(
-                    onPressed: () => viewModel.clearFilters(),
+                    onPressed: () {
+                      _searchController.clear();
+                      viewModel.clearFilters();
+                    },
                     icon: const Icon(Icons.clear_all_rounded, size: 16),
-                    label: const Text('Clear filters'),
+                    label: const Text('Clear all', style: TextStyle(fontSize: 12)),
                     style: TextButton.styleFrom(
-                      textStyle: const TextStyle(fontSize: 12),
+                      foregroundColor: Colors.grey[700],
                     ),
                   ),
                 ],
@@ -563,4 +679,6 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
   }
 
 }
+
+
 

@@ -11,6 +11,8 @@ A modern, cross-platform invoice generator app built with Flutter and Firebase. 
 - **Amount in Words**: Automatic conversion of amounts to words
 - **PDF Generation**: Generate and share PDF invoices
 - **Invoice Management**: View, edit, and delete saved invoices
+- **Inventory Management**: Manage diamond inventory with carat tracking, price per carat, and total value calculations
+- **Inventory Dashboard**: View comprehensive statistics including total items, total carat, total value, and monthly trends
 
 ### User Features
 - **User Authentication**: Secure sign-up and login with Firebase Authentication
@@ -23,6 +25,7 @@ A modern, cross-platform invoice generator app built with Flutter and Firebase. 
 ### Technical Features
 - **MVVM Architecture**: Clean, maintainable code structure
 - **Firebase Integration**: Authentication and Realtime Database
+- **Force Update System**: Automatic version checking and update prompts via Firebase
 - **Responsive UI**: Modern, premium UI design with gradient cards
 - **Form Validation**: Comprehensive client-side validation
 - **Cross-platform**: Works on Android, iOS, Windows, and macOS
@@ -31,10 +34,11 @@ A modern, cross-platform invoice generator app built with Flutter and Firebase. 
 
 ```
 lib/
-├── models/              # Data models (Invoice, User Profile)
+├── models/              # Data models (Invoice, Inventory, User Profile)
 ├── views/               # UI screens (Views)
 │   ├── auth/           # Authentication views
 │   ├── invoice/        # Invoice views
+│   ├── inventory/      # Inventory views
 │   └── profile/        # Profile view
 ├── viewmodels/          # ViewModels (Business logic)
 ├── services/            # Services (Firebase, Storage, PDF)
@@ -86,6 +90,10 @@ lib/
 ```json
 {
   "rules": {
+    "app_version": {
+      ".read": true,
+      ".write": false
+    },
     "users": {
       "$uid": {
         ".read": "$uid === auth.uid",
@@ -101,12 +109,41 @@ lib/
             ".read": "$uid === auth.uid",
             ".write": "$uid === auth.uid"
           }
+        },
+        "inventory": {
+          ".read": "$uid === auth.uid",
+          ".write": "$uid === auth.uid",
+          "$itemId": {
+            ".read": "$uid === auth.uid",
+            ".write": "$uid === auth.uid"
+          }
         }
       }
     }
   }
 }
 ```
+
+**Note**: `app_version` should be readable by everyone (no authentication required) so the app can check versions before login. However, writing should be restricted (only admins).
+
+### Force Update Setup
+
+The app includes a force update feature that checks for new versions on startup. To set this up:
+
+1. **Create `app_version` node** in Firebase Realtime Database with the following structure:
+   ```json
+   {
+     "minRequiredVersion": "1.0.2",
+     "minRequiredBuild": 2,
+     "latestVersion": "1.0.3",
+     "latestBuild": 5,
+     "forceUpdate": true,
+     "updateMessage": "A new version is available. Please update to continue.",
+     "updateUrl": "https://testfairy.com/app/download/YOUR_APP_ID"
+   }
+   ```
+
+2. See [FORCE_UPDATE_SETUP.md](FORCE_UPDATE_SETUP.md) for detailed setup instructions and troubleshooting.
 
 ### Installation
 
@@ -184,6 +221,7 @@ State management is handled using the `Provider` package.
 - `printing`: PDF printing and sharing
 - `intl`: Internationalization and date formatting
 - `shared_preferences`: Local storage
+- `package_info_plus`: App version information for force update feature
 
 ## License
 

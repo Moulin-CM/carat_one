@@ -177,6 +177,7 @@ class InvoiceItem {
   String hsnCode = '71049120';
   double carat = 0.0;
   double rate = 0.0;
+  String? inventoryItemId; // ID of the selected inventory item
   double get amount => carat * rate;
 
   InvoiceItem();
@@ -185,13 +186,15 @@ class InvoiceItem {
       : particular = json['particular'] ?? 'CUT AND POLISHED LAB GROWN DIAMOND SALE',
         hsnCode = json['hsnCode'] ?? '71049120',
         carat = (json['carat'] ?? 0.0).toDouble(),
-        rate = (json['rate'] ?? 0.0).toDouble();
+        rate = (json['rate'] ?? 0.0).toDouble(),
+        inventoryItemId = json['inventoryItemId'];
 
   Map<String, dynamic> toJson() => {
         'particular': particular,
         'hsnCode': hsnCode,
         'carat': carat,
         'rate': rate,
+        'inventoryItemId': inventoryItemId,
       };
 }
 
