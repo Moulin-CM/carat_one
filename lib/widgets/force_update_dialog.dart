@@ -29,7 +29,7 @@ class ForceUpdateDialog extends StatelessWidget {
               size: 28,
             ),
             const SizedBox(width: 12),
-            Expanded(
+            const Expanded(
               child: Text(
                 'Update Required',
                 style: TextStyle(

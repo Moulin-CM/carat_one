@@ -79,8 +79,7 @@ class ExportImportService {
           final invoice = InvoiceModel.fromJson(invoiceJson as Map<String, dynamic>);
           
           // Generate new ID to avoid conflicts
-          invoice.id = DateTime.now().millisecondsSinceEpoch.toString() + 
-                      '_${importedInvoices.length}';
+          invoice.id = '${DateTime.now().millisecondsSinceEpoch}_${importedInvoices.length}';
           
           importedInvoices.add(invoice);
           successCount++;

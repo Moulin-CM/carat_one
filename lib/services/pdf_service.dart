@@ -14,75 +14,57 @@ class PdfService {
     final pdf = pw.Document();
     final dateFormat = DateFormat('dd-MM-yyyy');
 
+    // Use MultiPage so content flows across pages; signatures stay right after Terms
     pdf.addPage(
-      pw.Page(
+      pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(40),
         build: (pw.Context context) {
-          return pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              // Tax Invoice Header
-              _buildTaxInvoiceHeader(),
-              
-              pw.SizedBox(height: 12),
-              
-              // Seller Details - Split Layout
-              _buildSellerDetails(invoice),
-              
-              pw.SizedBox(height: 12),
-              
-              // Buyer Details with Invoice Details on Right
-              _buildBuyerDetailsWithInvoice(invoice, dateFormat),
-              
-              pw.SizedBox(height: 12),
-              
-              // Items Table
-              _buildItemsTable(invoice),
-              
-              pw.SizedBox(height: 12),
-              
-              // Tax Summary and Total
-              _buildTaxAndTotals(invoice),
-              
-              pw.SizedBox(height: 8),
-              
-              // Amount in Words
-              pw.Container(
-                padding: const pw.EdgeInsets.all(8),
-                decoration: pw.BoxDecoration(
-                  border: pw.Border.all(color: PdfColors.black, width: 1),
-                ),
-                child: pw.Row(
-                  children: [
-                    pw.Text(
-                      'Amount in words: ',
-                      style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
-                    ),
-                    pw.Text(
-                      invoice.amountInWords,
-                      style: const pw.TextStyle(fontSize: 11),
-                    ),
-                  ],
-                ),
+          return [
+            // Tax Invoice Header
+            _buildTaxInvoiceHeader(),
+            pw.SizedBox(height: 12),
+            // Seller Details - Split Layout
+            _buildSellerDetails(invoice),
+            pw.SizedBox(height: 12),
+            // Buyer Details with Invoice Details on Right
+            _buildBuyerDetailsWithInvoice(invoice, dateFormat),
+            pw.SizedBox(height: 12),
+            // Items Table (can span multiple pages when many items)
+            _buildItemsTable(invoice),
+            pw.SizedBox(height: 12),
+            // Tax Summary and Total
+            _buildTaxAndTotals(invoice),
+            pw.SizedBox(height: 8),
+            // Amount in Words
+            pw.Container(
+              padding: const pw.EdgeInsets.all(8),
+              decoration: pw.BoxDecoration(
+                border: pw.Border.all(color: PdfColors.black, width: 1),
               ),
-              
-              pw.SizedBox(height: 12),
-              
-              // RTGS Instructions
-              _buildBankDetails(invoice),
-              
-              pw.SizedBox(height: 12),
-              
-              // Terms and Conditions
-              _buildTermsAndConditions(),
-              
-              pw.Spacer(),
-              
-              // Signatures
-              _buildSignatures(invoice),
-            ],
-          );
+              child: pw.Row(
+                children: [
+                  pw.Text(
+                    'Amount in words: ',
+                    style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
+                  ),
+                  pw.Text(
+                    invoice.amountInWords,
+                    style: const pw.TextStyle(fontSize: 11),
+                  ),
+                ],
+              ),
+            ),
+            pw.SizedBox(height: 12),
+            // RTGS Instructions
+            _buildBankDetails(invoice),
+            pw.SizedBox(height: 12),
+            // Terms and Conditions
+            _buildTermsAndConditions(),
+            pw.SizedBox(height: 24),
+            // Signatures — directly below Terms; same page when space allows
+            _buildSignatures(invoice),
+          ];
         },
       ),
     );
@@ -299,34 +281,26 @@ class PdfService {
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
               if (invoice.buyerName.isNotEmpty) ...[
-                pw.Row(
-                  children: [
-                    pw.Text(
-                      'Buyer: ',
-                      style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
-                    ),
-                    pw.Text(
-                      invoice.buyerName,
-                      style: const pw.TextStyle(fontSize: 11),
-                    ),
-                  ],
+                pw.Text(
+                  invoice.buyerName,
+                  style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
                 ),
-                pw.SizedBox(height: 1),
+                pw.SizedBox(height: 3),
               ],
               if (invoice.buyerAddress.isNotEmpty) ...[
-                pw.Row(
-                  children: [
-                    pw.Text(
-                      'Address: ',
-                      style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
-                    ),
-                    pw.Text(
-                      invoice.buyerAddress,
-                      style: const pw.TextStyle(fontSize: 11),
-                    ),
-                  ],
+                pw.Text(
+                  'Address: ',
+                  style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
                 ),
                 pw.SizedBox(height: 1),
+                pw.ConstrainedBox(
+                  constraints: const pw.BoxConstraints(maxWidth: 320),
+                  child: pw.Text(
+                    invoice.buyerAddress,
+                    style: const pw.TextStyle(fontSize: 11),
+                  ),
+                ),
+                pw.SizedBox(height: 3),
               ],
               if (invoice.buyerGstNo.isNotEmpty) ...[
                 pw.Row(
@@ -581,8 +555,8 @@ class PdfService {
               _buildTableCell(item.particular),
               _buildTableCell(item.hsnCode),
               _buildTableCell(item.carat.toStringAsFixed(2)),
-              _buildTableCell('${_formatCurrency(item.rate)}'),
-              _buildTableCell('${_formatCurrency(item.amount)}'),
+              _buildTableCell(_formatCurrency(item.rate)),
+              _buildTableCell(_formatCurrency(item.amount)),
             ],
           );
         }),
@@ -595,7 +569,7 @@ class PdfService {
             _buildTableCell('', isBold: true),
             _buildTableCell(invoice.totalCarat.toStringAsFixed(2), isBold: true),
             _buildTableCell('', isBold: true),
-            _buildTableCell('${_formatCurrency(invoice.totalAmount)}', isBold: true),
+            _buildTableCell(_formatCurrency(invoice.totalAmount), isBold: true),
           ],
         ),
       ],
@@ -656,20 +630,6 @@ class PdfService {
                 ),
                 pw.Text(
                   _formatCurrency(invoice.sgstAmount),
-                  style: const pw.TextStyle(fontSize: 11),
-                ),
-              ],
-            ),
-            pw.SizedBox(height: 2),
-            pw.Row(
-              mainAxisSize: pw.MainAxisSize.min,
-              children: [
-                pw.Text(
-                  'IGST @${invoice.igstRate}%: ',
-                  style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
-                ),
-                pw.Text(
-                  _formatCurrency(invoice.igstAmount),
                   style: const pw.TextStyle(fontSize: 11),
                 ),
               ],
@@ -845,45 +805,59 @@ class PdfService {
   }
 
   static pw.Widget _buildSignatures(InvoiceModel invoice) {
-    return pw.Row(
-      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-      children: [
-        pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
-          children: [
-            pw.Text(
-              'SIGNATURE AND STAMP OF PURCHASER',
-              style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
-            ),
-            pw.SizedBox(height: 30),
-            pw.Container(
-              width: 120,
-              height: 1,
-              color: PdfColors.black,
-            ),
-          ],
-        ),
-        pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.end,
-          children: [
-            pw.Text(
-              'For ${invoice.sellerName}',
-              style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
-            ),
-            pw.SizedBox(height: 2),
-            pw.Text(
-              'AUTHORISED/PARTNER SIGNATURE',
-              style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
-            ),
-            pw.SizedBox(height: 30),
-            pw.Container(
-              width: 120,
-              height: 1,
-              color: PdfColors.black,
-            ),
-          ],
-        ),
-      ],
+    final sellerCompanyName = invoice.sellerName.isNotEmpty
+        ? invoice.sellerName
+        : 'Seller';
+    return pw.Container(
+      padding: const pw.EdgeInsets.only(top: 16),
+      decoration: pw.BoxDecoration(
+        border: pw.Border(top: pw.BorderSide(color: PdfColors.grey800, width: 0.5)),
+      ),
+      child: pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: pw.CrossAxisAlignment.end,
+        children: [
+          pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            mainAxisSize: pw.MainAxisSize.min,
+            children: [
+              pw.Text(
+                'SIGNATURE AND STAMP OF PURCHASER',
+                style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
+              ),
+              pw.SizedBox(height: 24),
+              pw.Container(
+                width: 140,
+                height: 2,
+                color: PdfColors.black,
+              ),
+              pw.SizedBox(height: 4),
+            ],
+          ),
+          pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.end,
+            mainAxisSize: pw.MainAxisSize.min,
+            children: [
+              pw.Text(
+                'For $sellerCompanyName',
+                style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
+              ),
+              pw.SizedBox(height: 2),
+              pw.Text(
+                'AUTHORISED/PARTNER SIGNATURE',
+                style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
+              ),
+              pw.SizedBox(height: 24),
+              pw.Container(
+                width: 140,
+                height: 2,
+                color: PdfColors.black,
+              ),
+              pw.SizedBox(height: 4),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

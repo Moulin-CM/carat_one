@@ -38,9 +38,9 @@ class ReminderViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final notificationId = NotificationService.generateNotificationId(invoice.id!);
+      final notificationId = NotificationService.generateNotificationId(invoice.id);
       final reminder = InvoiceReminder(
-        invoiceId: invoice.id!,
+        invoiceId: invoice.id,
         invoiceNo: invoice.invoiceNo,
         buyerName: invoice.buyerName,
         dueDate: invoice.dueDate,

@@ -383,7 +383,7 @@ class _ProfileViewContentState extends State<_ProfileViewContent> {
 
   Widget _buildEditForm(ProfileViewModel viewModel) {
     final profile = viewModel.profile!;
-    final surfaceTint = const Color(0xFFF5F7FB);
+    const surfaceTint = Color(0xFFF5F7FB);
 
     return Column(
       children: [
@@ -746,7 +746,7 @@ class _ProfileViewContentState extends State<_ProfileViewContent> {
       style: const TextStyle(fontSize: 16),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+        labelStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
         prefixIcon: Icon(icon, color: accent, size: 22),
         filled: true,
         fillColor: surfaceTint,

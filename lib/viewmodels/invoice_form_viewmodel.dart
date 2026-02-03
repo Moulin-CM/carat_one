@@ -13,7 +13,7 @@ class InvoiceFormViewModel extends ChangeNotifier {
   final AuthService _authService = AuthService();
   final UserService _userService = UserService();
 
-  InvoiceModel _invoice;
+  final InvoiceModel _invoice;
   InvoiceModel? _originalInvoice; // Store original invoice when editing to restore inventory
   bool _isLoadingProfile = false;
   bool _isSaving = false;
@@ -21,9 +21,20 @@ class InvoiceFormViewModel extends ChangeNotifier {
   String? _errorMessage;
   List<InventoryModel> _inventoryItems = [];
   bool _isLoadingInventory = false;
+  double _consumedCarat = 0.0;
+  double _consumedAmount = 0.0;
 
   List<InventoryModel> get inventoryItems => _inventoryItems;
   bool get isLoadingInventory => _isLoadingInventory;
+
+  double get _inventoryTotalCarat => _inventoryItems.fold(0.0, (sum, i) => sum + i.carat);
+  double get _inventoryTotalAmount => _inventoryItems.fold(0.0, (sum, i) => sum + i.totalPrice);
+
+  /// Remaining total carat (inventory total minus all invoiced carat; when editing, current invoice is excluded).
+  double get remainingTotalCarat => (_inventoryTotalCarat - _consumedCarat).clamp(0.0, double.infinity);
+
+  /// Remaining total amount (inventory total minus all invoiced amount; when editing, current invoice is excluded).
+  double get remainingTotalAmount => (_inventoryTotalAmount - _consumedAmount).clamp(0.0, double.infinity);
 
   InvoiceFormViewModel({InvoiceModel? invoice}) : _invoice = invoice ?? InvoiceModel() {
     if (_invoice.items.isEmpty) {
@@ -54,11 +65,30 @@ class InvoiceFormViewModel extends ChangeNotifier {
     notifyListeners();
     try {
       _inventoryItems = await InventoryStorageService.getAllInventoryItems();
+      await _loadConsumedFromInvoices();
       _isLoadingInventory = false;
       notifyListeners();
     } catch (e) {
       _isLoadingInventory = false;
       notifyListeners();
+    }
+  }
+
+  Future<void> _loadConsumedFromInvoices() async {
+    try {
+      final invoices = await InvoiceStorageService.getAllInvoices();
+      _consumedCarat = 0.0;
+      _consumedAmount = 0.0;
+      for (final inv in invoices) {
+        if (isEditing && inv.id == _invoice.id) continue;
+        for (final item in inv.items) {
+          _consumedCarat += item.carat;
+          _consumedAmount += item.carat * item.rate;
+        }
+      }
+    } catch (_) {
+      _consumedCarat = 0.0;
+      _consumedAmount = 0.0;
     }
   }
 
@@ -93,6 +123,7 @@ class InvoiceFormViewModel extends ChangeNotifier {
       _invoice.igstRate = settings.igstRate;
       if (settings.defaultTerms.isNotEmpty && _invoice.terms.isEmpty) {
         _invoice.terms = settings.defaultTerms;
+        _recalculateDueDateFromTerms();
       }
       notifyListeners();
     } catch (_) {
@@ -105,7 +136,11 @@ class InvoiceFormViewModel extends ChangeNotifier {
   bool get isSaving => _isSaving;
   bool get isGeneratingPdf => _isGeneratingPdf;
   String? get errorMessage => _errorMessage;
-  bool get isEditing => _invoice.id.isNotEmpty;
+  // An invoice is considered "editing" only when it was opened
+  // with an existing invoice (i.e. _originalInvoice is set).
+  // New invoices created from scratch should not be treated as editing,
+  // even though they get an auto-generated ID.
+  bool get isEditing => _originalInvoice != null;
 
   Future<void> _loadUserProfile() async {
     final user = _authService.currentUser;
@@ -210,13 +245,31 @@ class InvoiceFormViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Parse number of days from terms string (e.g. "30 days", "15", "Payment within 45 days").
+  static int? _parseDaysFromTerms(String terms) {
+    if (terms.trim().isEmpty) return null;
+    final match = RegExp(r'\d+').firstMatch(terms.trim());
+    if (match == null) return null;
+    final days = int.tryParse(match.group(0)!);
+    return days != null && days >= 0 ? days : null;
+  }
+
+  void _recalculateDueDateFromTerms() {
+    final days = _parseDaysFromTerms(_invoice.terms);
+    if (days != null) {
+      _invoice.dueDate = _invoice.invoiceDate.add(Duration(days: days));
+    }
+  }
+
   void updateInvoiceDate(DateTime value) {
     _invoice.invoiceDate = value;
+    _recalculateDueDateFromTerms();
     notifyListeners();
   }
 
   void updateTerms(String value) {
     _invoice.terms = value;
+    _recalculateDueDateFromTerms();
     notifyListeners();
   }
 
@@ -237,94 +290,8 @@ class InvoiceFormViewModel extends ChangeNotifier {
     }
   }
 
-  // Get available inventory items for a specific item index (excluding already selected ones)
-  List<InventoryModel> getAvailableInventoryItems(int itemIndex) {
-    final selectedIds = _invoice.items
-        .asMap()
-        .entries
-        .where((entry) => entry.key != itemIndex && entry.value.inventoryItemId != null)
-        .map((entry) => entry.value.inventoryItemId!)
-        .toSet();
-    
-    return _inventoryItems.where((item) => !selectedIds.contains(item.id)).toList();
-  }
-
-  // Get the selected inventory item for an invoice item
-  InventoryModel? getSelectedInventoryItem(int itemIndex) {
-    if (itemIndex >= _invoice.items.length) return null;
-    final inventoryId = _invoice.items[itemIndex].inventoryItemId;
-    if (inventoryId == null) return null;
-    try {
-      return _inventoryItems.firstWhere((item) => item.id == inventoryId);
-    } catch (_) {
-      return null;
-    }
-  }
-
-  // Get max carat available for an invoice item
-  double getMaxCaratForItem(int itemIndex) {
-    final inventoryItem = getSelectedInventoryItem(itemIndex);
-    if (inventoryItem == null) return 0.0;
-    
-    // Calculate remaining carat (total carat minus already used in other items)
-    // Exclude the current item's carat from the calculation
-    double usedCarat = 0.0;
-    for (int i = 0; i < _invoice.items.length; i++) {
-      if (i != itemIndex && _invoice.items[i].inventoryItemId == inventoryItem.id) {
-        usedCarat += _invoice.items[i].carat;
-      }
-    }
-    
-    // Max available is total carat minus what's used in other items
-    // The current item can use up to the remaining amount
-    return (inventoryItem.carat - usedCarat).clamp(0.0, inventoryItem.carat);
-  }
-
-  // Select inventory item for an invoice item
-  void selectInventoryItem(int itemIndex, String? inventoryItemId) {
-    if (itemIndex >= _invoice.items.length) return;
-    
-    final item = _invoice.items[itemIndex];
-    
-    // If deselecting (null), clear the item
-    if (inventoryItemId == null) {
-      item.inventoryItemId = null;
-      item.particular = 'CUT AND POLISHED LAB GROWN DIAMOND SALE';
-      item.carat = 0.0;
-      item.rate = 0.0;
-      notifyListeners();
-      return;
-    }
-    
-    // Find the inventory item
-    try {
-      final inventoryItem = _inventoryItems.firstWhere((inv) => inv.id == inventoryItemId);
-      
-      // Set the inventory item
-      item.inventoryItemId = inventoryItemId;
-      item.particular = inventoryItem.diamondName;
-      item.rate = inventoryItem.pricePerCarat;
-      
-      // Set carat to max available if current carat exceeds max
-      final maxCarat = getMaxCaratForItem(itemIndex);
-      if (item.carat > maxCarat) {
-        item.carat = maxCarat;
-      }
-      
-      notifyListeners();
-    } catch (_) {
-      // Inventory item not found
-    }
-  }
-
-  void updateItemParticular(int index, String value) {
-    // This method is kept for backward compatibility but shouldn't be used
-    // Use selectInventoryItem instead
-    if (index < _invoice.items.length) {
-      _invoice.items[index].particular = value;
-      notifyListeners();
-    }
-  }
+  /// Max carat allowed per item = remaining total carat (total validated on save).
+  double getMaxCaratForItem(int itemIndex) => remainingTotalCarat;
 
   void updateItemHsnCode(int index, String value) {
     if (index < _invoice.items.length) {
@@ -335,129 +302,29 @@ class InvoiceFormViewModel extends ChangeNotifier {
 
   void updateItemCarat(int index, String value) {
     if (index >= _invoice.items.length) return;
-    
     final item = _invoice.items[index];
-    final inventoryItem = getSelectedInventoryItem(index);
-    
-    // If no inventory selected, don't allow carat entry
-    if (inventoryItem == null) {
-      item.carat = 0.0;
-      return;
-    }
-    
-    // Parse the carat value - this is called from onChanged, so we update directly
-    // without notifying listeners to prevent keyboard dismissal
     if (value.isEmpty || value.trim().isEmpty) {
       item.carat = 0.0;
       return;
     }
-    
     final carat = double.tryParse(value) ?? 0.0;
     final maxCarat = getMaxCaratForItem(index);
-    
-    // Clamp carat to max available (0 to maxCarat)
     item.carat = carat.clamp(0.0, maxCarat);
-    
-    // Don't call notifyListeners here - it causes keyboard to dismiss
-    // The UI will update when finalizeItemCarat is called or when other actions trigger rebuild
   }
-  
-  // Method to force update after user finishes editing (e.g., on focus loss)
+
   void finalizeItemCarat(int index) {
     if (index >= _invoice.items.length) return;
-    notifyListeners(); // Update UI to reflect final value and recalculate amount
+    notifyListeners();
   }
 
   void updateItemRate(int index, String value) {
-    // Rate is now read-only (comes from inventory), but keep method for compatibility
-    // Do nothing - rate is automatically set from inventory
+    if (index >= _invoice.items.length) return;
+    final rate = double.tryParse(value.replaceAll(RegExp(r'[^\d.]'), '')) ?? 0.0;
+    _invoice.items[index].rate = rate.clamp(0.0, double.infinity);
+    notifyListeners();
   }
 
-  // Update inventory based on invoice items
-  Future<void> _updateInventoryFromInvoice() async {
-    try {
-      // Reload inventory to get latest data
-      await _loadInventoryItems();
-
-      // If editing, restore original inventory first
-      if (isEditing && _originalInvoice != null) {
-        await _restoreInventoryFromInvoice(_originalInvoice!);
-      }
-
-      // Update inventory for current invoice items
-      for (var invoiceItem in _invoice.items) {
-        if (invoiceItem.inventoryItemId != null && invoiceItem.carat > 0) {
-          // Find the inventory item
-          final inventoryItem = _inventoryItems.firstWhere(
-            (inv) => inv.id == invoiceItem.inventoryItemId,
-            orElse: () => InventoryModel(),
-          );
-
-          if (inventoryItem.id.isNotEmpty) {
-            // Deduct carat from inventory
-            final newCarat = inventoryItem.carat - invoiceItem.carat;
-            if (newCarat < 0) {
-              // This shouldn't happen if validation is working, but add safeguard
-              print('Warning: Inventory carat would go negative. Current: ${inventoryItem.carat}, Deducting: ${invoiceItem.carat}');
-              inventoryItem.carat = 0.0;
-            } else {
-              inventoryItem.carat = newCarat;
-            }
-            inventoryItem.lastUpdatedDate = DateTime.now();
-
-            // Save updated inventory item
-            await InventoryStorageService.saveInventoryItem(inventoryItem);
-          }
-        }
-      }
-
-      // Reload inventory to reflect changes
-      await _loadInventoryItems();
-    } catch (e) {
-      // Log error but don't fail invoice generation
-      print('Error updating inventory: $e');
-    }
-  }
-
-  // Restore inventory from invoice items (used when editing or deleting)
-  Future<void> _restoreInventoryFromInvoice(InvoiceModel invoice) async {
-    try {
-      // Reload inventory to get latest data
-      await _loadInventoryItems();
-      
-      for (var invoiceItem in invoice.items) {
-        if (invoiceItem.inventoryItemId != null && invoiceItem.carat > 0) {
-          // Find the inventory item in loaded list first
-          try {
-            final inventoryItem = _inventoryItems.firstWhere(
-              (inv) => inv.id == invoiceItem.inventoryItemId,
-            );
-            
-            // Restore carat to inventory
-            inventoryItem.carat = inventoryItem.carat + invoiceItem.carat;
-            inventoryItem.lastUpdatedDate = DateTime.now();
-
-            // Save updated inventory item
-            await InventoryStorageService.saveInventoryItem(inventoryItem);
-          } catch (_) {
-            // Inventory item not found in current list, try to fetch from storage
-            final inventoryItem = await InventoryStorageService.getInventoryItemById(invoiceItem.inventoryItemId!);
-            if (inventoryItem != null) {
-              inventoryItem.carat = inventoryItem.carat + invoiceItem.carat;
-              inventoryItem.lastUpdatedDate = DateTime.now();
-              await InventoryStorageService.saveInventoryItem(inventoryItem);
-            }
-          }
-        }
-      }
-      
-      // Reload inventory to reflect changes
-      await _loadInventoryItems();
-    } catch (e) {
-      // Log error but don't fail operation
-      print('Error restoring inventory: $e');
-    }
-  }
+  double get totalInvoiceCarat => _invoice.items.fold(0.0, (sum, i) => sum + i.carat);
 
   Future<bool> generateAndSaveInvoice() async {
     _isGeneratingPdf = true;
@@ -465,6 +332,12 @@ class InvoiceFormViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
+      if (totalInvoiceCarat > remainingTotalCarat) {
+        _isGeneratingPdf = false;
+        _errorMessage = 'Total carat (${totalInvoiceCarat.toStringAsFixed(2)}) cannot exceed remaining inventory carat (${remainingTotalCarat.toStringAsFixed(2)}).';
+        notifyListeners();
+        return false;
+      }
       // Ensure invoice has an ID
       if (_invoice.id.isEmpty) {
         _invoice.id = DateTime.now().millisecondsSinceEpoch.toString();
@@ -482,10 +355,6 @@ class InvoiceFormViewModel extends ChangeNotifier {
       _isSaving = true;
       notifyListeners();
       await InvoiceStorageService.saveInvoice(_invoice);
-      
-      // Update inventory based on invoice items
-      await _updateInventoryFromInvoice();
-      
       _isSaving = false;
 
       // Generate PDF
@@ -502,28 +371,7 @@ class InvoiceFormViewModel extends ChangeNotifier {
     }
   }
   
-  // Method to restore inventory when invoice is deleted (to be called from invoice list viewmodel)
-  static Future<void> restoreInventoryOnDelete(String invoiceId) async {
-    try {
-      final invoice = await InvoiceStorageService.getInvoiceById(invoiceId);
-      if (invoice == null) return;
-
-      // Restore inventory for each invoice item
-      for (var invoiceItem in invoice.items) {
-        if (invoiceItem.inventoryItemId != null && invoiceItem.carat > 0) {
-          final inventoryItem = await InventoryStorageService.getInventoryItemById(invoiceItem.inventoryItemId!);
-          
-          if (inventoryItem != null) {
-            // Restore carat to inventory
-            inventoryItem.carat = inventoryItem.carat + invoiceItem.carat;
-            inventoryItem.lastUpdatedDate = DateTime.now();
-            await InventoryStorageService.saveInventoryItem(inventoryItem);
-          }
-        }
-      }
-    } catch (e) {
-      print('Error restoring inventory on delete: $e');
-    }
-  }
+  /// No-op: remaining carat/amount are computed from all invoices; delete automatically reduces consumed.
+  static Future<void> restoreInventoryOnDelete(String invoiceId) async {}
 }
 

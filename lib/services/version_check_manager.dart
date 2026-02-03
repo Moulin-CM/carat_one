@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
 import 'app_version_service.dart';
 import 'version_check_service.dart';
 import '../models/app_version_model.dart';
@@ -7,10 +8,16 @@ import '../widgets/force_update_dialog.dart';
 class VersionCheckManager {
   /// Check for app update and show dialog if required
   /// Returns true if update is required (and dialog is shown), false otherwise
+  /// Note: Force update is only supported on Android
   static Future<bool> checkAndShowUpdateDialog(
     BuildContext context, {
     bool showOnlyIfForceUpdate = true,
   }) async {
+    // Only check for updates on Android
+    if (defaultTargetPlatform != TargetPlatform.android) {
+      return false;
+    }
+
     try {
       // Fetch version info from Firebase
       final versionInfo = await AppVersionService.getVersionInfo();
@@ -66,7 +73,13 @@ class VersionCheckManager {
 
   /// Check for app update silently (without showing dialog)
   /// Returns AppVersionModel if update is required, null otherwise
+  /// Note: Force update is only supported on Android
   static Future<AppVersionModel?> checkForUpdate() async {
+    // Only check for updates on Android
+    if (defaultTargetPlatform != TargetPlatform.android) {
+      return null;
+    }
+
     try {
       final versionInfo = await AppVersionService.getVersionInfo();
       if (versionInfo == null) {

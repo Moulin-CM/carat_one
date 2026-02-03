@@ -80,7 +80,7 @@ class NotificationService {
         return false;
       }
 
-      final androidDetails = AndroidNotificationDetails(
+      const androidDetails = AndroidNotificationDetails(
         'invoice_reminders',
         'Invoice Reminders',
         channelDescription: 'Notifications for invoice due dates',

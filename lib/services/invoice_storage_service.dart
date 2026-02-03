@@ -49,7 +49,7 @@ class InvoiceStorageService {
 
     // ---------- REMOTE PERSISTENCE (Firebase Realtime DB) ----------
     try {
-      await userInvoiceRef.child(invoice.id!).set(invoice.toJson());
+      await userInvoiceRef.child(invoice.id).set(invoice.toJson());
     } catch (_) {
       // Fail silently for now – local storage still works.
     }

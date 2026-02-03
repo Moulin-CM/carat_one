@@ -52,7 +52,7 @@ class InventoryStorageService {
 
     // ---------- REMOTE PERSISTENCE (Firebase Realtime DB) ----------
     try {
-      await userInventoryRef.child(item.id!).set(item.toJson());
+      await userInventoryRef.child(item.id).set(item.toJson());
     } catch (_) {
       // Fail silently for now – local storage still works.
     }

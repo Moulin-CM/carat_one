@@ -1,11 +1,14 @@
 import 'package:flutter/foundation.dart';
 import '../models/inventory_model.dart';
 import '../services/inventory_storage_service.dart';
+import '../services/invoice_storage_service.dart';
 
 class InventoryViewModel extends ChangeNotifier {
   List<InventoryModel> _items = [];
   bool _isLoading = false;
   String? _errorMessage;
+  double _consumedCarat = 0.0;
+  double _consumedAmount = 0.0;
 
   List<InventoryModel> get items => _items;
   bool get isLoading => _isLoading;
@@ -21,6 +24,12 @@ class InventoryViewModel extends ChangeNotifier {
   double get totalValue {
     return _items.fold(0.0, (sum, item) => sum + item.totalPrice);
   }
+
+  /// Remaining total carat after deducting all invoiced carat.
+  double get remainingTotalCarat => (totalCarat - _consumedCarat).clamp(0.0, double.infinity);
+
+  /// Remaining total amount after deducting all invoiced amount.
+  double get remainingTotalAmount => (totalValue - _consumedAmount).clamp(0.0, double.infinity);
 
   double get averagePricePerCarat {
     if (_items.isEmpty) return 0.0;
@@ -50,6 +59,23 @@ class InventoryViewModel extends ChangeNotifier {
     return sorted.take(10).toList();
   }
 
+  Future<void> _loadConsumedFromInvoices() async {
+    try {
+      final invoices = await InvoiceStorageService.getAllInvoices();
+      _consumedCarat = 0.0;
+      _consumedAmount = 0.0;
+      for (final inv in invoices) {
+        for (final item in inv.items) {
+          _consumedCarat += item.carat;
+          _consumedAmount += item.carat * item.rate;
+        }
+      }
+    } catch (_) {
+      _consumedCarat = 0.0;
+      _consumedAmount = 0.0;
+    }
+  }
+
   Future<void> loadItems() async {
     _isLoading = true;
     _errorMessage = null;
@@ -57,6 +83,7 @@ class InventoryViewModel extends ChangeNotifier {
 
     try {
       _items = await InventoryStorageService.getAllInventoryItems();
+      await _loadConsumedFromInvoices();
       _isLoading = false;
       notifyListeners();
     } catch (e) {

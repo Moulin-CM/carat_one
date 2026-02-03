@@ -23,13 +23,13 @@ class _InventoryDashboardViewContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<InventoryViewModel>();
-    final accent = const Color(0xFF4F8AF4);
-    final deepAccent = const Color(0xFF1E3C72);
+    const accent = Color(0xFF4F8AF4);
+    const deepAccent = Color(0xFF1E3C72);
     final currencyFormat = NumberFormat.currency(symbol: '₹', decimalDigits: 0);
 
     if (viewModel.isLoading) {
-      return Scaffold(
-        body: const Center(child: CircularProgressIndicator()),
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
       );
     }
 
@@ -306,9 +306,9 @@ class _InventoryDashboardViewContent extends StatelessWidget {
             children: [
               Container(
                 padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   shape: BoxShape.circle,
-                  color: const Color(0xFFF5F7FB),
+                  color: Color(0xFFF5F7FB),
                 ),
                 child: Icon(Icons.history_rounded, color: accent),
               ),
@@ -400,7 +400,7 @@ class _InventoryDashboardViewContent extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    item.diamondName.isNotEmpty ? item.diamondName : 'Unnamed Diamond',
+                    item.invoiceNumber.isNotEmpty ? item.invoiceNumber : 'No Invoice Number',
                     style: const TextStyle(
                       fontWeight: FontWeight.w700,
                       fontSize: 14,
@@ -408,7 +408,7 @@ class _InventoryDashboardViewContent extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${dateFormat.format(item.addedDate)} • ${item.carat.toStringAsFixed(2)} ct',
+                    '${dateFormat.format(item.invoiceDate)} • ${item.carat.toStringAsFixed(2)} ct',
                     style: TextStyle(
                       color: Colors.grey[600],
                       fontSize: 12,
@@ -453,9 +453,9 @@ class _InventoryDashboardViewContent extends StatelessWidget {
             children: [
               Container(
                 padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   shape: BoxShape.circle,
-                  color: const Color(0xFFF5F7FB),
+                  color: Color(0xFFF5F7FB),
                 ),
                 child: Icon(Icons.flash_on_rounded, color: accent),
               ),

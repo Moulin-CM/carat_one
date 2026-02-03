@@ -32,16 +32,18 @@ class _InventoryFormViewContentState extends State<_InventoryFormViewContent> {
   final Color _accent = const Color(0xFF4F8AF4);
   final Color _deepAccent = const Color(0xFF1E3C72);
   final Color _cardColor = Colors.white;
-  final _diamondNameController = TextEditingController();
+  final _invoiceNumberController = TextEditingController();
   final _caratController = TextEditingController();
   final _pricePerCaratController = TextEditingController();
   final _descriptionController = TextEditingController();
+  DateTime? _selectedInvoiceDate;
 
   @override
   void initState() {
     super.initState();
     final viewModel = context.read<InventoryFormViewModel>();
-    _diamondNameController.text = viewModel.item.diamondName;
+    _invoiceNumberController.text = viewModel.item.invoiceNumber;
+    _selectedInvoiceDate = viewModel.item.invoiceDate;
     _caratController.text = viewModel.item.carat.toString();
     _pricePerCaratController.text = viewModel.item.pricePerCarat.toString();
     _descriptionController.text = viewModel.item.description ?? '';
@@ -49,7 +51,7 @@ class _InventoryFormViewContentState extends State<_InventoryFormViewContent> {
 
   @override
   void dispose() {
-    _diamondNameController.dispose();
+    _invoiceNumberController.dispose();
     _caratController.dispose();
     _pricePerCaratController.dispose();
     _descriptionController.dispose();
@@ -106,22 +108,33 @@ class _InventoryFormViewContentState extends State<_InventoryFormViewContent> {
                         _buildHeroCard(item, isEditing, currencyFormat),
                         const SizedBox(height: 16),
                         _buildSection(
-                          title: 'Diamond Details',
-                          icon: Icons.diamond_rounded,
+                          title: 'Invoice Details',
+                          icon: Icons.receipt_long_rounded,
                           children: [
                             _buildTextField(
-                              'Diamond Name',
-                              item.diamondName,
+                              'Invoice Number',
+                              item.invoiceNumber,
                               (value) {
-                                viewModel.updateDiamondName(value);
-                                _diamondNameController.text = value;
+                                viewModel.updateInvoiceNumber(value);
+                                _invoiceNumberController.text = value;
                               },
-                              controller: _diamondNameController,
+                              controller: _invoiceNumberController,
                               validator: (value) {
                                 if (value == null || value.trim().isEmpty) {
-                                  return 'Please enter diamond name';
+                                  return 'Please enter invoice number';
                                 }
                                 return null;
+                              },
+                            ),
+                            const SizedBox(height: 12),
+                            _buildDateField(
+                              'Invoice Date',
+                              _selectedInvoiceDate ?? item.invoiceDate,
+                              (date) {
+                                setState(() {
+                                  _selectedInvoiceDate = date;
+                                });
+                                viewModel.updateInvoiceDate(date);
                               },
                             ),
                             const SizedBox(height: 12),
@@ -443,6 +456,80 @@ class _InventoryFormViewContentState extends State<_InventoryFormViewContent> {
     );
   }
 
+  Widget _buildDateField(
+    String label,
+    DateTime initialDate,
+    Function(DateTime) onDateSelected,
+  ) {
+    final dateFormat = DateFormat('dd MMM yyyy');
+    return InkWell(
+      onTap: () async {
+        final date = await showDatePicker(
+          context: context,
+          initialDate: initialDate,
+          firstDate: DateTime(2000),
+          lastDate: DateTime(2100),
+          builder: (context, child) {
+            return Theme(
+              data: Theme.of(context).copyWith(
+                colorScheme: ColorScheme.light(
+                  primary: _accent,
+                  onPrimary: Colors.white,
+                  surface: Colors.white,
+                  onSurface: _deepAccent,
+                ),
+              ),
+              child: child!,
+            );
+          },
+        );
+        if (date != null) {
+          onDateSelected(date);
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF5F7FB),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE5E7EB)),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.calendar_today_rounded, color: _accent, size: 20),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    dateFormat.format(initialDate),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1E3C72),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.arrow_drop_down_rounded, color: Colors.grey[600]),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildTotalCard(InventoryModel item, NumberFormat currencyFormat) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -458,45 +545,58 @@ class _InventoryFormViewContentState extends State<_InventoryFormViewContent> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.green.shade200),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Total Price',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[700],
-                  fontWeight: FontWeight.w500,
-                ),
+          _buildTotalRow('Total Price', currencyFormat.format(item.totalPrice), false),
+          const SizedBox(height: 8),
+          _buildTotalRow('CGST @ ${item.cgstRate.toStringAsFixed(2)}%', currencyFormat.format(item.cgstAmount), false),
+          const SizedBox(height: 8),
+          _buildTotalRow('SGST @ ${item.sgstRate.toStringAsFixed(2)}%', currencyFormat.format(item.sgstAmount), false),
+          const Divider(height: 20),
+          _buildTotalRow('Total with CGST & SGST', currencyFormat.format(item.totalWithGst), true),
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerRight,
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.green.shade200,
+                borderRadius: BorderRadius.circular(12),
               ),
-              const SizedBox(height: 4),
-              Text(
-                currencyFormat.format(item.totalPrice),
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.green.shade800,
-                ),
+              child: Icon(
+                Icons.currency_rupee_rounded,
+                color: Colors.green.shade800,
+                size: 32,
               ),
-            ],
-          ),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.green.shade200,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              Icons.currency_rupee_rounded,
-              color: Colors.green.shade800,
-              size: 32,
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildTotalRow(String label, String value, bool isBold) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: isBold ? 16 : 14,
+            color: Colors.grey[700],
+            fontWeight: isBold ? FontWeight.w700 : FontWeight.w500,
+          ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: isBold ? 22 : 16,
+            fontWeight: isBold ? FontWeight.w800 : FontWeight.w600,
+            color: Colors.green.shade800,
+          ),
+        ),
+      ],
     );
   }
 

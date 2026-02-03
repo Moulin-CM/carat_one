@@ -3,7 +3,7 @@ import '../models/inventory_model.dart';
 import '../services/inventory_storage_service.dart';
 
 class InventoryFormViewModel extends ChangeNotifier {
-  InventoryModel _item;
+  final InventoryModel _item;
   final bool _isEditing;
   bool _isSaving = false;
   String? _errorMessage;
@@ -17,8 +17,13 @@ class InventoryFormViewModel extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   bool get isEditing => _isEditing;
 
-  void updateDiamondName(String value) {
-    _item.diamondName = value;
+  void updateInvoiceNumber(String value) {
+    _item.invoiceNumber = value;
+    notifyListeners();
+  }
+
+  void updateInvoiceDate(DateTime date) {
+    _item.invoiceDate = date;
     notifyListeners();
   }
 

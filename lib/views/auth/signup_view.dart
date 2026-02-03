@@ -28,8 +28,8 @@ class _SignUpViewContentState extends State<_SignUpViewContent> {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<SignUpViewModel>();
-    final accent = const Color(0xFF4F8AF4);
-    final deepAccent = const Color(0xFF1E3C72);
+    const accent = Color(0xFF4F8AF4);
+    const deepAccent = Color(0xFF1E3C72);
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -562,8 +562,8 @@ class _SignUpViewContentState extends State<_SignUpViewContent> {
     bool isRequired = false,
     String? Function(String?)? validator,
   }) {
-    final accent = const Color(0xFF4F8AF4);
-    final surfaceTint = const Color(0xFFF5F7FB);
+    const accent = Color(0xFF4F8AF4);
+    const surfaceTint = Color(0xFFF5F7FB);
 
     return TextFormField(
       key: fieldKey != null ? Key(fieldKey) : null,
@@ -614,8 +614,8 @@ class _SignUpViewContentState extends State<_SignUpViewContent> {
     String? fieldKey,
     String? Function(String?)? validator,
   }) {
-    final accent = const Color(0xFF4F8AF4);
-    final surfaceTint = const Color(0xFFF5F7FB);
+    const accent = Color(0xFF4F8AF4);
+    const surfaceTint = Color(0xFFF5F7FB);
     bool isObscured = true;
 
     return StatefulBuilder(

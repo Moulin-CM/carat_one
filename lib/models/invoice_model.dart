@@ -1,4 +1,3 @@
-import 'dart:convert';
 
 class InvoiceModel {
   // Seller Details
@@ -136,7 +135,7 @@ class InvoiceModel {
   double get cgstAmount => totalAmount * (cgstRate / 100);
   double get sgstAmount => totalAmount * (sgstRate / 100);
   double get igstAmount => totalAmount * (igstRate / 100);
-  double get grandTotal => totalAmount + cgstAmount + sgstAmount + igstAmount;
+  double get grandTotal => totalAmount + cgstAmount + sgstAmount;
 
   String get amountInWords => _numberToWords(grandTotal.toInt());
 

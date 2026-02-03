@@ -28,12 +28,12 @@ class _DashboardViewContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<DashboardViewModel>();
-    final accent = const Color(0xFF4F8AF4);
-    final deepAccent = const Color(0xFF1E3C72);
+    const accent = Color(0xFF4F8AF4);
+    const deepAccent = Color(0xFF1E3C72);
 
     if (viewModel.isLoading) {
-      return Scaffold(
-        body: const Center(child: CircularProgressIndicator()),
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
       );
     }
 
@@ -364,9 +364,9 @@ class _DashboardViewContent extends StatelessWidget {
             children: [
               Container(
                 padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   shape: BoxShape.circle,
-                  color: const Color(0xFFF5F7FB),
+                  color: Color(0xFFF5F7FB),
                 ),
                 child: Icon(Icons.history_rounded, color: accent),
               ),
@@ -509,9 +509,9 @@ class _DashboardViewContent extends StatelessWidget {
             children: [
               Container(
                 padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   shape: BoxShape.circle,
-                  color: const Color(0xFFF5F7FB),
+                  color: Color(0xFFF5F7FB),
                 ),
                 child: Icon(Icons.flash_on_rounded, color: accent),
               ),

@@ -37,12 +37,16 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
   final Color _cardColor = Colors.white;
   final Color _surfaceTint = const Color(0xFFF5F7FB);
   final Map<int, TextEditingController> _caratControllers = {};
+  final Map<int, TextEditingController> _rateControllers = {};
   final Map<int, TextEditingController> _hsnControllers = {};
   final ValueNotifier<int> _totalsUpdateNotifier = ValueNotifier<int>(0);
 
   @override
   void dispose() {
     for (var controller in _caratControllers.values) {
+      controller.dispose();
+    }
+    for (var controller in _rateControllers.values) {
       controller.dispose();
     }
     for (var controller in _hsnControllers.values) {
@@ -65,8 +69,8 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
     final isEditing = viewModel.isEditing;
 
     if (viewModel.isLoadingProfile || viewModel.isLoadingInventory) {
-      return Scaffold(
-        body: const Center(child: CircularProgressIndicator()),
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
       );
     }
     
@@ -75,7 +79,7 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
       if (mounted) {
         for (int i = 0; i < invoice.items.length; i++) {
           final item = invoice.items[i];
-          _getCaratController(i, item, item.inventoryItemId);
+          _getCaratController(i, item);
         }
         _triggerTotalsUpdate();
       }
@@ -177,7 +181,12 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
                           _buildTextField('Invoice No', invoice.invoiceNo, viewModel.updateInvoiceNo),
                           _buildDateField('Invoice Date', invoice.invoiceDate, viewModel.updateInvoiceDate),
                           _buildTextField('Terms', invoice.terms, viewModel.updateTerms),
-                          _buildDateField('Due Date', invoice.dueDate, viewModel.updateDueDate),
+                          _buildDateField(
+                            'Due Date',
+                            invoice.dueDate,
+                            viewModel.updateDueDate,
+                            firstDate: invoice.invoiceDate,
+                          ),
                         ]),
                       ],
                     ),
@@ -528,14 +537,27 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
     );
   }
 
-  Widget _buildDateField(String label, DateTime value, Function(DateTime) onChanged) {
+  Widget _buildDateField(
+    String label,
+    DateTime value,
+    Function(DateTime) onChanged, {
+    DateTime? firstDate,
+    DateTime? lastDate,
+  }) {
+    final minDate = firstDate ?? DateTime(2000);
+    final maxDate = lastDate ?? DateTime(2100);
+    final initialDate = value.isBefore(minDate)
+        ? minDate
+        : value.isAfter(maxDate)
+            ? maxDate
+            : value;
     return InkWell(
       onTap: () async {
         final date = await showDatePicker(
           context: context,
-          initialDate: value,
-          firstDate: DateTime(2000),
-          lastDate: DateTime(2100),
+          initialDate: initialDate,
+          firstDate: minDate,
+          lastDate: maxDate,
         );
         if (date != null) {
           onChanged(date);
@@ -564,8 +586,7 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
 
   Widget _buildItemCard(InvoiceItem item, int index, InvoiceFormViewModel viewModel) {
     final invoice = viewModel.invoice;
-    // Get the carat controller for this item to use in ValueListenableBuilder
-    final caratController = _getCaratController(index, item, item.inventoryItemId);
+    final caratController = _getCaratController(index, item);
     
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -586,15 +607,23 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
                 IconButton(
                   icon: const Icon(Icons.close_rounded, color: Colors.red),
                   onPressed: () {
+                    final itemCount = viewModel.invoice.items.length;
+                    _caratControllers[index]?.dispose();
+                    _caratControllers.remove(index);
+                    _rateControllers[index]?.dispose();
+                    _rateControllers.remove(index);
+                    for (int k = index + 1; k < itemCount; k++) {
+                      final c = _caratControllers.remove(k);
+                      if (c != null) _caratControllers[k - 1] = c;
+                      final r = _rateControllers.remove(k);
+                      if (r != null) _rateControllers[k - 1] = r;
+                    }
                     viewModel.removeItem(index);
-                    // Trigger totals update when item is removed
                     _triggerTotalsUpdate();
                   },
                 ),
             ],
           ),
-          const SizedBox(height: 4),
-          _buildInventoryDropdown(index, viewModel),
           const SizedBox(height: 10),
           _buildResponsiveGrid([
             _buildTextField('HSN Code', item.hsnCode, (v) => viewModel.updateItemHsnCode(index, v)),
@@ -640,39 +669,37 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
 
     for (int i = 0; i < invoice.items.length; i++) {
       final item = invoice.items[i];
-      final controller = _caratControllers[i];
-      
-      // Use controller value if available, otherwise use item.carat
+      final caratCtrl = _caratControllers[i];
+      final rateCtrl = _rateControllers[i];
       double carat = item.carat;
-      if (controller != null) {
-        if (controller.text.isNotEmpty && controller.text.trim().isNotEmpty) {
-          final parsedCarat = double.tryParse(controller.text);
-          if (parsedCarat != null && parsedCarat >= 0) {
-            carat = parsedCarat;
-          }
-        } else if (controller.text.isEmpty) {
+      if (caratCtrl != null) {
+        if (caratCtrl.text.isNotEmpty && caratCtrl.text.trim().isNotEmpty) {
+          final parsedCarat = double.tryParse(caratCtrl.text);
+          if (parsedCarat != null && parsedCarat >= 0) carat = parsedCarat;
+        } else if (caratCtrl.text.isEmpty) {
           carat = 0.0;
         }
       }
-      
-      // Only calculate if rate is valid
-      if (item.rate > 0) {
+      double rate = item.rate;
+      if (rateCtrl != null && rateCtrl.text.isNotEmpty && rateCtrl.text.trim().isNotEmpty) {
+        final parsedRate = double.tryParse(rateCtrl.text.replaceAll(RegExp(r'[^\d.]'), ''));
+        if (parsedRate != null && parsedRate >= 0) rate = parsedRate;
+      }
+      if (rate > 0) {
         totalCarat += carat;
-        totalAmount += carat * item.rate;
+        totalAmount += carat * rate;
       }
     }
 
     final cgstAmount = totalAmount * (invoice.cgstRate / 100);
     final sgstAmount = totalAmount * (invoice.sgstRate / 100);
-    final igstAmount = totalAmount * (invoice.igstRate / 100);
-    final grandTotal = totalAmount + cgstAmount + sgstAmount + igstAmount;
+    final grandTotal = totalAmount + cgstAmount + sgstAmount;
 
     return {
       'totalCarat': totalCarat,
       'totalAmount': totalAmount,
       'cgstAmount': cgstAmount,
       'sgstAmount': sgstAmount,
-      'igstAmount': igstAmount,
       'grandTotal': grandTotal,
     };
   }
@@ -703,7 +730,6 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
               _buildTotalRow('Total Amount', '₹${totals['totalAmount']!.toStringAsFixed(2)}'),
               _buildTotalRow('CGST @ ${invoice.cgstRate}%', '₹${totals['cgstAmount']!.toStringAsFixed(2)}'),
               _buildTotalRow('SGST @ ${invoice.sgstRate}%', '₹${totals['sgstAmount']!.toStringAsFixed(2)}'),
-              _buildTotalRow('IGST @ ${invoice.igstRate}%', '₹${totals['igstAmount']!.toStringAsFixed(2)}'),
               const Divider(),
               _buildTotalRow('Grand Total', '₹${grandTotal.toStringAsFixed(2)}', isBold: true),
               const SizedBox(height: 8),
@@ -771,215 +797,55 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
     );
   }
 
-  Widget _buildInventoryDropdown(int index, InvoiceFormViewModel viewModel) {
-    final availableItems = viewModel.getAvailableInventoryItems(index);
-    final selectedInventory = viewModel.getSelectedInventoryItem(index);
-    final currentItem = viewModel.invoice.items[index];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Stock (Particular)',
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: Colors.grey[700],
-          ),
-        ),
-        const SizedBox(height: 6),
-        Container(
-          decoration: BoxDecoration(
-            color: _surfaceTint,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: Colors.grey.shade200),
-          ),
-          child: DropdownButtonFormField<String>(
-            value: currentItem.inventoryItemId,
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: _surfaceTint,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide.none,
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide(color: Colors.grey.shade200),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide(color: _accent.withOpacity(0.9), width: 1.4),
-              ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-            ),
-            hint: Text(availableItems.isEmpty ? 'No stocks available' : 'Select Stock'),
-            isExpanded: true, // Important: prevents overflow
-            items: availableItems.isEmpty
-                ? null
-                : availableItems.map((inventoryItem) {
-                    return DropdownMenuItem<String>(
-                      value: inventoryItem.id,
-                      child: Container(
-                        constraints: const BoxConstraints(minHeight: 50),
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              inventoryItem.diamondName,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              softWrap: true,
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              '${inventoryItem.carat.toStringAsFixed(2)} ct • ₹${inventoryItem.pricePerCarat.toStringAsFixed(2)}/ct',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }).toList(),
-            selectedItemBuilder: (BuildContext context) {
-              // Custom display for selected item to prevent overflow
-              return availableItems.map((inventoryItem) {
-                return Container(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    inventoryItem.diamondName,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    softWrap: false,
-                  ),
-                );
-              }).toList();
-            },
-            onChanged: availableItems.isEmpty
-                ? null
-                : (value) {
-                    viewModel.selectInventoryItem(index, value);
-                    // Trigger totals update when stock is selected (rate changes)
-                    _triggerTotalsUpdate();
-                  },
-          ),
-        ),
-        if (availableItems.isEmpty) ...[
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.orange.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: Colors.orange.withOpacity(0.3)),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.warning_amber_rounded, size: 16, color: Colors.orange[700]),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'No stocks available. Please add stocks in Inventory first.',
-                    style: TextStyle(fontSize: 12, color: Colors.orange[700], fontWeight: FontWeight.w500),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-        if (selectedInventory != null) ...[
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: _accent.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: _accent.withOpacity(0.2)),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.info_outline_rounded, size: 16, color: _accent),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Max available: ${viewModel.getMaxCaratForItem(index).toStringAsFixed(2)} ct',
-                    style: TextStyle(fontSize: 12, color: _accent, fontWeight: FontWeight.w500),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-
-  TextEditingController _getCaratController(int index, InvoiceItem item, String? inventoryItemId) {
-    final controllerKey = '${index}_${inventoryItemId ?? 'none'}';
-    
-    // Create new controller if index or inventory item changed
-    if (!_caratControllers.containsKey(index) || 
-        _caratControllers[index]!.text.isEmpty ||
-        (inventoryItemId != null && !_caratControllers.containsKey(index))) {
+  TextEditingController _getCaratController(int index, InvoiceItem item) {
+    if (!_caratControllers.containsKey(index)) {
       final currentCarat = item.carat.toStringAsFixed(item.carat == item.carat.roundToDouble() ? 0 : 2);
-      _caratControllers[index]?.dispose(); // Dispose old controller if exists
       _caratControllers[index] = TextEditingController(text: currentCarat);
     } else {
-      // Update controller value only if item carat changed externally (e.g., from stock selection)
-      // but only if controller text doesn't match and we're not currently editing
       final currentCarat = item.carat.toStringAsFixed(item.carat == item.carat.roundToDouble() ? 0 : 2);
       final controller = _caratControllers[index]!;
-      // Only update if the values are significantly different (not just formatting)
       final controllerValue = double.tryParse(controller.text) ?? 0.0;
-      final itemValue = item.carat;
-      if ((controllerValue - itemValue).abs() > 0.001 && !controller.selection.isValid) {
+      if ((controllerValue - item.carat).abs() > 0.001 && !controller.selection.isValid) {
         controller.text = currentCarat;
       }
     }
     return _caratControllers[index]!;
   }
 
+  TextEditingController _getRateController(int index, InvoiceItem item) {
+    if (!_rateControllers.containsKey(index)) {
+      final currentRate = item.rate.toStringAsFixed(2);
+      _rateControllers[index] = TextEditingController(text: currentRate);
+    } else {
+      final currentRate = item.rate.toStringAsFixed(2);
+      final controller = _rateControllers[index]!;
+      final controllerValue = double.tryParse(controller.text.replaceAll(RegExp(r'[^\d.]'), '')) ?? 0.0;
+      if ((controllerValue - item.rate).abs() > 0.001 && !controller.selection.isValid) {
+        controller.text = currentRate;
+      }
+    }
+    return _rateControllers[index]!;
+  }
+
   Widget _buildCaratField(int index, InvoiceItem item, InvoiceFormViewModel viewModel) {
     final maxCarat = viewModel.getMaxCaratForItem(index);
-    final selectedInventory = viewModel.getSelectedInventoryItem(index);
-    final caratController = _getCaratController(index, item, item.inventoryItemId);
+    final caratController = _getCaratController(index, item);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         TextFormField(
-          key: ValueKey('carat_field_${index}_${item.inventoryItemId ?? 'none'}'), // Stable key - only changes when stock changes
+          key: ValueKey('carat_field_$index'),
           controller: caratController,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          enabled: selectedInventory != null,
           inputFormatters: [
             FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
           ],
           onChanged: (v) {
-            // Update viewModel - it updates the value without notifying listeners
-            // This prevents keyboard dismissal on every keystroke
             viewModel.updateItemCarat(index, v);
-            
-            // Trigger totals update in real-time
             _triggerTotalsUpdate();
-            
-            // Handle clamping if value exceeds max
             final carat = double.tryParse(v) ?? 0.0;
-            if (selectedInventory != null && carat > maxCarat) {
+            if (carat > maxCarat) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (mounted && _caratControllers.containsKey(index)) {
                   final clampedValue = maxCarat.toStringAsFixed(2);
@@ -995,18 +861,12 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
               });
             }
           },
-          onEditingComplete: () {
-            // Finalize when user finishes editing (e.g., presses done)
-            viewModel.finalizeItemCarat(index);
-          },
-          onFieldSubmitted: (_) {
-            // Finalize when user submits field
-            viewModel.finalizeItemCarat(index);
-          },
+          onEditingComplete: () => viewModel.finalizeItemCarat(index),
+          onFieldSubmitted: (_) => viewModel.finalizeItemCarat(index),
           decoration: InputDecoration(
-            labelText: 'Carat${selectedInventory != null ? ' (Max: ${maxCarat.toStringAsFixed(2)})' : ''}',
+            labelText: 'Carat (Max: ${maxCarat.toStringAsFixed(2)} ct)',
             filled: true,
-            fillColor: selectedInventory != null ? _surfaceTint : Colors.grey[200],
+            fillColor: _surfaceTint,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
               borderSide: BorderSide(color: Colors.grey.shade200),
@@ -1024,27 +884,22 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
               borderSide: const BorderSide(color: Colors.red, width: 1.4),
             ),
             contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-            suffixIcon: selectedInventory != null && item.carat > 0
+            suffixIcon: item.carat > 0
                 ? IconButton(
                     icon: const Icon(Icons.close, size: 18),
                     onPressed: () {
                       caratController.text = '0';
-                      caratController.selection = TextSelection.collapsed(offset: 1);
+                      caratController.selection = const TextSelection.collapsed(offset: 1);
                       viewModel.updateItemCarat(index, '0');
                       _triggerTotalsUpdate();
                     },
                     tooltip: 'Clear',
                   )
                 : null,
-            helperText: selectedInventory != null && maxCarat > 0
-                ? 'Enter carat (0 - ${maxCarat.toStringAsFixed(2)})'
-                : 'Select a stock first',
+            helperText: 'Total invoice carat cannot exceed remaining inventory (${maxCarat.toStringAsFixed(2)} ct)',
             helperStyle: TextStyle(fontSize: 11, color: Colors.grey[600]),
           ),
           validator: (value) {
-            if (selectedInventory == null) {
-              return 'Please select a stock first';
-            }
             if (value == null || value.isEmpty || value.trim().isEmpty) {
               return 'Please enter carat';
             }
@@ -1063,47 +918,56 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
   }
 
   Widget _buildRateField(int index, InvoiceItem item, InvoiceFormViewModel viewModel) {
-    final selectedInventory = viewModel.getSelectedInventoryItem(index);
-    final rate = item.rate > 0 ? item.rate : (selectedInventory?.pricePerCarat ?? 0.0);
-    
-    // Use a key to force rebuild when rate or inventoryItemId changes
+    final rateController = _getRateController(index, item);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         TextFormField(
-          key: ValueKey('rate_${index}_${rate}_${item.inventoryItemId}'),
-          initialValue: rate.toStringAsFixed(2),
-          enabled: false, // Read-only
-          style: TextStyle(
-            color: rate > 0 ? Colors.grey[800] : Colors.grey[400],
+          key: ValueKey('rate_$index'),
+          controller: rateController,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+          ],
+          onChanged: (v) {
+            viewModel.updateItemRate(index, v);
+            _triggerTotalsUpdate();
+          },
+          style: const TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: 14,
           ),
           decoration: InputDecoration(
             labelText: 'Rate (Rs/Carat)',
             filled: true,
-            fillColor: rate > 0 ? Colors.grey[100] : Colors.grey[50],
+            fillColor: _surfaceTint,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(color: Colors.grey.shade300),
+              borderSide: BorderSide(color: Colors.grey.shade200),
             ),
-            enabledBorder: OutlineInputBorder(
+            focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(color: Colors.grey.shade300),
-            ),
-            disabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(color: Colors.grey.shade300),
+              borderSide: BorderSide(color: _accent.withOpacity(0.9), width: 1.4),
             ),
             contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
             prefixIcon: Icon(
               Icons.currency_rupee_rounded,
               size: 20,
-              color: rate > 0 ? Colors.grey[700] : Colors.grey[400],
+              color: Colors.grey[700],
             ),
-            helperText: rate > 0 ? 'Auto-filled from inventory' : 'Select a stock to see rate',
+            helperText: 'Amount per carat',
             helperStyle: TextStyle(fontSize: 11, color: Colors.grey[600]),
           ),
+          validator: (value) {
+            if (value == null || value.isEmpty || value.trim().isEmpty) {
+              return null;
+            }
+            final rate = double.tryParse(value.replaceAll(RegExp(r'[^\d.]'), '')) ?? 0.0;
+            if (rate < 0) {
+              return 'Rate cannot be negative';
+            }
+            return null;
+          },
         ),
       ],
     );
@@ -1219,7 +1083,7 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
   Future<void> _showReminderDialog(BuildContext context, InvoiceFormViewModel viewModel) async {
     final invoice = viewModel.invoice;
     final reminderViewModel = ReminderViewModel();
-    final existingReminders = await reminderViewModel.getInvoiceReminders(invoice.id!);
+    final existingReminders = await reminderViewModel.getInvoiceReminders(invoice.id);
     
     DateTime selectedDate = invoice.dueDate.subtract(const Duration(days: 1));
     if (selectedDate.isBefore(DateTime.now())) {
@@ -1270,7 +1134,7 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
                           icon: const Icon(Icons.close, size: 18),
                           onPressed: () async {
                             await reminderViewModel.cancelReminder(reminder.notificationId);
-                            final updated = await reminderViewModel.getInvoiceReminders(invoice.id!);
+                            final updated = await reminderViewModel.getInvoiceReminders(invoice.id);
                             setState(() {
                               // Refresh dialog
                             });

@@ -25,8 +25,8 @@ class _RemindersViewContent extends StatelessWidget {
     final reminders = viewModel.reminders.where((r) => r.isActive).toList();
     reminders.sort((a, b) => a.reminderDate.compareTo(b.reminderDate));
 
-    final Color _accent = const Color(0xFF4F8AF4);
-    final Color _deepAccent = const Color(0xFF1E3C72);
+    const Color accent = Color(0xFF4F8AF4);
+    const Color deepAccent = Color(0xFF1E3C72);
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -43,7 +43,7 @@ class _RemindersViewContent extends StatelessWidget {
                   shape: BoxShape.circle,
                   color: Colors.white.withOpacity(0.8),
                 ),
-                child: Icon(Icons.notifications_active_rounded, color: _accent),
+                child: Icon(Icons.notifications_active_rounded, color: accent),
               ),
               const SizedBox(width: 10),
               const Text('Invoice Reminders'),
@@ -60,19 +60,19 @@ class _RemindersViewContent extends StatelessWidget {
       ),
       body: Stack(
         children: [
-          _buildBackdrop(_accent, _deepAccent),
+          _buildBackdrop(accent, deepAccent),
           SafeArea(
             child: viewModel.isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : reminders.isEmpty
-                    ? _buildEmptyState(_accent, _deepAccent)
+                    ? _buildEmptyState(accent, deepAccent)
                     : RefreshIndicator(
                         onRefresh: () => viewModel.loadReminders(),
                         child: ListView.builder(
                           padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
                           itemCount: reminders.length,
                           itemBuilder: (context, index) {
-                            return _buildReminderCard(context, reminders[index], viewModel, _accent, _deepAccent);
+                            return _buildReminderCard(context, reminders[index], viewModel, accent, deepAccent);
                           },
                         ),
                       ),

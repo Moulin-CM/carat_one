@@ -32,8 +32,8 @@ class _SettingsViewContentState extends State<_SettingsViewContent> {
     final viewModel = context.watch<SettingsViewModel>();
 
     if (viewModel.isLoading) {
-      return Scaffold(
-        body: const Center(child: CircularProgressIndicator()),
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
       );
     }
 

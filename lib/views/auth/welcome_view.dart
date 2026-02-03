@@ -7,8 +7,8 @@ class WelcomeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = const Color(0xFF4F8AF4);
-    final deepAccent = const Color(0xFF1E3C72);
+    const accent = Color(0xFF4F8AF4);
+    const deepAccent = Color(0xFF1E3C72);
 
     return Scaffold(
       body: Stack(

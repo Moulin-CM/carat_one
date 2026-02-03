@@ -28,8 +28,8 @@ class _LoginViewContentState extends State<_LoginViewContent> {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<LoginViewModel>();
-    final accent = const Color(0xFF4F8AF4);
-    final deepAccent = const Color(0xFF1E3C72);
+    const accent = Color(0xFF4F8AF4);
+    const deepAccent = Color(0xFF1E3C72);
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -180,7 +180,7 @@ class _LoginViewContentState extends State<_LoginViewContent> {
 
   Widget _buildEmailField(
       BuildContext context, LoginViewModel viewModel, Color accent) {
-    final surfaceTint = const Color(0xFFF5F7FB);
+    const surfaceTint = Color(0xFFF5F7FB);
 
     return TextFormField(
       key: const Key('login_email'),
@@ -203,7 +203,7 @@ class _LoginViewContentState extends State<_LoginViewContent> {
       },
       decoration: InputDecoration(
         labelText: 'Email *',
-        labelStyle: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+        labelStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
         prefixIcon: Icon(Icons.email_outlined, color: accent, size: 22),
         filled: true,
         fillColor: surfaceTint,
@@ -234,7 +234,7 @@ class _LoginViewContentState extends State<_LoginViewContent> {
 
   Widget _buildPasswordField(
       BuildContext context, LoginViewModel viewModel, Color accent) {
-    final surfaceTint = const Color(0xFFF5F7FB);
+    const surfaceTint = Color(0xFFF5F7FB);
 
     return TextFormField(
       key: const Key('login_password'),
@@ -252,7 +252,7 @@ class _LoginViewContentState extends State<_LoginViewContent> {
       },
       decoration: InputDecoration(
         labelText: 'Password *',
-        labelStyle: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+        labelStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
         prefixIcon: Icon(Icons.lock_outline_rounded, color: accent, size: 22),
         suffixIcon: IconButton(
           icon: Icon(

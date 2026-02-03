@@ -47,7 +47,7 @@ class _InventoryListViewContentState extends State<_InventoryListViewContent> {
         ? viewModel.items
         : viewModel.items.where((item) {
             final query = _searchQuery.toLowerCase();
-            return item.diamondName.toLowerCase().contains(query) ||
+            return item.invoiceNumber.toLowerCase().contains(query) ||
                 (item.description?.toLowerCase() ?? '').contains(query);
           }).toList();
 
@@ -97,14 +97,22 @@ class _InventoryListViewContentState extends State<_InventoryListViewContent> {
                               onRefresh: () => viewModel.loadItems(),
                               child: ListView.builder(
                                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 110),
-                                itemCount: filteredItems.length,
-                                itemBuilder: (context, index) => _buildInventoryCard(
-                                  context,
-                                  filteredItems[index],
-                                  viewModel,
-                                  currencyFormat,
-                                  dateFormat,
-                                ),
+                                itemCount: filteredItems.length + 1,
+                                itemBuilder: (context, index) {
+                                  if (index == filteredItems.length) {
+                                    return _buildTotalsFooter(
+                                      viewModel,
+                                      currencyFormat,
+                                    );
+                                  }
+                                  return _buildInventoryCard(
+                                    context,
+                                    filteredItems[index],
+                                    viewModel,
+                                    currencyFormat,
+                                    dateFormat,
+                                  );
+                                },
                               ),
                             ),
                 ),
@@ -378,7 +386,7 @@ class _InventoryListViewContentState extends State<_InventoryListViewContent> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          item.diamondName.isNotEmpty ? item.diamondName : 'Unnamed Diamond',
+                          item.invoiceNumber.isNotEmpty ? item.invoiceNumber : 'No Invoice Number',
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
@@ -386,7 +394,7 @@ class _InventoryListViewContentState extends State<_InventoryListViewContent> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Added: ${dateFormat.format(item.addedDate)}',
+                          'Invoice Date: ${dateFormat.format(item.invoiceDate)}',
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.grey[600],
@@ -526,13 +534,93 @@ class _InventoryListViewContentState extends State<_InventoryListViewContent> {
     );
   }
 
+  Widget _buildTotalsFooter(InventoryViewModel viewModel, NumberFormat currencyFormat) {
+    final totalCarat = viewModel.totalCarat;
+    final totalValue = viewModel.totalValue;
+    final remainingCarat = viewModel.remainingTotalCarat;
+    final remainingAmount = viewModel.remainingTotalAmount;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
+        border: Border.all(color: _accent.withOpacity(0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Inventory totals',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: Colors.grey[800],
+            ),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: _buildInfoItem(
+                  'Total Carat',
+                  '${totalCarat.toStringAsFixed(2)} ct',
+                  Icons.scale_rounded,
+                ),
+              ),
+              Container(width: 1, height: 36, color: Colors.grey[300]),
+              Expanded(
+                child: _buildInfoItem(
+                  'Total Amount',
+                  currencyFormat.format(totalValue),
+                  Icons.currency_rupee_rounded,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          const Divider(height: 1),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _buildInfoItem(
+                  'Remaining Carat',
+                  '${remainingCarat.toStringAsFixed(2)} ct',
+                  Icons.scale_rounded,
+                ),
+              ),
+              Container(width: 1, height: 36, color: Colors.grey[300]),
+              Expanded(
+                child: _buildInfoItem(
+                  'Remaining Amount',
+                  currencyFormat.format(remainingAmount),
+                  Icons.account_balance_wallet_rounded,
+                  isTotal: true,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _confirmDelete(BuildContext context, InventoryModel item, InventoryViewModel viewModel) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('Delete Inventory Item'),
-        content: Text('Are you sure you want to delete "${item.diamondName}"? This action cannot be undone.'),
+        content: Text('Are you sure you want to delete invoice "${item.invoiceNumber.isNotEmpty ? item.invoiceNumber : 'this item'}"? This action cannot be undone.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),

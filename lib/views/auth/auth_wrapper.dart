@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../services/version_check_manager.dart';
 import '../../services/version_check_service.dart';
@@ -22,15 +23,18 @@ class _AuthWrapperState extends State<AuthWrapper> {
   }
 
   Future<void> _checkVersionOnStartup() async {
-    // Initialize version check service
-    await VersionCheckService.initialize();
+    // Only check for force updates on Android
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      // Initialize version check service
+      await VersionCheckService.initialize();
 
-    // Check for update and show dialog if required
-    if (mounted) {
-      await VersionCheckManager.checkAndShowUpdateDialog(
-        context,
-        showOnlyIfForceUpdate: true,
-      );
+      // Check for update and show dialog if required
+      if (mounted) {
+        await VersionCheckManager.checkAndShowUpdateDialog(
+          context,
+          showOnlyIfForceUpdate: true,
+        );
+      }
     }
 
     // Mark version check as complete

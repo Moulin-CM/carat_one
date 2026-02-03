@@ -19,10 +19,10 @@ void main() {
   }
   
   // Draw diamond shape
-  final centerX = 512.0;
-  final centerY = 440.0;
-  final diamondWidth = 360.0;
-  final diamondHeight = 320.0;
+  const centerX = 512.0;
+  const centerY = 440.0;
+  const diamondWidth = 360.0;
+  const diamondHeight = 320.0;
   
   // Fill diamond with blue gradient
   for (int y = 0; y < 1024; y++) {
@@ -55,10 +55,10 @@ void main() {
   }
   
   // Draw white "C" letter - simplified thick C
-  final cSize = 280.0;
+  const cSize = 280.0;
   final cX = centerX;
   final cY = centerY;
-  final cThickness = 50.0;
+  const cThickness = 50.0;
   final cRadius = cSize / 2;
   
   for (int y = (cY - cRadius).round(); y < (cY + cRadius).round(); y++) {
@@ -79,8 +79,8 @@ void main() {
   }
   
   // Draw "CaratOne" text below (simplified - just draw text area)
-  final textY = 750;
-  final textHeight = 80;
+  const textY = 750;
+  const textHeight = 80;
   // Simple text representation - draw white pixels for text area
   for (int y = textY - textHeight ~/ 2; y < textY + textHeight ~/ 2; y++) {
     for (int x = 200; x < 824; x++) {
