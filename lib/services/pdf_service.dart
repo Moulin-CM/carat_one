@@ -56,14 +56,17 @@ class PdfService {
               ),
             ),
             pw.SizedBox(height: 12),
-            // RTGS Instructions
-            _buildBankDetails(invoice),
-            pw.SizedBox(height: 12),
-            // Terms and Conditions
-            _buildTermsAndConditions(),
-            pw.SizedBox(height: 24),
-            // Signatures — directly below Terms; same page when space allows
-            _buildSignatures(invoice),
+            // RTGS + Terms + Signatures grouped so they never split across pages
+            pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                _buildBankDetails(invoice),
+                pw.SizedBox(height: 6),
+                _buildTermsAndConditions(),
+                pw.SizedBox(height: 8),
+                _buildSignatures(invoice),
+              ],
+            ),
           ];
         },
       ),
@@ -75,14 +78,14 @@ class PdfService {
   /// Generate, save and share PDF invoice
   static Future<void> generateInvoice(InvoiceModel invoice) async {
     final pdf = await generatePdfDocument(invoice);
-    
+
     // Save and share PDF
     final output = await getApplicationDocumentsDirectory();
     // Use buyer name as filename, sanitize it for filesystem
     final buyerName = invoice.buyerName.replaceAll(RegExp(r'[^\w\s-]'), '').replaceAll(' ', '_');
     final file = File('${output.path}/$buyerName.pdf');
     await file.writeAsBytes(await pdf.save());
-    
+
     // Share the PDF
     await Share.shareXFiles(
       [XFile(file.path)],
@@ -126,7 +129,7 @@ class PdfService {
                 children: [
                   pw.Text(
                     invoice.sellerName,
-                    style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
+                    style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold),
                   ),
                   pw.SizedBox(height: 3),
                   if (invoice.sellerAddress.isNotEmpty) ...[
@@ -182,81 +185,81 @@ class PdfService {
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
-              if (invoice.sellerGstNo.isNotEmpty) ...[
-                pw.Row(
-                  children: [
-                    pw.Text(
-                      'GST NO: ',
-                      style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
+                  if (invoice.sellerGstNo.isNotEmpty) ...[
+                    pw.Row(
+                      children: [
+                        pw.Text(
+                          'GST NO: ',
+                          style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
+                        ),
+                        pw.Text(
+                          invoice.sellerGstNo,
+                          style: const pw.TextStyle(fontSize: 11),
+                        ),
+                      ],
                     ),
-                    pw.Text(
-                      invoice.sellerGstNo,
-                      style: const pw.TextStyle(fontSize: 11),
+                    pw.SizedBox(height: 1),
+                  ],
+                  if (invoice.sellerPanNo.isNotEmpty) ...[
+                    pw.Row(
+                      children: [
+                        pw.Text(
+                          'PAN NO: ',
+                          style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
+                        ),
+                        pw.Text(
+                          invoice.sellerPanNo,
+                          style: const pw.TextStyle(fontSize: 11),
+                        ),
+                      ],
+                    ),
+                    pw.SizedBox(height: 1),
+                  ],
+                  if (invoice.sellerCstNo.isNotEmpty) ...[
+                    pw.Row(
+                      children: [
+                        pw.Text(
+                          'CST NO: ',
+                          style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
+                        ),
+                        pw.Text(
+                          invoice.sellerCstNo,
+                          style: const pw.TextStyle(fontSize: 11),
+                        ),
+                      ],
+                    ),
+                    pw.SizedBox(height: 1),
+                  ],
+                  if (invoice.sellerVatNo.isNotEmpty) ...[
+                    pw.Row(
+                      children: [
+                        pw.Text(
+                          'VAT NO: ',
+                          style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
+                        ),
+                        pw.Text(
+                          invoice.sellerVatNo,
+                          style: const pw.TextStyle(fontSize: 11),
+                        ),
+                      ],
+                    ),
+                    pw.SizedBox(height: 1),
+                  ],
+                  if (invoice.sellerIecNo.isNotEmpty) ...[
+                    pw.Row(
+                      children: [
+                        pw.Text(
+                          'IEC NO: ',
+                          style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
+                        ),
+                        pw.Text(
+                          invoice.sellerIecNo,
+                          style: const pw.TextStyle(fontSize: 11),
+                        ),
+                      ],
                     ),
                   ],
-                ),
-                pw.SizedBox(height: 1),
-              ],
-              if (invoice.sellerPanNo.isNotEmpty) ...[
-                pw.Row(
-                  children: [
-                    pw.Text(
-                      'PAN NO: ',
-                      style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
-                    ),
-                    pw.Text(
-                      invoice.sellerPanNo,
-                      style: const pw.TextStyle(fontSize: 11),
-                    ),
-                  ],
-                ),
-                pw.SizedBox(height: 1),
-              ],
-              if (invoice.sellerCstNo.isNotEmpty) ...[
-                pw.Row(
-                  children: [
-                    pw.Text(
-                      'CST NO: ',
-                      style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
-                    ),
-                    pw.Text(
-                      invoice.sellerCstNo,
-                      style: const pw.TextStyle(fontSize: 11),
-                    ),
-                  ],
-                ),
-                pw.SizedBox(height: 1),
-              ],
-              if (invoice.sellerVatNo.isNotEmpty) ...[
-                pw.Row(
-                  children: [
-                    pw.Text(
-                      'VAT NO: ',
-                      style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
-                    ),
-                    pw.Text(
-                      invoice.sellerVatNo,
-                      style: const pw.TextStyle(fontSize: 11),
-                    ),
-                  ],
-                ),
-                pw.SizedBox(height: 1),
-              ],
-              if (invoice.sellerIecNo.isNotEmpty) ...[
-                pw.Row(
-                  children: [
-                    pw.Text(
-                      'IEC NO: ',
-                      style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
-                    ),
-                    pw.Text(
-                      invoice.sellerIecNo,
-                      style: const pw.TextStyle(fontSize: 11),
-                    ),
-                  ],
-                ),
-              ],
-            ],
+                ],
               ),
             ),
           ),
@@ -269,7 +272,7 @@ class PdfService {
     return pw.Row(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-        // Left Side - Buyer Details
+        // Left Side - Buyer Details (horizontal two-column layout inside)
         pw.Expanded(
           flex: 2,
           child: pw.Container(
@@ -280,173 +283,108 @@ class PdfService {
             child: pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-              if (invoice.buyerName.isNotEmpty) ...[
-                pw.Text(
-                  invoice.buyerName,
-                  style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
-                ),
-                pw.SizedBox(height: 3),
-              ],
-              if (invoice.buyerAddress.isNotEmpty) ...[
-                pw.Text(
-                  'Address: ',
-                  style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
-                ),
-                pw.SizedBox(height: 1),
-                pw.ConstrainedBox(
-                  constraints: const pw.BoxConstraints(maxWidth: 320),
-                  child: pw.Text(
-                    invoice.buyerAddress,
-                    style: const pw.TextStyle(fontSize: 11),
+                // Buyer Name with "Buyer:" prefix
+                if (invoice.buyerName.isNotEmpty) ...[
+                  pw.RichText(
+                    text: pw.TextSpan(
+                      children: [
+                        pw.TextSpan(
+                          text: 'Buyer: ',
+                          style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
+                        ),
+                        pw.TextSpan(
+                          text: invoice.buyerName,
+                          style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                pw.SizedBox(height: 3),
-              ],
-              if (invoice.buyerGstNo.isNotEmpty) ...[
+                  pw.SizedBox(height: 4),
+                ],
+                // Horizontal two-column layout for buyer details
                 pw.Row(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
-                    pw.Text(
-                      'GST NO: ',
-                      style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
-                    ),
-                    pw.Text(
-                      invoice.buyerGstNo,
-                      style: const pw.TextStyle(fontSize: 11),
-                    ),
-                  ],
-                ),
-                pw.SizedBox(height: 1),
-              ],
-              if (invoice.buyerPanNo.isNotEmpty) ...[
-                pw.Row(
-                  children: [
-                    pw.Text(
-                      'PAN NO: ',
-                      style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
-                    ),
-                    pw.Text(
-                      invoice.buyerPanNo,
-                      style: const pw.TextStyle(fontSize: 11),
-                    ),
-                  ],
-                ),
-                pw.SizedBox(height: 1),
-              ],
-              if (invoice.buyerVatNo.isNotEmpty) ...[
-                pw.Row(
-                  children: [
-                    pw.Text(
-                      'VAT NO: ',
-                      style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
-                    ),
-                    pw.Text(
-                      invoice.buyerVatNo,
-                      style: const pw.TextStyle(fontSize: 11),
-                    ),
-                  ],
-                ),
-                pw.SizedBox(height: 1),
-              ],
-              if (invoice.buyerCstNo.isNotEmpty) ...[
-                pw.Row(
-                  children: [
-                    pw.Text(
-                      'CSTNO: ',
-                      style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
-                    ),
-                    pw.Text(
-                      invoice.buyerCstNo,
-                      style: const pw.TextStyle(fontSize: 11),
-                    ),
-                  ],
-                ),
-                pw.SizedBox(height: 1),
-              ],
-              if (invoice.buyerContactPerson.isNotEmpty) ...[
-                pw.Row(
-                  children: [
-                    pw.Text(
-                      'CONTACT PERSON: ',
-                      style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
-                    ),
-                    pw.Text(
-                      invoice.buyerContactPerson,
-                      style: const pw.TextStyle(fontSize: 11),
-                    ),
-                  ],
-                ),
-                pw.SizedBox(height: 1),
-              ],
-              if (invoice.buyerContactNo.isNotEmpty) ...[
-                pw.Row(
-                  children: [
-                    pw.Text(
-                      'CONTACT NO: ',
-                      style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
-                    ),
-                    pw.Text(
-                      invoice.buyerContactNo,
-                      style: const pw.TextStyle(fontSize: 11),
-                    ),
-                  ],
-                ),
-                pw.SizedBox(height: 1),
-              ],
-              if (invoice.buyerEmail.isNotEmpty) ...[
-                pw.Row(
-                  children: [
-                    pw.Text(
-                      'EMAIL: ',
-                      style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
-                    ),
-                    pw.Text(
-                      invoice.buyerEmail,
-                      style: const pw.TextStyle(fontSize: 11),
-                    ),
-                  ],
-                ),
-              ],
-              if (invoice.buyerStateName.isNotEmpty || invoice.buyerStateCode.isNotEmpty) ...[
-                pw.SizedBox(height: 1),
-                pw.Row(
-                  children: [
-                    pw.Text(
-                      'State Name: ',
-                      style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
-                    ),
-                    pw.Text(
-                      invoice.buyerStateName,
-                      style: const pw.TextStyle(fontSize: 11),
-                    ),
-                    if (invoice.buyerStateCode.isNotEmpty) ...[
-                      pw.Text(
-                        ', Code: ',
-                        style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
+                    // Left column: Address, Contact Person, Contact No, Email
+                    pw.Expanded(
+                      child: pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          if (invoice.buyerAddress.isNotEmpty) ...[
+                            pw.Text(
+                              'Address:',
+                              style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
+                            ),
+                            pw.SizedBox(height: 1),
+                            pw.Text(
+                              invoice.buyerAddress,
+                              style: const pw.TextStyle(fontSize: 10),
+                            ),
+                            pw.SizedBox(height: 3),
+                          ],
+                          if (invoice.buyerContactPerson.isNotEmpty) ...[
+                            _buildLabelValue('CONTACT PERSON', invoice.buyerContactPerson),
+                            pw.SizedBox(height: 1),
+                          ],
+                          if (invoice.buyerContactNo.isNotEmpty) ...[
+                            _buildLabelValue('CONTACT NO', invoice.buyerContactNo),
+                            pw.SizedBox(height: 1),
+                          ],
+                          if (invoice.buyerEmail.isNotEmpty)
+                            _buildLabelValue('EMAIL', invoice.buyerEmail),
+                        ],
                       ),
-                      pw.Text(
-                        invoice.buyerStateCode,
-                        style: const pw.TextStyle(fontSize: 11),
+                    ),
+                    pw.SizedBox(width: 8),
+                    // Right column: GST, PAN, VAT, CST, State, Place of Supply
+                    pw.Expanded(
+                      child: pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          if (invoice.buyerGstNo.isNotEmpty) ...[
+                            _buildLabelValue('GST NO', invoice.buyerGstNo),
+                            pw.SizedBox(height: 1),
+                          ],
+                          if (invoice.buyerPanNo.isNotEmpty) ...[
+                            _buildLabelValue('PAN NO', invoice.buyerPanNo),
+                            pw.SizedBox(height: 1),
+                          ],
+                          if (invoice.buyerVatNo.isNotEmpty) ...[
+                            _buildLabelValue('VAT NO', invoice.buyerVatNo),
+                            pw.SizedBox(height: 1),
+                          ],
+                          if (invoice.buyerCstNo.isNotEmpty) ...[
+                            _buildLabelValue('CST NO', invoice.buyerCstNo),
+                            pw.SizedBox(height: 1),
+                          ],
+                          if (invoice.buyerStateName.isNotEmpty || invoice.buyerStateCode.isNotEmpty) ...[
+                            pw.Row(
+                              children: [
+                                pw.Text(
+                                  'State: ',
+                                  style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
+                                ),
+                                pw.Text(
+                                  invoice.buyerStateName,
+                                  style: const pw.TextStyle(fontSize: 10),
+                                ),
+                                if (invoice.buyerStateCode.isNotEmpty)
+                                  pw.Text(
+                                    ' (${invoice.buyerStateCode})',
+                                    style: const pw.TextStyle(fontSize: 10),
+                                  ),
+                              ],
+                            ),
+                            pw.SizedBox(height: 1),
+                          ],
+                          if (invoice.placeOfSupply.isNotEmpty)
+                            _buildLabelValue('Place of Supply', invoice.placeOfSupply),
+                        ],
                       ),
-                    ],
-                  ],
-                ),
-              ],
-              if (invoice.placeOfSupply.isNotEmpty) ...[
-                pw.SizedBox(height: 1),
-                pw.Row(
-                  children: [
-                    pw.Text(
-                      'Place of Supply: ',
-                      style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
-                    ),
-                    pw.Text(
-                      invoice.placeOfSupply,
-                      style: const pw.TextStyle(fontSize: 11),
                     ),
                   ],
                 ),
               ],
-            ],
             ),
           ),
         ),
@@ -461,61 +399,80 @@ class PdfService {
             child: pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-              pw.Row(
-                children: [
-                  pw.Text(
-                    'Invoice No.: ',
-                    style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
-                  ),
-                  pw.Text(
-                    invoice.invoiceNo,
-                    style: const pw.TextStyle(fontSize: 11),
-                  ),
-                ],
-              ),
-              pw.SizedBox(height: 1),
-              pw.Row(
-                children: [
-                  pw.Text(
-                    'Invoice Date: ',
-                    style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
-                  ),
-                  pw.Text(
-                    dateFormat.format(invoice.invoiceDate),
-                    style: const pw.TextStyle(fontSize: 11),
-                  ),
-                ],
-              ),
-              if (invoice.terms.isNotEmpty) ...[
+                pw.Row(
+                  children: [
+                    pw.Text(
+                      'Invoice No.: ',
+                      style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
+                    ),
+                    pw.Text(
+                      invoice.invoiceNo,
+                      style: const pw.TextStyle(fontSize: 11),
+                    ),
+                  ],
+                ),
                 pw.SizedBox(height: 1),
                 pw.Row(
                   children: [
                     pw.Text(
-                      'Terms: ',
+                      'Invoice Date: ',
                       style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
                     ),
                     pw.Text(
-                      invoice.terms,
+                      dateFormat.format(invoice.invoiceDate),
+                      style: const pw.TextStyle(fontSize: 11),
+                    ),
+                  ],
+                ),
+                if (invoice.terms.isNotEmpty) ...[
+                  pw.SizedBox(height: 1),
+                  pw.Row(
+                    children: [
+                      pw.Text(
+                        'Terms: ',
+                        style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
+                      ),
+                      pw.Text(
+                        invoice.terms,
+                        style: const pw.TextStyle(fontSize: 11),
+                      ),
+                    ],
+                  ),
+                ],
+                pw.SizedBox(height: 1),
+                pw.Row(
+                  children: [
+                    pw.Text(
+                      'Due Date: ',
+                      style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
+                    ),
+                    pw.Text(
+                      dateFormat.format(invoice.dueDate),
                       style: const pw.TextStyle(fontSize: 11),
                     ),
                   ],
                 ),
               ],
-              pw.SizedBox(height: 1),
-              pw.Row(
-                children: [
-                  pw.Text(
-                    'Due Date: ',
-                    style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
-                  ),
-                  pw.Text(
-                    dateFormat.format(invoice.dueDate),
-                    style: const pw.TextStyle(fontSize: 11),
-                  ),
-                ],
-              ),
-            ],
             ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Helper: label-value row used in buyer details columns
+  static pw.Widget _buildLabelValue(String label, String value) {
+    return pw.Row(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Text(
+          '$label: ',
+          style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
+        ),
+        pw.Expanded(
+          child: pw.Text(
+            value,
+            style: const pw.TextStyle(fontSize: 10),
           ),
         ),
       ],
@@ -607,77 +564,77 @@ class PdfService {
           child: pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.end,
             children: [
-            pw.Row(
-              mainAxisSize: pw.MainAxisSize.min,
-              children: [
-                pw.Text(
-                  'CGST @ ${invoice.cgstRate}%: ',
-                  style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
-                ),
-                pw.Text(
-                  _formatCurrency(invoice.cgstAmount),
-                  style: const pw.TextStyle(fontSize: 11),
-                ),
-              ],
-            ),
-            pw.SizedBox(height: 2),
-            pw.Row(
-              mainAxisSize: pw.MainAxisSize.min,
-              children: [
-                pw.Text(
-                  'SGST @ ${invoice.sgstRate}%: ',
-                  style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
-                ),
-                pw.Text(
-                  _formatCurrency(invoice.sgstAmount),
-                  style: const pw.TextStyle(fontSize: 11),
-                ),
-              ],
-            ),
-            pw.SizedBox(height: 2),
-            pw.Text(
-              'Round Off:',
-              style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
-            ),
-            pw.SizedBox(height: 4),
-            pw.Row(
-              mainAxisSize: pw.MainAxisSize.min,
-              children: [
-                pw.Text(
-                  'TOTAL',
-                  style: pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold),
-                ),
-                pw.SizedBox(width: 8),
-                pw.Row(
-                  mainAxisSize: pw.MainAxisSize.min,
-                  children: [
-                    pw.Text(
-                      'Carat: ',
-                      style: pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold),
-                    ),
-                    pw.Text(
-                      invoice.totalCarat.toStringAsFixed(2),
-                      style: pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold),
-                    ),
-                  ],
-                ),
-                pw.SizedBox(width: 12),
-                pw.Row(
-                  mainAxisSize: pw.MainAxisSize.min,
-                  children: [
-                    pw.Text(
-                      'Amount (Rs): ',
-                      style: pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold),
-                    ),
-                    pw.Text(
-                      _formatCurrency(invoice.grandTotal),
-                      style: pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ],
+              pw.Row(
+                mainAxisSize: pw.MainAxisSize.min,
+                children: [
+                  pw.Text(
+                    'CGST @ ${invoice.cgstRate}%: ',
+                    style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
+                  ),
+                  pw.Text(
+                    _formatCurrency(invoice.cgstAmount),
+                    style: const pw.TextStyle(fontSize: 11),
+                  ),
+                ],
+              ),
+              pw.SizedBox(height: 2),
+              pw.Row(
+                mainAxisSize: pw.MainAxisSize.min,
+                children: [
+                  pw.Text(
+                    'SGST @ ${invoice.sgstRate}%: ',
+                    style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
+                  ),
+                  pw.Text(
+                    _formatCurrency(invoice.sgstAmount),
+                    style: const pw.TextStyle(fontSize: 11),
+                  ),
+                ],
+              ),
+              pw.SizedBox(height: 2),
+              pw.Text(
+                'Round Off:',
+                style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
+              ),
+              pw.SizedBox(height: 4),
+              pw.Row(
+                mainAxisSize: pw.MainAxisSize.min,
+                children: [
+                  pw.Text(
+                    'TOTAL',
+                    style: pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold),
+                  ),
+                  pw.SizedBox(width: 8),
+                  pw.Row(
+                    mainAxisSize: pw.MainAxisSize.min,
+                    children: [
+                      pw.Text(
+                        'Carat: ',
+                        style: pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold),
+                      ),
+                      pw.Text(
+                        invoice.totalCarat.toStringAsFixed(2),
+                        style: pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                  pw.SizedBox(width: 12),
+                  pw.Row(
+                    mainAxisSize: pw.MainAxisSize.min,
+                    children: [
+                      pw.Text(
+                        'Amount (Rs): ',
+                        style: pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold),
+                      ),
+                      pw.Text(
+                        _formatCurrency(invoice.grandTotal),
+                        style: pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ],
@@ -693,7 +650,7 @@ class PdfService {
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          if (invoice.bankName.isNotEmpty || invoice.branch.isNotEmpty || 
+          if (invoice.bankName.isNotEmpty || invoice.branch.isNotEmpty ||
               invoice.accountNo.isNotEmpty || invoice.ifscCode.isNotEmpty) ...[
             pw.Text(
               'RTGS Instructions (Beneficiary):',
@@ -774,32 +731,32 @@ class PdfService {
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-        pw.Text(
-          'Terms and Conditions:',
-          style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold),
-        ),
-        pw.SizedBox(height: 2),
-        pw.Text(
-          'E. & O. E.',
-          style: const pw.TextStyle(fontSize: 10),
-        ),
-        pw.Text(
-          'Goods once sold will not be taken back.',
-          style: const pw.TextStyle(fontSize: 10),
-        ),
-        pw.Text(
-          'Payment within the days of invoice terms',
-          style: const pw.TextStyle(fontSize: 10),
-        ),
-        pw.Text(
-          'In case of delay interest of 1.5% per month will be charged on due amount.',
-          style: const pw.TextStyle(fontSize: 10),
-        ),
-        pw.Text(
-          'Subject to Surat Jurisdiction',
-          style: const pw.TextStyle(fontSize: 10),
-        ),
-      ],
+          pw.Text(
+            'Terms and Conditions:',
+            style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold),
+          ),
+          pw.SizedBox(height: 2),
+          pw.Text(
+            'E. & O. E.',
+            style: const pw.TextStyle(fontSize: 10),
+          ),
+          pw.Text(
+            'Goods once sold will not be taken back.',
+            style: const pw.TextStyle(fontSize: 10),
+          ),
+          pw.Text(
+            'Payment within the days of invoice terms',
+            style: const pw.TextStyle(fontSize: 10),
+          ),
+          pw.Text(
+            'In case of delay interest of 1.5% per month will be charged on due amount.',
+            style: const pw.TextStyle(fontSize: 10),
+          ),
+          pw.Text(
+            'Subject to Surat Jurisdiction',
+            style: const pw.TextStyle(fontSize: 10),
+          ),
+        ],
       ),
     );
   }

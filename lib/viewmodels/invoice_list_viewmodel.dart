@@ -15,9 +15,14 @@ class InvoiceListViewModel extends ChangeNotifier {
   DateTime? _startDate;
   DateTime? _endDate;
 
-  List<InvoiceModel> get invoices => _filteredInvoices.isEmpty && _searchQuery.isEmpty && _startDate == null && _endDate == null
-      ? _invoices
-      : _filteredInvoices;
+  List<InvoiceModel> get invoices =>
+      _filteredInvoices.isEmpty &&
+          _searchQuery.isEmpty &&
+          _startDate == null &&
+          _endDate == null
+          ? _invoices
+          : _filteredInvoices;
+
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   bool get isEmpty => invoices.isEmpty;
@@ -31,6 +36,7 @@ class InvoiceListViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
+      // _getUser() inside InvoiceStorageService waits for auth automatically
       _invoices = await InvoiceStorageService.getAllInvoices();
       _applyFilters();
       _isLoading = false;
@@ -66,7 +72,6 @@ class InvoiceListViewModel extends ChangeNotifier {
   void _applyFilters() {
     _filteredInvoices = List<InvoiceModel>.from(_invoices);
 
-    // Apply search filter
     if (_searchQuery.isNotEmpty) {
       _filteredInvoices = _filteredInvoices.where((invoice) {
         return invoice.buyerName.toLowerCase().contains(_searchQuery) ||
@@ -75,20 +80,25 @@ class InvoiceListViewModel extends ChangeNotifier {
       }).toList();
     }
 
-    // Apply date range filter
     if (_startDate != null || _endDate != null) {
       _filteredInvoices = _filteredInvoices.where((invoice) {
-        final invoiceDate = DateTime(invoice.invoiceDate.year, invoice.invoiceDate.month, invoice.invoiceDate.day);
+        final invoiceDate = DateTime(invoice.invoiceDate.year,
+            invoice.invoiceDate.month, invoice.invoiceDate.day);
         if (_startDate != null && _endDate != null) {
-          final start = DateTime(_startDate!.year, _startDate!.month, _startDate!.day);
-          final end = DateTime(_endDate!.year, _endDate!.month, _endDate!.day);
-          return invoiceDate.isAfter(start.subtract(const Duration(days: 1))) &&
+          final start =
+          DateTime(_startDate!.year, _startDate!.month, _startDate!.day);
+          final end =
+          DateTime(_endDate!.year, _endDate!.month, _endDate!.day);
+          return invoiceDate
+              .isAfter(start.subtract(const Duration(days: 1))) &&
               invoiceDate.isBefore(end.add(const Duration(days: 1)));
         } else if (_startDate != null) {
-          final start = DateTime(_startDate!.year, _startDate!.month, _startDate!.day);
+          final start =
+          DateTime(_startDate!.year, _startDate!.month, _startDate!.day);
           return invoiceDate.isAfter(start.subtract(const Duration(days: 1)));
         } else if (_endDate != null) {
-          final end = DateTime(_endDate!.year, _endDate!.month, _endDate!.day);
+          final end =
+          DateTime(_endDate!.year, _endDate!.month, _endDate!.day);
           return invoiceDate.isBefore(end.add(const Duration(days: 1)));
         }
         return true;
@@ -98,12 +108,9 @@ class InvoiceListViewModel extends ChangeNotifier {
 
   Future<bool> deleteInvoice(String invoiceId) async {
     try {
-      // Restore inventory before deleting invoice
       await InvoiceFormViewModel.restoreInventoryOnDelete(invoiceId);
-      
-      // Delete invoice
       await InvoiceStorageService.deleteInvoice(invoiceId);
-      await loadInvoices(); // Reload list after deletion
+      await loadInvoices();
       return true;
     } catch (e) {
       _errorMessage = e.toString();
@@ -112,4 +119,3 @@ class InvoiceListViewModel extends ChangeNotifier {
     }
   }
 }
-

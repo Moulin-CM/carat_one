@@ -6,122 +6,108 @@ import '../models/invoice_model.dart';
 
 class InvoiceStorageService {
   static const String _invoicesKey = 'saved_invoices';
-  static final DatabaseReference _invoiceRef =
-      FirebaseDatabase.instance.ref('invoices');
 
-  static DatabaseReference _getUserInvoiceRef(String? uid) {
-    if (uid != null) {
-      return FirebaseDatabase.instance.ref('users/$uid/invoices');
-    }
-    return _invoiceRef;
+  static DatabaseReference _getUserInvoiceRef(String uid) {
+    return FirebaseDatabase.instance.ref('users/$uid/invoices');
   }
 
-  static String _getLocalStorageKey(String? uid) {
-    if (uid != null) {
-      return '${_invoicesKey}_$uid';
-    }
-    return _invoicesKey;
+  static String _getLocalStorageKey(String uid) {
+    return '${_invoicesKey}_$uid';
   }
 
-  /// Save invoice locally (SharedPreferences) and remotely (Firebase).
+  // ─── Auth helper ──────────────────────────────────────────────────────────
+
+  static Future<User?> _getUser() async {
+    final current = FirebaseAuth.instance.currentUser;
+    if (current != null) return current;
+    try {
+      return await FirebaseAuth.instance
+          .authStateChanges()
+          .where((u) => u != null)
+          .first
+          .timeout(const Duration(seconds: 8));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  // ─── Deep conversion helper ───────────────────────────────────────────────
+
+  /// Recursively converts any Map<Object?, Object?> (returned by Firebase web)
+  /// into a fully typed Map<String, dynamic> so fromJson() works on all platforms.
+  static dynamic _deepConvert(dynamic value) {
+    if (value is Map) {
+      return Map<String, dynamic>.fromEntries(
+        value.entries.map(
+              (e) => MapEntry(e.key.toString(), _deepConvert(e.value)),
+        ),
+      );
+    }
+    if (value is List) {
+      return value.map(_deepConvert).toList();
+    }
+    return value;
+  }
+
+  // ─── Public API ───────────────────────────────────────────────────────────
+
   static Future<void> saveInvoice(InvoiceModel invoice) async {
-    final user = FirebaseAuth.instance.currentUser;
-    final uid = user?.uid;
-    final userInvoiceRef = _getUserInvoiceRef(uid);
+    final user = await _getUser();
+    if (user == null) throw StateError('InvoiceStorageService: user is not logged in.');
+
+    final uid = user.uid;
     final storageKey = _getLocalStorageKey(uid);
 
-    // ---------- LOCAL PERSISTENCE (existing behaviour) ----------
     final prefs = await SharedPreferences.getInstance();
     final invoices = await getAllInvoices();
-
-    // Ensure invoice has an id
-    invoice.id ??= DateTime.now().millisecondsSinceEpoch.toString();
-
     final existingIndex = invoices.indexWhere((inv) => inv.id == invoice.id);
     if (existingIndex != -1) {
       invoices[existingIndex] = invoice;
     } else {
       invoices.add(invoice);
     }
+    await prefs.setString(
+        storageKey, jsonEncode(invoices.map((inv) => inv.toJson()).toList()));
 
-    final invoicesJson = invoices.map((inv) => inv.toJson()).toList();
-    await prefs.setString(storageKey, jsonEncode(invoicesJson));
-
-    // ---------- REMOTE PERSISTENCE (Firebase Realtime DB) ----------
     try {
-      await userInvoiceRef.child(invoice.id).set(invoice.toJson());
-    } catch (_) {
-      // Fail silently for now – local storage still works.
+      await _getUserInvoiceRef(uid).child(invoice.id).set(invoice.toJson());
+    } catch (e) {
+      print('[InvoiceStorage] Remote save failed: $e');
     }
   }
 
-  /// Read invoices from Firebase if available, otherwise fall back to local.
   static Future<List<InvoiceModel>> getAllInvoices() async {
-    final user = FirebaseAuth.instance.currentUser;
-    final uid = user?.uid;
-    final userInvoiceRef = _getUserInvoiceRef(uid);
+    final user = await _getUser();
+    if (user == null) {
+      print('[InvoiceStorage] getAllInvoices: no authenticated user, returning []');
+      return [];
+    }
+
+    final uid = user.uid;
     final storageKey = _getLocalStorageKey(uid);
 
     try {
-      final snapshot = await userInvoiceRef.get();
-      final List<InvoiceModel> remote = [];
-
-      if (snapshot.value is Map) {
-        final data = Map<String, dynamic>.from(
-          snapshot.value as Map<Object?, Object?>,
-        );
-        data.forEach((key, value) {
-          if (value is Map<Object?, Object?>) {
-            final json = Map<String, dynamic>.from(value);
-            json['id'] = key;
-            remote.add(InvoiceModel.fromJson(json));
-          }
-        });
-      }
+      print('[InvoiceStorage] Fetching from Firebase for uid: $uid');
+      final snapshot = await _getUserInvoiceRef(uid).get();
+      final List<InvoiceModel> remote = _parseSnapshot(snapshot);
+      print('[InvoiceStorage] Firebase returned ${remote.length} invoices');
 
       if (remote.isNotEmpty) {
         remote.sort((a, b) => b.invoiceDate.compareTo(a.invoiceDate));
-        // Keep local cache synced
-        await _cacheInvoicesLocally(remote, storageKey);
+        await _cacheLocally(remote, storageKey);
         return remote;
       }
-    } catch (e) {
-      // If Firebase fails (permission denied, network error, etc.), fall back to local cache.
-      // This is expected behavior - we silently fall back to local storage.
-      // Only log if it's not a permission error (which is expected for unauthenticated users)
-      if (e.toString().contains('Permission denied')) {
-        // Expected - user may not have Firebase rules set up or not authenticated
-        // Silently fall back to local
-      } else {
-        // Unexpected error - could log for debugging
-        // print('Firebase read error: $e');
+
+      final cached = await _readLocalCache(storageKey);
+      if (cached.isNotEmpty) {
+        print('[InvoiceStorage] Migrating ${cached.length} local invoices to Firebase');
+        await _migrateLocalToFirebase(uid, cached);
       }
+      return cached;
+    } catch (e) {
+      print('[InvoiceStorage] Firebase read failed ($e), falling back to local cache');
+      return _readLocalCache(storageKey);
     }
-
-    // ---------- LOCAL FALLBACK ----------
-    final prefs = await SharedPreferences.getInstance();
-    final invoicesJson = prefs.getString(storageKey);
-
-    if (invoicesJson == null || invoicesJson.isEmpty) {
-      return [];
-    }
-
-    try {
-      final List<dynamic> decoded = jsonDecode(invoicesJson);
-      return decoded
-          .map((json) => InvoiceModel.fromJson(json))
-          .toList()
-        ..sort((a, b) => b.invoiceDate.compareTo(a.invoiceDate));
-    } catch (_) {
-      return [];
-    }
-  }
-
-  static Future<void> _cacheInvoicesLocally(
-      List<InvoiceModel> invoices, String storageKey) async {
-    final prefs = await SharedPreferences.getInstance();
-    final invoicesJson = invoices.map((inv) => inv.toJson()).toList();
-    await prefs.setString(storageKey, jsonEncode(invoicesJson));
   }
 
   static Future<InvoiceModel?> getInvoiceById(String id) async {
@@ -134,24 +120,88 @@ class InvoiceStorageService {
   }
 
   static Future<void> deleteInvoice(String id) async {
-    final user = FirebaseAuth.instance.currentUser;
-    final uid = user?.uid;
-    final userInvoiceRef = _getUserInvoiceRef(uid);
+    final user = await _getUser();
+    if (user == null) throw StateError('InvoiceStorageService: user is not logged in.');
+
+    final uid = user.uid;
     final storageKey = _getLocalStorageKey(uid);
 
-    // Local delete
     final prefs = await SharedPreferences.getInstance();
     final invoices = await getAllInvoices();
     invoices.removeWhere((inv) => inv.id == id);
-    final invoicesJson = invoices.map((inv) => inv.toJson()).toList();
-    await prefs.setString(storageKey, jsonEncode(invoicesJson));
+    await prefs.setString(
+        storageKey, jsonEncode(invoices.map((inv) => inv.toJson()).toList()));
 
-    // Remote delete
     try {
-      await userInvoiceRef.child(id).remove();
+      await _getUserInvoiceRef(uid).child(id).remove();
+    } catch (e) {
+      print('[InvoiceStorage] Remote delete failed: $e');
+    }
+  }
+
+  // ─── Private helpers ──────────────────────────────────────────────────────
+
+  static List<InvoiceModel> _parseSnapshot(DataSnapshot snapshot) {
+    if (snapshot.value == null) return [];
+
+    // _deepConvert handles the difference between mobile (LinkedHashMap) and
+    // web (Map<Object?, Object?> with nested dynamic maps) Firebase responses.
+    final converted = _deepConvert(snapshot.value);
+
+    if (converted is! Map<String, dynamic>) {
+      print('[InvoiceStorage] Unexpected snapshot type: ${snapshot.value.runtimeType}');
+      return [];
+    }
+
+    final List<InvoiceModel> result = [];
+    converted.forEach((key, value) {
+      if (value is Map<String, dynamic>) {
+        try {
+          value['id'] = key;
+          result.add(InvoiceModel.fromJson(value));
+        } catch (e) {
+          print('[InvoiceStorage] Failed to parse invoice $key: $e');
+        }
+      }
+    });
+
+    print('[InvoiceStorage] Parsed ${result.length} invoices from snapshot');
+    return result;
+  }
+
+  static Future<List<InvoiceModel>> _readLocalCache(String storageKey) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(storageKey);
+      if (raw == null || raw.isEmpty) return [];
+      final List<dynamic> decoded = jsonDecode(raw);
+      return decoded
+          .map((json) => InvoiceModel.fromJson(json))
+          .toList()
+        ..sort((a, b) => b.invoiceDate.compareTo(a.invoiceDate));
     } catch (_) {
-      // Ignore remote delete errors – local state is still consistent.
+      return [];
+    }
+  }
+
+  static Future<void> _cacheLocally(
+      List<InvoiceModel> invoices, String storageKey) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+        storageKey, jsonEncode(invoices.map((inv) => inv.toJson()).toList()));
+  }
+
+  static Future<void> _migrateLocalToFirebase(
+      String uid, List<InvoiceModel> invoices) async {
+    try {
+      final Map<String, dynamic> updates = {};
+      for (final inv in invoices) {
+        updates[inv.id] = inv.toJson();
+      }
+      await _getUserInvoiceRef(uid).update(updates);
+      print('[InvoiceStorage] Migration complete: ${invoices.length} invoices uploaded');
+    } catch (e) {
+      print('[InvoiceStorage] Migration failed: $e');
     }
   }
 }
-

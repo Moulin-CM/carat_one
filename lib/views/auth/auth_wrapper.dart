@@ -23,12 +23,8 @@ class _AuthWrapperState extends State<AuthWrapper> {
   }
 
   Future<void> _checkVersionOnStartup() async {
-    // Only check for force updates on Android
     if (defaultTargetPlatform == TargetPlatform.android) {
-      // Initialize version check service
       await VersionCheckService.initialize();
-
-      // Check for update and show dialog if required
       if (mounted) {
         await VersionCheckManager.checkAndShowUpdateDialog(
           context,
@@ -36,8 +32,6 @@ class _AuthWrapperState extends State<AuthWrapper> {
         );
       }
     }
-
-    // Mark version check as complete
     if (mounted) {
       setState(() {
         _isCheckingVersion = false;
@@ -47,37 +41,29 @@ class _AuthWrapperState extends State<AuthWrapper> {
 
   @override
   Widget build(BuildContext context) {
-    // Show loading while checking version on first launch
     if (_isCheckingVersion) {
       return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
+        body: Center(child: CircularProgressIndicator()),
       );
     }
 
-    // After version check, proceed with auth check
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
-        // Show loading while checking auth state
+        // Still waiting for Firebase to restore session
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
+            body: Center(child: CircularProgressIndicator()),
           );
         }
 
-        // If user is logged in, show dashboard
-        if (snapshot.hasData && snapshot.data != null) {
+        final isLoggedIn = snapshot.hasData && snapshot.data != null;
+
+        if (isLoggedIn) {
           return const DashboardView();
         }
-
-        // If user is not logged in, show welcome screen
         return const WelcomeView();
       },
     );
   }
 }
-

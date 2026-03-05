@@ -237,7 +237,7 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
               label: Text(
                 viewModel.isGeneratingPdf || viewModel.isSaving
                     ? 'Generating...'
-                    : 'Generate PDF Invoice',
+                    : 'Generate Invoice',
                 style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
               ),
               style: ElevatedButton.styleFrom(

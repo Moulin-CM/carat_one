@@ -73,13 +73,9 @@ class InvoiceModel {
         buyerStateCode = json['buyerStateCode'] ?? '',
         placeOfSupply = json['placeOfSupply'] ?? '',
         invoiceNo = json['invoiceNo'] ?? '',
-        invoiceDate = json['invoiceDate'] != null
-            ? DateTime.parse(json['invoiceDate'])
-            : DateTime.now(),
+        invoiceDate = _parseFlexibleDate(json['invoiceDate']),
         terms = json['terms'] ?? '',
-        dueDate = json['dueDate'] != null
-            ? DateTime.parse(json['dueDate'])
-            : DateTime.now(),
+        dueDate = _parseFlexibleDate(json['dueDate']),
         bankName = json['bankName'] ?? 'AXIS BANK LTD.',
         branch = json['branch'] ?? '',
         accountNo = json['accountNo'] ?? '',
@@ -92,6 +88,25 @@ class InvoiceModel {
         sgstRate = (json['sgstRate'] ?? 0.75).toDouble(),
         igstRate = (json['igstRate'] ?? 1.5).toDouble(),
         id = json['id'] ?? DateTime.now().millisecondsSinceEpoch.toString();
+
+  /// Safely parse dates stored either as ISO8601 strings, integer
+  /// timestamps (milliseconds since epoch), or already as DateTime.
+  /// Falls back to `DateTime.now()` if parsing fails or value is null.
+  static DateTime _parseFlexibleDate(dynamic raw) {
+    if (raw == null) return DateTime.now();
+    try {
+      if (raw is DateTime) return raw;
+      if (raw is int) {
+        return DateTime.fromMillisecondsSinceEpoch(raw);
+      }
+      if (raw is String && raw.isNotEmpty) {
+        return DateTime.parse(raw);
+      }
+    } catch (_) {
+      // Ignore and fall through to default below.
+    }
+    return DateTime.now();
+  }
 
   Map<String, dynamic> toJson() => {
         'id': id,

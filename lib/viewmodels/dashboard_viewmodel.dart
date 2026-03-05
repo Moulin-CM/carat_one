@@ -13,18 +13,17 @@ class DashboardViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  // Statistics
   int get totalInvoices => _invoices.length;
-  
-  double get totalRevenue {
-    return _invoices.fold(0.0, (sum, invoice) => sum + invoice.grandTotal);
-  }
+
+  double get totalRevenue =>
+      _invoices.fold(0.0, (sum, invoice) => sum + invoice.grandTotal);
 
   double get thisMonthRevenue {
     final now = DateTime.now();
     final firstDayOfMonth = DateTime(now.year, now.month, 1);
     return _invoices
-        .where((invoice) => invoice.invoiceDate.isAfter(firstDayOfMonth.subtract(const Duration(days: 1))))
+        .where((invoice) => invoice.invoiceDate
+        .isAfter(firstDayOfMonth.subtract(const Duration(days: 1))))
         .fold(0.0, (sum, invoice) => sum + invoice.grandTotal);
   }
 
@@ -32,7 +31,8 @@ class DashboardViewModel extends ChangeNotifier {
     final now = DateTime.now();
     final firstDayOfMonth = DateTime(now.year, now.month, 1);
     return _invoices
-        .where((invoice) => invoice.invoiceDate.isAfter(firstDayOfMonth.subtract(const Duration(days: 1))))
+        .where((invoice) => invoice.invoiceDate
+        .isAfter(firstDayOfMonth.subtract(const Duration(days: 1))))
         .length;
   }
 
@@ -45,7 +45,8 @@ class DashboardViewModel extends ChangeNotifier {
   Map<String, double> get monthlyRevenue {
     final Map<String, double> monthly = {};
     for (var invoice in _invoices) {
-      final monthKey = '${invoice.invoiceDate.year}-${invoice.invoiceDate.month.toString().padLeft(2, '0')}';
+      final monthKey =
+          '${invoice.invoiceDate.year}-${invoice.invoiceDate.month.toString().padLeft(2, '0')}';
       monthly[monthKey] = (monthly[monthKey] ?? 0.0) + invoice.grandTotal;
     }
     return monthly;
@@ -57,6 +58,7 @@ class DashboardViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
+      // _getUser() inside InvoiceStorageService waits for auth automatically
       _invoices = await InvoiceStorageService.getAllInvoices();
       _isLoading = false;
       notifyListeners();
@@ -77,4 +79,3 @@ class DashboardViewModel extends ChangeNotifier {
     }
   }
 }
-
