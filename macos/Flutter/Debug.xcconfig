@@ -1,0 +1,3 @@
+#include "../../Flutter/ephemeral/Flutter-Generated.xcconfig"
+FLUTTER_ROOT=/Users/imac/Documents/Moulin/Flutter/flutter
+
