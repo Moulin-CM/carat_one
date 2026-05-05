@@ -9,7 +9,9 @@
       "Bash(xargs grep *)",
       "PowerShell(python --version; python -c \"from PIL import Image; print\\(Image.__version__\\)\")",
       "Bash(python *)",
-      "Bash(git mv *)"
+      "Bash(git mv *)",
+      "Bash(magick -version)",
+      "Bash(convert -version)"
     ]
   }
 }
