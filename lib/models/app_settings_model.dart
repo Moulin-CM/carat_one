@@ -1,3 +1,4 @@
+import 'stock_valuation_item.dart';
 
 class AppSettingsModel {
   // Tax Rates
@@ -29,6 +30,14 @@ class AppSettingsModel {
   double manualOpeningSellCarat = 0.0;
   double manualOpeningSellAmount = 0.0;
 
+  // Expense Opening values
+  double manualOpeningExpenseAmount = 0.0;
+
+  // Stock valuation — user-defined breakdown of the remaining unsold
+  // carats into named items with a per-carat rate. Used to show the
+  // estimated worth of the current stock on the Purchase summary bar.
+  List<StockValuationItem> stockValuationItems = [];
+
   AppSettingsModel();
 
   AppSettingsModel.fromJson(Map<String, dynamic> json)
@@ -47,7 +56,19 @@ class AppSettingsModel {
         manualOpeningSellCarat =
             (json['manualOpeningSellCarat'] ?? 0.0).toDouble(),
         manualOpeningSellAmount =
-            (json['manualOpeningSellAmount'] ?? 0.0).toDouble();
+            (json['manualOpeningSellAmount'] ?? 0.0).toDouble(),
+        manualOpeningExpenseAmount =
+            (json['manualOpeningExpenseAmount'] ?? 0.0).toDouble(),
+        stockValuationItems = _parseStockValuationItems(
+            json['stockValuationItems']);
+
+  static List<StockValuationItem> _parseStockValuationItems(dynamic raw) {
+    if (raw is! List) return [];
+    return raw
+        .whereType<Map>()
+        .map((e) => StockValuationItem.fromJson(Map<String, dynamic>.from(e)))
+        .toList();
+  }
 
   static DateTime? _parseDate(dynamic raw) {
     if (raw == null) return null;
@@ -74,6 +95,9 @@ class AppSettingsModel {
         'manualOpeningAmount': manualOpeningAmount,
         'manualOpeningSellCarat': manualOpeningSellCarat,
         'manualOpeningSellAmount': manualOpeningSellAmount,
+        'manualOpeningExpenseAmount': manualOpeningExpenseAmount,
+        'stockValuationItems':
+            stockValuationItems.map((e) => e.toJson()).toList(),
       };
 
   AppSettingsModel copyWith({
@@ -92,6 +116,8 @@ class AppSettingsModel {
     double? manualOpeningAmount,
     double? manualOpeningSellCarat,
     double? manualOpeningSellAmount,
+    double? manualOpeningExpenseAmount,
+    List<StockValuationItem>? stockValuationItems,
   }) {
     return AppSettingsModel()
       ..cgstRate = cgstRate ?? this.cgstRate
@@ -110,7 +136,11 @@ class AppSettingsModel {
       ..manualOpeningSellCarat =
           manualOpeningSellCarat ?? this.manualOpeningSellCarat
       ..manualOpeningSellAmount =
-          manualOpeningSellAmount ?? this.manualOpeningSellAmount;
+          manualOpeningSellAmount ?? this.manualOpeningSellAmount
+      ..manualOpeningExpenseAmount =
+          manualOpeningExpenseAmount ?? this.manualOpeningExpenseAmount
+      ..stockValuationItems =
+          stockValuationItems ?? List.of(this.stockValuationItems);
   }
 
   /// Beginning of the current financial year. Returns null when

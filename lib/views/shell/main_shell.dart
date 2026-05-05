@@ -20,7 +20,7 @@ class _MainShellState extends State<MainShell> {
   final List<_NavItem> _items = const [
     _NavItem(icon: Icons.dashboard_rounded, label: 'Dashboard'),
     _NavItem(icon: Icons.diamond_rounded, label: 'Purchases'),
-    _NavItem(icon: Icons.receipt_long_rounded, label: 'Invoices'),
+    _NavItem(icon: Icons.receipt_long_rounded, label: 'Sells'),
     _NavItem(icon: Icons.settings_rounded, label: 'Settings'),
   ];
 

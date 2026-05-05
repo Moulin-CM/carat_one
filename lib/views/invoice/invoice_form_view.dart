@@ -156,6 +156,13 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
     final isEditing = viewModel.isEditing;
     final isCashSell = viewModel.isCashSell;
 
+    // Pick up the auto-generated Entry/Invoice No once the viewmodel resolves
+    // it. Only sync when the field hasn't been touched, so we never overwrite
+    // the user's manual edits.
+    if (_invoiceNoController.text.isEmpty && invoice.invoiceNo.isNotEmpty) {
+      _invoiceNoController.text = invoice.invoiceNo;
+    }
+
     if (viewModel.isLoadingProfile || viewModel.isLoadingInventory) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),

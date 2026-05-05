@@ -196,6 +196,7 @@ class _DashboardViewContent extends StatelessWidget {
 
   Widget _buildStatsCards(BuildContext context, DashboardViewModel viewModel, Color accent, Color deepAccent) {
     final currencyFormat = NumberFormat.currency(symbol: '₹', decimalDigits: 0);
+    final caratFormat = NumberFormat('#,##0.##');
 
     return Column(
       children: [
@@ -203,14 +204,28 @@ class _DashboardViewContent extends StatelessWidget {
           children: [
             Expanded(
               child: _buildStatCard(
-                'Total Invoices',
-                viewModel.totalInvoices.toString(),
+                'Total Sells',
+                viewModel.totalSells.toString(),
                 Icons.receipt_long_rounded,
                 accent,
                 deepAccent,
               ),
             ),
             const SizedBox(width: 12),
+            Expanded(
+              child: _buildStatCard(
+                'Total Purchases',
+                viewModel.totalPurchases.toString(),
+                Icons.diamond_rounded,
+                Colors.teal,
+                deepAccent,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
             Expanded(
               child: _buildStatCard(
                 viewModel.netProfitOrLoss >= 0 ? 'Net Profit' : 'Net Loss',
@@ -221,6 +236,16 @@ class _DashboardViewContent extends StatelessWidget {
                     ? Icons.trending_up_rounded
                     : Icons.trending_down_rounded,
                 viewModel.netProfitOrLoss >= 0 ? Colors.green : Colors.red,
+                deepAccent,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildStatCard(
+                'Remaining Carat',
+                '${caratFormat.format(viewModel.totalRemainingCarat)} ct',
+                Icons.scale_rounded,
+                Colors.indigo,
                 deepAccent,
               ),
             ),
@@ -299,8 +324,8 @@ class _DashboardViewContent extends StatelessWidget {
                   context,
                   icon: Icons.receipt_long_rounded,
                   title: 'Expenses',
-                  value: '- ${currencyFormat.format(viewModel.totalExpenses)}',
-                  color: Colors.red,
+                  value: 'Manage',
+                  color: Colors.blueGrey,
                   onTap: () async {
                     await Navigator.push(
                       context,
@@ -563,7 +588,7 @@ class _DashboardViewContent extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               const Text(
-                'Recent Invoices',
+                'Recent Sells',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
               ),
             ],
@@ -574,7 +599,7 @@ class _DashboardViewContent extends StatelessWidget {
               padding: const EdgeInsets.all(20),
               child: Center(
                 child: Text(
-                  'No invoices yet',
+                  'No sells yet',
                   style: TextStyle(color: Colors.grey[600]),
                 ),
               ),
@@ -599,7 +624,7 @@ class _DashboardViewContent extends StatelessWidget {
                       MaterialPageRoute(builder: (_) => const InvoiceListView()),
                     );
                   },
-                  child: const Text('View All Invoices'),
+                  child: const Text('View All Sells'),
                 ),
               ),
             ),
@@ -729,7 +754,7 @@ class _DashboardViewContent extends StatelessWidget {
               Expanded(
                 child: _buildQuickActionButton(
                   context,
-                  'All Invoices',
+                  'All Sells',
                   Icons.list_rounded,
                   Colors.blue,
                   () {

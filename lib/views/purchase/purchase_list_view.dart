@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../models/purchase_model.dart';
+import '../../models/stock_valuation_item.dart';
 import '../../viewmodels/purchase_viewmodel.dart';
-import '../finance/expenses_view.dart';
-import '../finance/withdrawals_view.dart';
 import '../finance/buy_sell_report_view.dart';
 import 'purchase_form_view.dart';
 import 'purchase_detail_view.dart';
@@ -42,11 +41,6 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
     final vm = context.watch<PurchaseViewModel>();
     final fmt = NumberFormat.currency(symbol: '₹', decimalDigits: 0);
     final caratFmt = NumberFormat('#,##0.00');
-    final grossProfit = vm.totalProfitOrLoss;
-    final expenses = vm.totalExpenses;
-    final outstanding = vm.outstandingWithdrawals;
-    final net = vm.netProfitOrLoss;
-    final netColor = net >= 0 ? Colors.green : Colors.red;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FB),
@@ -59,7 +53,7 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
                 // Global Summary Bar
                 Container(
                   margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 16),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
                       colors: [Color(0xFF1E3C72), Color(0xFF4F8AF4)],
@@ -76,28 +70,21 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
                   child: Column(
                     children: [
                       _yearEndBadge(context, vm),
+                      const SizedBox(height: 6),
                       Row(
                         children: [
                           Expanded(
-                            child: InkWell(
-                              onTap: () => _editOpeningCarat(context, vm),
-                              borderRadius: BorderRadius.circular(12),
-                              child: _summaryTile('Opening Carats',
-                                  '${caratFmt.format(vm.openingTotalCarat)} ct', Icons.diamond_rounded,
-                                  editable: true),
-                            ),
+                            child: _summaryTile('Opening Carats',
+                                '${caratFmt.format(vm.openingTotalCarat)} ct',
+                                Icons.diamond_rounded),
                           ),
-                          Container(width: 1, height: 30, color: Colors.white24),
+                          Container(width: 1, height: 35, color: Colors.white24),
                           Expanded(
-                            child: InkWell(
-                              onTap: () => _editOpeningAmount(context, vm),
-                              borderRadius: BorderRadius.circular(12),
-                              child: _summaryTile('Opening Amount',
-                                  fmt.format(vm.openingTotalAmount), Icons.currency_rupee_rounded,
-                                  editable: true),
-                            ),
+                            child: _summaryTile('Opening Amount',
+                                fmt.format(vm.openingTotalAmount),
+                                Icons.currency_rupee_rounded),
                           ),
-                          Container(width: 1, height: 30, color: Colors.white24),
+                          Container(width: 1, height: 35, color: Colors.white24),
                           Expanded(
                             child: _summaryTile('Remaining',
                                 '${caratFmt.format(vm.totalRemainingCarat)} ct',
@@ -106,73 +93,32 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
                         ],
                       ),
                       const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 4),
-                        child: Divider(color: Colors.white24, height: 12),
+                        padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12),
+                        child: Divider(color: Colors.white24, height: 1),
                       ),
                       Row(
                         children: [
                           Expanded(
-                            child: _summaryTile('Sales Profit',
-                                (grossProfit >= 0 ? '+' : '') + fmt.format(grossProfit),
-                                grossProfit >= 0 ? Icons.trending_up_rounded : Icons.trending_down_rounded),
+                            child: _summaryTile('Sold Carat',
+                                '${caratFmt.format(vm.totalSoldCarat)} ct',
+                                Icons.sell_rounded),
                           ),
-                          Container(width: 1, height: 30, color: Colors.white24),
+                          Container(width: 1, height: 35, color: Colors.white24),
+                          Expanded(
+                            child: _summaryTile('Sold Amount',
+                                fmt.format(vm.totalSellAmount),
+                                Icons.payments_rounded),
+                          ),
+                          Container(width: 1, height: 35, color: Colors.white24),
                           Expanded(
                             child: InkWell(
-                              onTap: () async {
-                                await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (_) => const ExpensesView()),
-                                );
-                                if (context.mounted) {
-                                  context.read<PurchaseViewModel>().loadPurchases();
-                                }
-                              },
-                              child: _summaryTile('Expenses',
-                                  '- ${fmt.format(expenses)}', Icons.receipt_rounded),
-                            ),
-                          ),
-                          Container(width: 1, height: 30, color: Colors.white24),
-                          Expanded(
-                            child: InkWell(
-                              onTap: () async {
-                                await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (_) => const WithdrawalsView()),
-                                );
-                                if (context.mounted) {
-                                  context.read<PurchaseViewModel>().loadPurchases();
-                                }
-                              },
-                              child: _summaryTile('Withdrawals',
-                                  '- ${fmt.format(outstanding)}', Icons.account_balance_wallet_rounded),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 4),
-                        child: Divider(color: Colors.white24, height: 12),
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            net >= 0 ? Icons.trending_up_rounded : Icons.trending_down_rounded,
-                            color: net >= 0 ? Colors.greenAccent : Colors.redAccent,
-                            size: 16,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            net >= 0 ? 'Net Profit: ' : 'Net Loss: ',
-                            style: const TextStyle(color: Colors.white70, fontSize: 12),
-                          ),
-                          Text(
-                            (net >= 0 ? '+' : '') + fmt.format(net),
-                            style: TextStyle(
-                              color: netColor == Colors.green ? Colors.greenAccent : Colors.redAccent,
-                              fontWeight: FontWeight.w800,
-                              fontSize: 14,
+                              onTap: () => _manageStockValuation(context, vm),
+                              borderRadius: BorderRadius.circular(12),
+                              child: _summaryTile(
+                                  'Stock Valuation',
+                                  fmt.format(vm.stockValuationTotal),
+                                  Icons.savings_rounded,
+                                  editable: true),
                             ),
                           ),
                         ],
@@ -182,30 +128,44 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
                 ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: () async {
-                        await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => const BuySellReportView()),
-                        );
-                        if (context.mounted) {
-                          context.read<PurchaseViewModel>().loadPurchases();
-                        }
-                      },
-                      icon: const Icon(Icons.assessment_rounded, size: 18),
-                      label: const Text('Buy / Sell Report'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: _accent,
-                        side: const BorderSide(color: _accent),
-                        padding:
-                            const EdgeInsets.symmetric(vertical: 10),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () async {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const BuySellReportView()),
+                            );
+                            if (context.mounted) {
+                              context.read<PurchaseViewModel>().loadPurchases();
+                            }
+                          },
+                          icon: const Icon(Icons.assessment_rounded, size: 18),
+                          label: const Text('Buy / Sell Report'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: _accent,
+                            side: const BorderSide(color: _accent),
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                          ),
+                        ),
                       ),
-                    ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        onPressed: vm.isSyncing ? null : () => vm.syncInventory(),
+                        icon: vm.isSyncing
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.sync_rounded, color: _accent),
+                        tooltip: 'Sync Inventory',
+                      ),
+                    ],
                   ),
                 ),
                 // Search bar
@@ -281,20 +241,24 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: Colors.white70, size: 16),
+            Icon(icon, color: Colors.white.withOpacity(0.8), size: 18),
             if (editable) ...[
-              const SizedBox(width: 3),
-              const Icon(Icons.edit_rounded, color: Colors.white54, size: 11),
+              const SizedBox(width: 4),
+              const Icon(Icons.edit_rounded, color: Colors.white70, size: 12),
             ],
           ],
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: 4),
         Text(value,
             style: const TextStyle(
-                color: Colors.white, fontWeight: FontWeight.w700, fontSize: 11),
+                color: Colors.white, fontWeight: FontWeight.w900, fontSize: 13),
             textAlign: TextAlign.center),
+        const SizedBox(height: 2),
         Text(label,
-            style: const TextStyle(color: Colors.white60, fontSize: 9),
+            style: TextStyle(
+                color: Colors.white.withOpacity(0.85), 
+                fontSize: 10, 
+                fontWeight: FontWeight.w700),
             textAlign: TextAlign.center),
       ],
     );
@@ -400,100 +364,382 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
     }
   }
 
-  Future<void> _editOpeningCarat(
+  Future<void> _manageStockValuation(
       BuildContext context, PurchaseViewModel vm) async {
-    final controller =
-        TextEditingController(text: vm.manualOpeningCarat.toString());
-    final result = await showDialog<double>(
+    final fmt = NumberFormat.currency(symbol: '₹', decimalDigits: 0);
+    final caratFmt = NumberFormat('#,##0.00');
+    final items = List<StockValuationItem>.from(vm.stockValuationItems);
+
+    await showModalBottomSheet(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Opening Carats'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-                'Enter a carry-forward carat value. This is added to the carats purchased inside the current financial year.',
-                style: TextStyle(fontSize: 12)),
-            const SizedBox(height: 12),
-            TextField(
-              controller: controller,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              autofocus: true,
-              decoration: const InputDecoration(
-                labelText: 'Carry-forward carats',
-                suffixText: 'ct',
-                border: OutlineInputBorder(),
-              ),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setModalState) {
+          final totalVal = items.fold(0.0, (sum, item) => sum + item.totalValue);
+          final totalCarat = items.fold(0.0, (sum, item) => sum + item.carats);
+          final remainingActual = vm.totalRemainingCarat;
+          final diff = (remainingActual - totalCarat).abs();
+          final isMismatch = diff > 0.001;
+
+          return Container(
+            height: MediaQuery.of(context).size.height * 0.85,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
             ),
-          ],
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel')),
-          TextButton(
-            onPressed: () {
-              final v = double.tryParse(controller.text.trim()) ?? 0.0;
-              Navigator.pop(ctx, v);
-            },
-            child: const Text('Save'),
-          ),
-        ],
+            padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom),
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[50],
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                    border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Stock Valuation',
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold)),
+                          IconButton(
+                              onPressed: () => Navigator.pop(context),
+                              icon: const Icon(Icons.close_rounded)),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _miniStat('Total Value', fmt.format(totalVal), _accent),
+                          ),
+                          Expanded(
+                            child: _miniStat('Total Carats',
+                                '${caratFmt.format(totalCarat)} ct', Colors.orange),
+                          ),
+                          Expanded(
+                            child: _miniStat('Actual Remaining',
+                                '${caratFmt.format(remainingActual)} ct', Colors.green),
+                          ),
+                        ],
+                      ),
+                      if (isMismatch)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Text(
+                            'Warning: Valuation carats do not match actual remaining carats.',
+                            style: TextStyle(color: Colors.red[700], fontSize: 11, fontWeight: FontWeight.w500),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: items.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.inventory_2_outlined,
+                                  size: 48, color: Colors.grey[300]),
+                              const SizedBox(height: 12),
+                              Text('No valuation items added',
+                                  style: TextStyle(color: Colors.grey[500])),
+                            ],
+                          ),
+                        )
+                      : ListView.separated(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: items.length,
+                          separatorBuilder: (_, __) => const SizedBox(height: 12),
+                          itemBuilder: (ctx, i) {
+                            final item = items[i];
+                            final hasDeductions = item.discountPercent > 0 ||
+                                item.brokeragePercent > 0;
+                            return Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.grey[200]!),
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(item.itemName.isNotEmpty ? item.itemName : 'Unnamed Item',
+                                            style: const TextStyle(fontWeight: FontWeight.bold)),
+                                        Text(
+                                            '${caratFmt.format(item.carats)} ct @ ${fmt.format(item.ratePerCarat)}/ct',
+                                            style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                                        if (hasDeductions)
+                                          Text(
+                                              'Disc ${item.discountPercent.toStringAsFixed(item.discountPercent.truncateToDouble() == item.discountPercent ? 0 : 2)}% • Brok ${item.brokeragePercent.toStringAsFixed(item.brokeragePercent.truncateToDouble() == item.brokeragePercent ? 0 : 2)}% → ${fmt.format(item.effectiveRatePerCarat)}/ct',
+                                              style: TextStyle(
+                                                  fontSize: 11,
+                                                  color: Colors.orange[700],
+                                                  fontWeight: FontWeight.w500)),
+                                      ],
+                                    ),
+                                  ),
+                                  Text(fmt.format(item.totalValue),
+                                      style: const TextStyle(fontWeight: FontWeight.w700, color: _accent)),
+                                  const SizedBox(width: 8),
+                                  IconButton(
+                                    icon: const Icon(Icons.edit_outlined, size: 20),
+                                    onPressed: () async {
+                                      final updated = await _showItemDialog(context, item);
+                                      if (updated != null) {
+                                        setModalState(() {
+                                          items[i] = updated;
+                                        });
+                                      }
+                                    },
+                                  ),
+                                  IconButton(
+                                    icon: Icon(Icons.delete_outline_rounded,
+                                        size: 20, color: Colors.red[300]),
+                                    onPressed: () {
+                                      setModalState(() {
+                                        items.removeAt(i);
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () async {
+                            final newItem = await _showItemDialog(context);
+                            if (newItem != null) {
+                              setModalState(() {
+                                items.add(newItem);
+                              });
+                            }
+                          },
+                          icon: const Icon(Icons.add_rounded),
+                          label: const Text('Add Item'),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            await vm.setStockValuationItems(items);
+                            if (context.mounted) Navigator.pop(context);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _accent,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            elevation: 0,
+                          ),
+                          child: const Text('Save Valuation'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
-    if (result != null) {
-      await vm.setManualOpeningCarat(result);
-    }
   }
 
-  Future<void> _editOpeningAmount(
-      BuildContext context, PurchaseViewModel vm) async {
-    final controller =
-        TextEditingController(text: vm.manualOpeningAmount.toString());
-    final result = await showDialog<double>(
+  Widget _miniStat(String label, String value, Color color) {
+    return Column(
+      children: [
+        Text(value,
+            style: TextStyle(
+                fontWeight: FontWeight.bold, fontSize: 13, color: color)),
+        Text(label, style: TextStyle(fontSize: 10, color: Colors.grey[500])),
+      ],
+    );
+  }
+
+  Future<StockValuationItem?> _showItemDialog(BuildContext context,
+      [StockValuationItem? existing]) async {
+    final nameCtrl = TextEditingController(text: existing?.itemName ?? '');
+    final caratCtrl = TextEditingController(
+        text: existing != null && existing.carats > 0
+            ? existing.carats.toString()
+            : '');
+    final rateCtrl = TextEditingController(
+        text: existing != null && existing.ratePerCarat > 0
+            ? existing.ratePerCarat.toString()
+            : '');
+    final discountCtrl = TextEditingController(
+        text: existing != null && existing.discountPercent > 0
+            ? existing.discountPercent.toString()
+            : '');
+    final brokerageCtrl = TextEditingController(
+        text: existing != null && existing.brokeragePercent > 0
+            ? existing.brokeragePercent.toString()
+            : '');
+    final fmt = NumberFormat.currency(symbol: '₹', decimalDigits: 0);
+
+    return showDialog<StockValuationItem>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Opening Amount'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-                'Enter a carry-forward amount. This is added to the amount purchased inside the current financial year.',
-                style: TextStyle(fontSize: 12)),
-            const SizedBox(height: 12),
-            TextField(
-              controller: controller,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              autofocus: true,
-              decoration: const InputDecoration(
-                labelText: 'Carry-forward amount',
-                prefixText: '₹ ',
-                border: OutlineInputBorder(),
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          final carats = double.tryParse(caratCtrl.text) ?? 0.0;
+          final rate = double.tryParse(rateCtrl.text) ?? 0.0;
+          final disc = double.tryParse(discountCtrl.text) ?? 0.0;
+          final brok = double.tryParse(brokerageCtrl.text) ?? 0.0;
+          final effRate = (rate * (1 - (disc / 100)) * (1 - (brok / 100)))
+              .clamp(0.0, double.infinity);
+          final totalVal = carats * effRate;
+
+          return AlertDialog(
+            title: Text(existing == null ? 'Add Stock Item' : 'Edit Stock Item'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: nameCtrl,
+                    decoration: const InputDecoration(
+                        labelText: 'Item Name (e.g. Rough, Polished)'),
+                    textCapitalization: TextCapitalization.words,
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: caratCtrl,
+                          keyboardType:
+                              const TextInputType.numberWithOptions(decimal: true),
+                          decoration: const InputDecoration(
+                              labelText: 'Carats', suffixText: 'ct'),
+                          onChanged: (_) => setDialogState(() {}),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: rateCtrl,
+                          keyboardType:
+                              const TextInputType.numberWithOptions(decimal: true),
+                          decoration: const InputDecoration(
+                              labelText: 'Rate', prefixText: '₹'),
+                          onChanged: (_) => setDialogState(() {}),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: discountCtrl,
+                          keyboardType:
+                              const TextInputType.numberWithOptions(decimal: true),
+                          decoration: const InputDecoration(
+                              labelText: 'Discount', suffixText: '%'),
+                          onChanged: (_) => setDialogState(() {}),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: brokerageCtrl,
+                          keyboardType:
+                              const TextInputType.numberWithOptions(decimal: true),
+                          decoration: const InputDecoration(
+                              labelText: 'Brokerage', suffixText: '%'),
+                          onChanged: (_) => setDialogState(() {}),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('Effective Rate',
+                                style: TextStyle(fontSize: 12)),
+                            Text('${fmt.format(effRate)}/ct',
+                                style: const TextStyle(
+                                    fontSize: 12, fontWeight: FontWeight.w600)),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('Total Value',
+                                style: TextStyle(
+                                    fontSize: 13, fontWeight: FontWeight.w600)),
+                            Text(fmt.format(totalVal),
+                                style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: _accent)),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel')),
-          TextButton(
-            onPressed: () {
-              final v = double.tryParse(controller.text.trim()) ?? 0.0;
-              Navigator.pop(ctx, v);
-            },
-            child: const Text('Save'),
-          ),
-        ],
+            actions: [
+              TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Cancel')),
+              ElevatedButton(
+                onPressed: () {
+                  if (carats > 0 && rate > 0) {
+                    Navigator.pop(
+                        ctx,
+                        (existing ?? StockValuationItem()).copyWith(
+                          itemName: nameCtrl.text.trim(),
+                          carats: carats,
+                          ratePerCarat: rate,
+                          discountPercent: disc,
+                          brokeragePercent: brok,
+                        ));
+                  }
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        },
       ),
     );
-    if (result != null) {
-      await vm.setManualOpeningAmount(result);
-    }
   }
 
   Widget _purchaseCard(BuildContext context, PurchaseModel p,
@@ -650,9 +896,6 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
                     children: [
                       _infoChip('Net Amt', fmt.format(p.netAmount), Colors.orange),
                       _infoChip('Carat', '${caratFmt.format(p.totalCarat)} ct', _accent),
-                      _infoChip('Remaining',
-                          '${caratFmt.format(p.remainingCarat)} ct',
-                          p.remainingCarat > 0 ? Colors.green : Colors.grey),
                     ],
                   ),
                 ),
@@ -688,9 +931,9 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
       children: [
         Text(value,
             style: TextStyle(
-                fontWeight: FontWeight.w700, color: color, fontSize: 13)),
+                fontWeight: FontWeight.w700, color: color, fontSize: 12)),
         Text(label,
-            style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+            style: TextStyle(fontSize: 10, color: Colors.grey[600])),
       ],
     );
   }

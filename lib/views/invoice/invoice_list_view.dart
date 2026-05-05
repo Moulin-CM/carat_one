@@ -194,28 +194,18 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
           Row(
             children: [
               Expanded(
-                child: InkWell(
-                  onTap: () => _editOpeningSellCarat(context, viewModel),
-                  borderRadius: BorderRadius.circular(12),
-                  child: _summaryTile(
-                    'Opening Carats',
-                    '${caratFmt.format(viewModel.openingSellCarat)} ct',
-                    Icons.diamond_rounded,
-                    editable: true,
-                  ),
+                child: _summaryTile(
+                  'Opening Carats',
+                  '${caratFmt.format(viewModel.openingSellCarat)} ct',
+                  Icons.diamond_rounded,
                 ),
               ),
               Container(width: 1, height: 30, color: Colors.white24),
               Expanded(
-                child: InkWell(
-                  onTap: () => _editOpeningSellAmount(context, viewModel),
-                  borderRadius: BorderRadius.circular(12),
-                  child: _summaryTile(
-                    'Opening Amount',
-                    fmt.format(viewModel.openingSellAmount),
-                    Icons.currency_rupee_rounded,
-                    editable: true,
-                  ),
+                child: _summaryTile(
+                  'Opening Amount',
+                  fmt.format(viewModel.openingSellAmount),
+                  Icons.currency_rupee_rounded,
                 ),
               ),
               Container(width: 1, height: 30, color: Colors.white24),
@@ -354,102 +344,6 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
     );
     if (picked != null) {
       await vm.setYearEndDate(picked);
-    }
-  }
-
-  Future<void> _editOpeningSellCarat(
-      BuildContext context, InvoiceListViewModel vm) async {
-    final controller =
-        TextEditingController(text: vm.manualOpeningSellCarat.toString());
-    final result = await showDialog<double>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Opening Carats (Sell)'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-                'Enter a carry-forward carat value. This is added to the carats sold inside the current financial year.',
-                style: TextStyle(fontSize: 12)),
-            const SizedBox(height: 12),
-            TextField(
-              controller: controller,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              autofocus: true,
-              decoration: const InputDecoration(
-                labelText: 'Carry-forward carats',
-                suffixText: 'ct',
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel')),
-          TextButton(
-            onPressed: () {
-              final v = double.tryParse(controller.text.trim()) ?? 0.0;
-              Navigator.pop(ctx, v);
-            },
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
-    if (result != null) {
-      await vm.setManualOpeningSellCarat(result);
-    }
-  }
-
-  Future<void> _editOpeningSellAmount(
-      BuildContext context, InvoiceListViewModel vm) async {
-    final controller =
-        TextEditingController(text: vm.manualOpeningSellAmount.toString());
-    final result = await showDialog<double>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Opening Amount (Sell)'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-                'Enter a carry-forward amount. This is added to the total sold inside the current financial year.',
-                style: TextStyle(fontSize: 12)),
-            const SizedBox(height: 12),
-            TextField(
-              controller: controller,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              autofocus: true,
-              decoration: const InputDecoration(
-                labelText: 'Carry-forward amount',
-                prefixText: '₹ ',
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel')),
-          TextButton(
-            onPressed: () {
-              final v = double.tryParse(controller.text.trim()) ?? 0.0;
-              Navigator.pop(ctx, v);
-            },
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
-    if (result != null) {
-      await vm.setManualOpeningSellAmount(result);
     }
   }
 

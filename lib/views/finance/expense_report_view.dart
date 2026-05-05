@@ -102,7 +102,15 @@ class _ExpenseReportViewState extends State<ExpenseReportView> {
       ..sort((a, b) => b.expenseDate.compareTo(a.expenseDate));
   }
 
-  double get _total => _filtered.fold(0.0, (s, e) => s + e.amount);
+  double get _creditTotal => _filtered
+      .where((e) => e.isCredit)
+      .fold(0.0, (s, e) => s + e.amount);
+
+  double get _debitTotal => _filtered
+      .where((e) => !e.isCredit)
+      .fold(0.0, (s, e) => s + e.amount);
+
+  double get _net => _creditTotal - _debitTotal;
 
   Map<String, List<ExpenseModel>> get _groupedByDay {
     final map = <String, List<ExpenseModel>>{};
@@ -376,6 +384,9 @@ class _ExpenseReportViewState extends State<ExpenseReportView> {
 
   Widget _summaryCard() {
     final count = _filtered.length;
+    final net = _net;
+    final netStr =
+        '${net >= 0 ? '+' : '-'} ${_currencyFmt.format(net.abs())}';
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -383,41 +394,56 @@ class _ExpenseReportViewState extends State<ExpenseReportView> {
         gradient: const LinearGradient(colors: [_deep, _accent]),
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(_periodLabel,
-                    style: const TextStyle(
-                        color: Colors.white70, fontSize: 12)),
-                const SizedBox(height: 4),
-                Text(
-                  '- ${_currencyFmt.format(_total)}',
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800),
-                ),
-                const SizedBox(height: 2),
-                Text('$count ${count == 1 ? 'entry' : 'entries'}',
-                    style: const TextStyle(
-                        color: Colors.white54, fontSize: 11)),
-              ],
-            ),
+          Text(_periodLabel,
+              style: const TextStyle(color: Colors.white70, fontSize: 12)),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              Expanded(
+                child: _summaryStat(
+                    'Credits',
+                    '+ ${_currencyFmt.format(_creditTotal)}',
+                    Colors.greenAccent),
+              ),
+              Container(width: 1, height: 30, color: Colors.white24),
+              Expanded(
+                child: _summaryStat(
+                    'Debits',
+                    '- ${_currencyFmt.format(_debitTotal)}',
+                    Colors.redAccent),
+              ),
+              Container(width: 1, height: 30, color: Colors.white24),
+              Expanded(
+                child: _summaryStat(
+                    'Net',
+                    netStr,
+                    net >= 0 ? Colors.greenAccent : Colors.redAccent),
+              ),
+            ],
           ),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(Icons.receipt_long_rounded,
-                color: Colors.white, size: 28),
-          ),
+          const SizedBox(height: 6),
+          Text('$count ${count == 1 ? 'entry' : 'entries'}',
+              style: const TextStyle(color: Colors.white54, fontSize: 11)),
         ],
       ),
+    );
+  }
+
+  Widget _summaryStat(String label, String value, Color valueColor) {
+    return Column(
+      children: [
+        Text(value,
+            style: TextStyle(
+                color: valueColor,
+                fontWeight: FontWeight.w800,
+                fontSize: 14)),
+        const SizedBox(height: 2),
+        Text(label,
+            style: const TextStyle(color: Colors.white60, fontSize: 10)),
+      ],
     );
   }
 
@@ -432,8 +458,11 @@ class _ExpenseReportViewState extends State<ExpenseReportView> {
         itemBuilder: (ctx, i) {
           final key = sectionKeys[i];
           final entries = grouped[key]!;
-          final subtotal =
-              entries.fold<double>(0.0, (s, e) => s + e.amount);
+          final subtotal = entries.fold<double>(
+              0.0, (s, e) => s + (e.isCredit ? e.amount : -e.amount));
+          final subColor = subtotal >= 0 ? Colors.green : Colors.red;
+          final subStr =
+              '${subtotal >= 0 ? '+' : '-'} ${_currencyFmt.format(subtotal.abs())}';
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -448,9 +477,9 @@ class _ExpenseReportViewState extends State<ExpenseReportView> {
                               fontSize: 12,
                               fontWeight: FontWeight.w800)),
                     ),
-                    Text('- ${_currencyFmt.format(subtotal)}',
-                        style: const TextStyle(
-                            color: Colors.red,
+                    Text(subStr,
+                        style: TextStyle(
+                            color: subColor,
                             fontSize: 12,
                             fontWeight: FontWeight.w800)),
                   ],
@@ -465,6 +494,12 @@ class _ExpenseReportViewState extends State<ExpenseReportView> {
   }
 
   Widget _expenseRow(ExpenseModel e) {
+    final color = e.isCredit ? Colors.green : Colors.red;
+    final icon = e.isCredit
+        ? Icons.trending_up_rounded
+        : Icons.trending_down_rounded;
+    final sign = e.isCredit ? '+' : '-';
+    final name = e.personName.isNotEmpty ? e.personName : 'Entry';
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -484,26 +519,35 @@ class _ExpenseReportViewState extends State<ExpenseReportView> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.red.withOpacity(0.12),
+              color: color.withOpacity(0.12),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(Icons.trending_down_rounded,
-                color: Colors.red, size: 18),
+            child: Icon(icon, color: color, size: 18),
           ),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(
-              e.type.isNotEmpty ? e.type : 'Expense',
-              style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: _deep),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: _deep),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  e.isCredit ? 'Credit' : 'Debit',
+                  style: TextStyle(color: Colors.grey[600], fontSize: 11),
+                ),
+              ],
             ),
           ),
           Text(
-            '- ${_currencyFmt.format(e.amount)}',
-            style: const TextStyle(
-                color: Colors.red,
+            '$sign ${_currencyFmt.format(e.amount)}',
+            style: TextStyle(
+                color: color,
                 fontSize: 14,
                 fontWeight: FontWeight.w800),
           ),

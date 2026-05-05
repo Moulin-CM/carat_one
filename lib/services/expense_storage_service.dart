@@ -61,8 +61,8 @@ class ExpenseStorageService {
     final uid = user.uid;
     try {
       final snapshot = await _getUserRef(uid).get();
+      final List<ExpenseModel> remote = [];
       if (snapshot.value != null) {
-        final List<ExpenseModel> remote = [];
         final data = _deepConvert(snapshot.value);
         if (data is Map) {
           data.forEach((key, value) {
@@ -72,14 +72,12 @@ class ExpenseStorageService {
             }
           });
         }
-        if (remote.isNotEmpty) {
-          remote.sort((a, b) => b.expenseDate.compareTo(a.expenseDate));
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString(_localKey(uid),
-              jsonEncode(remote.map((e) => e.toJson()).toList()));
-          return remote;
-        }
       }
+      remote.sort((a, b) => b.expenseDate.compareTo(a.expenseDate));
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_localKey(uid),
+          jsonEncode(remote.map((e) => e.toJson()).toList()));
+      return remote;
     } catch (_) {}
     try {
       final prefs = await SharedPreferences.getInstance();

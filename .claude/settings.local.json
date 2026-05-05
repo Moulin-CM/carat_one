@@ -4,7 +4,11 @@
       "mcp__ide__getDiagnostics",
       "Bash(dart analyze *)",
       "Bash(flutter analyze *)",
-      "Bash(command -v flutter)"
+      "Bash(command -v flutter)",
+      "Bash(flutter pub *)",
+      "Bash(xargs grep *)",
+      "PowerShell(python --version; python -c \"from PIL import Image; print\\(Image.__version__\\)\")",
+      "Bash(python *)"
     ]
   }
 }

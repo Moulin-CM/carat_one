@@ -1,12 +1,10 @@
 import 'package:flutter/foundation.dart';
 import '../models/invoice_model.dart';
 import '../models/purchase_model.dart';
-import '../models/expense_model.dart';
 import '../models/withdrawal_model.dart';
 import '../models/app_settings_model.dart';
 import '../services/invoice_storage_service.dart';
 import '../services/purchase_storage_service.dart';
-import '../services/expense_storage_service.dart';
 import '../services/withdrawal_storage_service.dart';
 import '../services/settings_service.dart';
 import '../services/auth_service.dart';
@@ -15,7 +13,6 @@ class DashboardViewModel extends ChangeNotifier {
   final AuthService _authService = AuthService();
   List<InvoiceModel> _invoices = [];
   List<PurchaseModel> _purchases = [];
-  List<ExpenseModel> _expenses = [];
   List<WithdrawalModel> _withdrawals = [];
   AppSettingsModel _settings = AppSettingsModel();
   bool _isLoading = false;
@@ -25,7 +22,18 @@ class DashboardViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  int get totalInvoices => _invoices.length;
+  /// Number of sell entries (formerly "Total Invoices"). Includes every
+  /// invoice record regardless of cash/bill mode or financial year.
+  int get totalSells => _invoices.length;
+
+  /// Number of purchase entries across all time.
+  int get totalPurchases => _purchases.length;
+
+  /// Remaining (unsold) carat in stock for the current financial year.
+  /// Mirrors the figure on the Purchase tab. "For Other" purchases are
+  /// excluded.
+  double get totalRemainingCarat => _purchasesInCurrentYear
+      .fold(0.0, (sum, p) => sum + p.remainingCarat);
 
   DateTime? get _yearStart => _settings.currentYearStart();
 
@@ -50,7 +58,7 @@ class DashboardViewModel extends ChangeNotifier {
   /// the Purchase tab. Mirrors the Opening Amount shown there.
   double get totalBuyAmount =>
       _settings.manualOpeningAmount +
-      _purchasesInCurrentYear.fold(0.0, (sum, p) => sum + p.totalAmount);
+      _purchasesInCurrentYear.fold(0.0, (sum, p) => sum + p.netAmount);
 
   /// Sell total for the current FY plus any manual carry-forward entered on
   /// the Invoice tab. Mirrors the Opening Amount shown there.
@@ -62,15 +70,14 @@ class DashboardViewModel extends ChangeNotifier {
   /// Purchase tab so the Dashboard and Purchase summary never disagree.
   double get totalSalesProfit => totalSellAmount - totalBuyAmount;
 
-  double get totalExpenses =>
-      _expenses.fold(0.0, (sum, e) => sum + e.amount);
-
   double get outstandingWithdrawals => _withdrawals
       .where((w) => !w.isReturned)
       .fold(0.0, (sum, w) => sum + w.amount);
 
+  /// Net Profit = Sales Profit − Outstanding Withdrawals. Expenses are
+  /// intentionally excluded — they only affect the Expenses screen itself.
   double get netProfitOrLoss =>
-      totalSalesProfit - totalExpenses - outstandingWithdrawals;
+      totalSalesProfit - outstandingWithdrawals;
 
   double get thisMonthRevenue {
     final now = DateTime.now();
@@ -115,15 +122,13 @@ class DashboardViewModel extends ChangeNotifier {
       final results = await Future.wait([
         InvoiceStorageService.getAllInvoices(),
         PurchaseStorageService.getAllPurchases(),
-        ExpenseStorageService.getAllExpenses(),
         WithdrawalStorageService.getAllWithdrawals(),
         SettingsService.getSettings(),
       ]);
       _invoices = results[0] as List<InvoiceModel>;
       _purchases = results[1] as List<PurchaseModel>;
-      _expenses = results[2] as List<ExpenseModel>;
-      _withdrawals = results[3] as List<WithdrawalModel>;
-      _settings = results[4] as AppSettingsModel;
+      _withdrawals = results[2] as List<WithdrawalModel>;
+      _settings = results[3] as AppSettingsModel;
       _isLoading = false;
       notifyListeners();
     } catch (e) {

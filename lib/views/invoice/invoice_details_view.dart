@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../../models/invoice_model.dart';
 import '../../services/invoice_storage_service.dart';
@@ -19,9 +18,6 @@ class _InvoiceDetailsViewState extends State<InvoiceDetailsView> {
   static const _deep = Color(0xFF1E3C72);
 
   late InvoiceModel _invoice;
-  final _caratController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
-  String _paymentMode = 'cash';
   bool _saving = false;
 
   @override
@@ -30,43 +26,35 @@ class _InvoiceDetailsViewState extends State<InvoiceDetailsView> {
     _invoice = widget.invoice;
   }
 
-  @override
-  void dispose() {
-    _caratController.dispose();
-    super.dispose();
-  }
-
   double get _remaining => _invoice.remainingCarat;
+  double get _remainingAmount => _remaining * _invoice.averageRate;
 
-  Future<void> _savePayment() async {
-    if (!_formKey.currentState!.validate()) return;
-    final entered = double.tryParse(_caratController.text.trim()) ?? 0;
-    if (entered <= 0) return;
+  Future<void> _markReceived() async {
+    final remainingCarat = _remaining;
+    if (remainingCarat <= 0) return;
 
     setState(() => _saving = true);
     try {
-      if (_paymentMode == 'cash') {
-        _invoice.cashPaidCarat += entered;
+      // Settle the entire outstanding balance into the channel matching
+      // this sell's mode — cash for cash sells, in-account for invoices.
+      if (_invoice.isCashSell) {
+        _invoice.cashPaidCarat += remainingCarat;
       } else {
-        _invoice.accountPaidCarat += entered;
+        _invoice.accountPaidCarat += remainingCarat;
       }
       await InvoiceStorageService.saveInvoice(_invoice);
       if (!mounted) return;
-      _caratController.clear();
       setState(() {});
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Payment of ${entered.toStringAsFixed(2)} ct saved '
-            '(${_paymentMode == 'cash' ? 'Cash' : 'In Account'})',
-          ),
+        const SnackBar(
+          content: Text('Marked as Paid'),
           backgroundColor: Colors.green,
         ),
       );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error saving payment: $e'), backgroundColor: Colors.red),
+        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
       );
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -393,127 +381,61 @@ class _InvoiceDetailsViewState extends State<InvoiceDetailsView> {
 
   Widget _buildPaymentCard() {
     return _card(
-      child: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _sectionHeader(Icons.payments_rounded, 'Payment'),
-            const SizedBox(height: 12),
-            _paymentSummary(),
-            const SizedBox(height: 16),
-            if (_invoice.isFullyPaid)
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.check_circle_rounded, color: Colors.green),
-                    SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'This invoice is fully paid.',
-                        style: TextStyle(
-                            color: Colors.green, fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                  ],
-                ),
-              )
-            else ...[
-              const Text(
-                'Received Payment Through:',
-                style: TextStyle(fontWeight: FontWeight.w700, color: _deep),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _sectionHeader(Icons.payments_rounded, 'Payment'),
+          const SizedBox(height: 12),
+          _paymentSummary(),
+          const SizedBox(height: 16),
+          if (_invoice.isFullyPaid)
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.green.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
               ),
-              const SizedBox(height: 8),
-              Row(
+              child: const Row(
                 children: [
+                  Icon(Icons.check_circle_rounded, color: Colors.green),
+                  SizedBox(width: 10),
                   Expanded(
-                    child: _modeTile(
-                      value: 'cash',
-                      label: 'Cash',
-                      icon: Icons.payments_outlined,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _modeTile(
-                      value: 'account',
-                      label: 'In Account',
-                      icon: Icons.account_balance_outlined,
+                    child: Text(
+                      'This sell is fully paid.',
+                      style: TextStyle(
+                          color: Colors.green, fontWeight: FontWeight.w600),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 14),
-              Text(
-                'Carat Received (max ${_remaining.toStringAsFixed(2)} ct)',
-                style: TextStyle(
-                    color: Colors.grey[700],
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13),
-              ),
-              const SizedBox(height: 6),
-              TextFormField(
-                controller: _caratController,
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,4}')),
-                ],
-                decoration: InputDecoration(
-                  hintText: 'Enter carat received',
-                  filled: true,
-                  fillColor: const Color(0xFFF4F7FC),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide.none,
+            )
+          else
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _saving ? null : _markReceived,
+                icon: _saving
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white))
+                    : const Icon(Icons.check_circle_rounded),
+                label: Text(_saving
+                    ? 'Saving…'
+                    : 'Received  (₹${_remainingAmount.toStringAsFixed(2)})'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  suffixText: 'ct',
-                ),
-                validator: (v) {
-                  if (v == null || v.trim().isEmpty) {
-                    return 'Enter carat received';
-                  }
-                  final value = double.tryParse(v.trim());
-                  if (value == null) return 'Invalid number';
-                  if (value <= 0) return 'Must be greater than 0';
-                  if (value > _remaining + 0.0001) {
-                    return 'Cannot exceed ${_remaining.toStringAsFixed(2)} ct';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 14),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: _saving ? null : _savePayment,
-                  icon: _saving
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.white))
-                      : const Icon(Icons.save_rounded),
-                  label: Text(_saving ? 'Saving…' : 'Save'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _accent,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 4,
-                  ),
+                  elevation: 4,
                 ),
               ),
-            ],
-          ],
-        ),
+            ),
+        ],
       ),
     );
   }
@@ -521,21 +443,22 @@ class _InvoiceDetailsViewState extends State<InvoiceDetailsView> {
   Widget _paymentSummary() {
     return Column(
       children: [
-        _paymentRow(
-          icon: Icons.payments_outlined,
-          label: 'Cash',
-          carat: _invoice.cashPaidCarat,
-          amount: _invoice.cashPaidAmount,
-          color: const Color(0xFF2E7D32),
-        ),
-        const SizedBox(height: 8),
-        _paymentRow(
-          icon: Icons.account_balance_outlined,
-          label: 'In Account',
-          carat: _invoice.accountPaidCarat,
-          amount: _invoice.accountPaidAmount,
-          color: _accent,
-        ),
+        if (_invoice.isCashSell)
+          _paymentRow(
+            icon: Icons.payments_outlined,
+            label: 'Cash',
+            carat: _invoice.cashPaidCarat,
+            amount: _invoice.cashPaidAmount,
+            color: const Color(0xFF2E7D32),
+          )
+        else
+          _paymentRow(
+            icon: Icons.account_balance_outlined,
+            label: 'In Account',
+            carat: _invoice.accountPaidCarat,
+            amount: _invoice.accountPaidAmount,
+            color: _accent,
+          ),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -596,46 +519,6 @@ class _InvoiceDetailsViewState extends State<InvoiceDetailsView> {
             style: TextStyle(color: color, fontWeight: FontWeight.w700),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _modeTile({
-    required String value,
-    required String label,
-    required IconData icon,
-  }) {
-    final selected = _paymentMode == value;
-    return InkWell(
-      onTap: () => setState(() => _paymentMode = value),
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-        decoration: BoxDecoration(
-          color: selected ? _accent.withOpacity(0.12) : const Color(0xFFF4F7FC),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: selected ? _accent : Colors.grey.shade300,
-            width: selected ? 2 : 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, color: selected ? _accent : Colors.grey[700], size: 20),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                label,
-                style: TextStyle(
-                  color: selected ? _accent : Colors.grey[800],
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-            if (selected)
-              const Icon(Icons.check_circle_rounded, color: _accent, size: 18),
-          ],
-        ),
       ),
     );
   }

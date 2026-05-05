@@ -25,7 +25,7 @@ class _PurchaseDetailViewState extends State<PurchaseDetailView> {
   final _dateFmt = DateFormat('dd MMM yyyy');
   final _caratFmt = NumberFormat('#,##0.00');
   // Payment-to-seller tracking
-  final _paymentCaratController = TextEditingController();
+  final _paymentAmountController = TextEditingController();
   final _paymentFormKey = GlobalKey<FormState>();
   String _paidThroughMode = 'cash';
   bool _savingPayment = false;
@@ -38,7 +38,7 @@ class _PurchaseDetailViewState extends State<PurchaseDetailView> {
 
   @override
   void dispose() {
-    _paymentCaratController.dispose();
+    _paymentAmountController.dispose();
     super.dispose();
   }
 
@@ -159,9 +159,6 @@ class _PurchaseDetailViewState extends State<PurchaseDetailView> {
   }
 
   Widget _financialSection() {
-    final profit = _purchase.profitOrLoss;
-    final profitColor = profit >= 0 ? Colors.green : Colors.red;
-
     return CustomSection(
       title: 'Financial Summary',
       icon: Icons.attach_money_rounded,
@@ -172,14 +169,6 @@ class _PurchaseDetailViewState extends State<PurchaseDetailView> {
         CustomInfoRow(label: 'Total Carat', value: '${_caratFmt.format(_purchase.totalCarat)} ct'),
         CustomInfoRow(label: 'Rate per Carat', value: _currencyFmt.format(_purchase.amountPerCarat)),
         CustomInfoRow(label: 'Discount (%)', value: '${_purchase.discount}%'),
-        const Divider(height: 24),
-        CustomInfoRow(label: 'Total Sold Amount', value: _currencyFmt.format(_purchase.totalSoldAmount)),
-        CustomInfoRow(
-          label: profit >= 0 ? 'Profit' : 'Loss',
-          value: (profit >= 0 ? '+' : '') + _currencyFmt.format(profit),
-          isBold: true,
-          valueColor: profitColor,
-        ),
       ],
     );
   }
@@ -188,6 +177,8 @@ class _PurchaseDetailViewState extends State<PurchaseDetailView> {
 
   Widget _paymentSection() {
     final remaining = _purchase.remainingPaymentCarat;
+    final rate = _purchase.effectivePurchaseRate;
+    final remainingAmount = remaining * rate;
     final fullyPaid = _purchase.isFullyPaid;
 
     return CustomSection(
@@ -291,7 +282,7 @@ class _PurchaseDetailViewState extends State<PurchaseDetailView> {
                 ),
                 const SizedBox(height: 14),
                 Text(
-                  'Carat Paid (max ${_caratFmt.format(remaining)} ct)',
+                  'Amount Paid (max ${_currencyFmt.format(remainingAmount)})',
                   style: TextStyle(
                       color: Colors.grey[700],
                       fontWeight: FontWeight.w600,
@@ -299,33 +290,30 @@ class _PurchaseDetailViewState extends State<PurchaseDetailView> {
                 ),
                 const SizedBox(height: 6),
                 TextFormField(
-                  controller: _paymentCaratController,
+                  controller: _paymentAmountController,
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(
-                        RegExp(r'^\d*\.?\d{0,4}')),
+                        RegExp(r'^\d*\.?\d{0,2}')),
                   ],
                   decoration: InputDecoration(
-                    hintText: 'Enter carat paid',
+                    hintText: 'Enter amount paid',
                     filled: true,
                     fillColor: const Color(0xFFF4F7FC),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide.none,
                     ),
-                    suffixText: 'ct',
+                    prefixText: '₹ ',
                   ),
                   validator: (v) {
                     if (v == null || v.trim().isEmpty) {
-                      return 'Enter carat paid';
+                      return 'Enter amount paid';
                     }
                     final value = double.tryParse(v.trim());
                     if (value == null) return 'Invalid number';
                     if (value <= 0) return 'Must be greater than 0';
-                    if (value > remaining + 0.0001) {
-                      return 'Cannot exceed ${_caratFmt.format(remaining)} ct';
-                    }
                     return null;
                   },
                 ),
@@ -438,25 +426,28 @@ class _PurchaseDetailViewState extends State<PurchaseDetailView> {
 
   Future<void> _savePayment() async {
     if (!(_paymentFormKey.currentState?.validate() ?? false)) return;
-    final entered =
-        double.tryParse(_paymentCaratController.text.trim()) ?? 0;
-    if (entered <= 0) return;
+    final enteredAmount =
+        double.tryParse(_paymentAmountController.text.trim()) ?? 0;
+    if (enteredAmount <= 0) return;
+    final rate = _purchase.effectivePurchaseRate;
+    if (rate <= 0) return;
+    final enteredCarat = enteredAmount / rate;
 
     setState(() => _savingPayment = true);
     try {
       if (_paidThroughMode == 'cash') {
-        _purchase.cashPaidCarat += entered;
+        _purchase.cashPaidCarat += enteredCarat;
       } else {
-        _purchase.accountPaidCarat += entered;
+        _purchase.accountPaidCarat += enteredCarat;
       }
       await PurchaseStorageService.savePurchase(_purchase);
       if (!mounted) return;
-      _paymentCaratController.clear();
+      _paymentAmountController.clear();
       setState(() {});
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Payment of ${_caratFmt.format(entered)} ct saved '
+            'Payment of ${_currencyFmt.format(enteredAmount)} saved '
             '(${_paidThroughMode == 'cash' ? 'Cash' : 'In Account'})',
           ),
           backgroundColor: Colors.green,

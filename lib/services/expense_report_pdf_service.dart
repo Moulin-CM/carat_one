@@ -6,7 +6,8 @@ import 'pdf_service.dart';
 
 class ExpenseReportPdfService {
   /// Builds a bank-style expense statement covering [items] in the given
-  /// [periodLabel] / [start]–[end] range.
+  /// [periodLabel] / [start]–[end] range. Each entry is either a Credit
+  /// (money in) or a Debit (money out).
   static Future<pw.Document> build({
     required List<ExpenseModel> items,
     required String periodLabel,
@@ -18,7 +19,12 @@ class ExpenseReportPdfService {
     final doc = theme != null ? pw.Document(theme: theme) : pw.Document();
     final dateFmt = DateFormat('dd MMM yyyy');
     final amountFmt = NumberFormat.currency(symbol: 'Rs ', decimalDigits: 2);
-    final total = items.fold<double>(0, (s, e) => s + e.amount);
+
+    final creditTotal =
+        items.where((e) => e.isCredit).fold<double>(0, (s, e) => s + e.amount);
+    final debitTotal =
+        items.where((e) => !e.isCredit).fold<double>(0, (s, e) => s + e.amount);
+    final net = creditTotal - debitTotal;
 
     final grouped = <String, List<ExpenseModel>>{};
     for (final e in items) {
@@ -33,19 +39,19 @@ class ExpenseReportPdfService {
         build: (context) => [
           _header(heading, periodLabel, dateFmt, start, end),
           pw.SizedBox(height: 14),
-          _summary(items.length, total, amountFmt),
+          _summary(items.length, creditTotal, debitTotal, net, amountFmt),
           pw.SizedBox(height: 14),
           _tableHeader(),
           ...grouped.entries.expand((group) {
-            final groupTotal =
-                group.value.fold<double>(0, (s, e) => s + e.amount);
+            final groupNet = group.value.fold<double>(
+                0, (s, e) => s + (e.isCredit ? e.amount : -e.amount));
             return [
-              _dayHeader(group.key, groupTotal, amountFmt),
+              _dayHeader(group.key, groupNet, amountFmt),
               ...group.value.map((e) => _row(e, amountFmt)),
             ];
           }),
           pw.SizedBox(height: 10),
-          _totalFooter(total, amountFmt),
+          _totalFooter(net, amountFmt),
         ],
       ),
     );
@@ -101,14 +107,22 @@ class ExpenseReportPdfService {
     );
   }
 
-  static pw.Widget _summary(
-      int count, double total, NumberFormat amountFmt) {
+  static pw.Widget _summary(int count, double credit, double debit,
+      double net, NumberFormat amountFmt) {
+    final netSign = net >= 0 ? '+' : '-';
+    final netColor = net >= 0 ? PdfColors.green800 : PdfColors.red;
     return pw.Row(
       children: [
         _summaryBox('Entries', '$count'),
         pw.SizedBox(width: 8),
-        _summaryBox('Total Debit', '- ${amountFmt.format(total)}',
+        _summaryBox('Credits', '+ ${amountFmt.format(credit)}',
+            valueColor: PdfColors.green800),
+        pw.SizedBox(width: 8),
+        _summaryBox('Debits', '- ${amountFmt.format(debit)}',
             valueColor: PdfColors.red),
+        pw.SizedBox(width: 8),
+        _summaryBox('Net', '$netSign ${amountFmt.format(net.abs())}',
+            valueColor: netColor),
       ],
     );
   }
@@ -131,7 +145,7 @@ class ExpenseReportPdfService {
             pw.SizedBox(height: 4),
             pw.Text(value,
                 style: pw.TextStyle(
-                    fontSize: 13,
+                    fontSize: 11,
                     fontWeight: pw.FontWeight.bold,
                     color: valueColor ?? PdfColors.black)),
           ],
@@ -148,13 +162,19 @@ class ExpenseReportPdfService {
       child: pw.Row(
         children: [
           pw.Expanded(
-              flex: 3,
-              child: pw.Text('Type',
+              flex: 4,
+              child: pw.Text('Person',
                   style: pw.TextStyle(
                       fontWeight: pw.FontWeight.bold, fontSize: 10))),
           pw.Expanded(
               flex: 2,
               child: pw.Text('Date',
+                  style: pw.TextStyle(
+                      fontWeight: pw.FontWeight.bold, fontSize: 10))),
+          pw.Expanded(
+              flex: 1,
+              child: pw.Text('Type',
+                  textAlign: pw.TextAlign.center,
                   style: pw.TextStyle(
                       fontWeight: pw.FontWeight.bold, fontSize: 10))),
           pw.Expanded(
@@ -169,7 +189,9 @@ class ExpenseReportPdfService {
   }
 
   static pw.Widget _dayHeader(
-      String date, double groupTotal, NumberFormat amountFmt) {
+      String date, double groupNet, NumberFormat amountFmt) {
+    final sign = groupNet >= 0 ? '+' : '-';
+    final color = groupNet >= 0 ? PdfColors.green800 : PdfColors.red;
     return pw.Container(
       margin: const pw.EdgeInsets.only(top: 4),
       padding:
@@ -183,11 +205,11 @@ class ExpenseReportPdfService {
                   fontWeight: pw.FontWeight.bold,
                   fontSize: 10,
                   color: PdfColors.blue900)),
-          pw.Text('- ${amountFmt.format(groupTotal)}',
+          pw.Text('$sign ${amountFmt.format(groupNet.abs())}',
               style: pw.TextStyle(
                   fontWeight: pw.FontWeight.bold,
                   fontSize: 10,
-                  color: PdfColors.red)),
+                  color: color)),
         ],
       ),
     );
@@ -195,6 +217,9 @@ class ExpenseReportPdfService {
 
   static pw.Widget _row(ExpenseModel e, NumberFormat amountFmt) {
     final dateFmt = DateFormat('dd MMM yyyy');
+    final color = e.isCredit ? PdfColors.green800 : PdfColors.red;
+    final sign = e.isCredit ? '+' : '-';
+    final name = e.personName.isNotEmpty ? e.personName : 'Entry';
     return pw.Container(
       padding:
           const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -204,25 +229,33 @@ class ExpenseReportPdfService {
       child: pw.Row(
         children: [
           pw.Expanded(
-              flex: 3,
-              child: pw.Text(e.type.isNotEmpty ? e.type : 'Expense',
+              flex: 4,
+              child: pw.Text(name,
                   style: const pw.TextStyle(fontSize: 10))),
           pw.Expanded(
               flex: 2,
               child: pw.Text(dateFmt.format(e.expenseDate),
                   style: const pw.TextStyle(fontSize: 10))),
           pw.Expanded(
+              flex: 1,
+              child: pw.Text(e.isCredit ? 'Cr' : 'Dr',
+                  textAlign: pw.TextAlign.center,
+                  style: pw.TextStyle(
+                      fontSize: 10,
+                      fontWeight: pw.FontWeight.bold,
+                      color: color))),
+          pw.Expanded(
               flex: 2,
-              child: pw.Text('- ${amountFmt.format(e.amount)}',
+              child: pw.Text('$sign ${amountFmt.format(e.amount)}',
                   textAlign: pw.TextAlign.right,
-                  style: const pw.TextStyle(
-                      fontSize: 10, color: PdfColors.red))),
+                  style: pw.TextStyle(fontSize: 10, color: color))),
         ],
       ),
     );
   }
 
-  static pw.Widget _totalFooter(double total, NumberFormat amountFmt) {
+  static pw.Widget _totalFooter(double net, NumberFormat amountFmt) {
+    final sign = net >= 0 ? '+' : '-';
     return pw.Container(
       padding: const pw.EdgeInsets.all(10),
       decoration: pw.BoxDecoration(
@@ -232,12 +265,12 @@ class ExpenseReportPdfService {
       child: pw.Row(
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
-          pw.Text('TOTAL EXPENSES',
+          pw.Text('NET (Credits − Debits)',
               style: pw.TextStyle(
                   color: PdfColors.white,
                   fontWeight: pw.FontWeight.bold,
                   fontSize: 12)),
-          pw.Text('- ${amountFmt.format(total)}',
+          pw.Text('$sign ${amountFmt.format(net.abs())}',
               style: pw.TextStyle(
                   color: PdfColors.white,
                   fontWeight: pw.FontWeight.bold,

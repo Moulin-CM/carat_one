@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carat One - Diamond Trading Simplified</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #1e3a8a;
+            --accent: #38bdf8;
+            --dark: #0f172a;
+            --light: #f8fafc;
+            --glass: rgba(255, 255, 255, 0.85);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: var(--dark);
+            background-color: #fff;
+            scroll-behavior: smooth;
+        }
+
+        /* Premium Gradient Background */
+        .hero-section {
+            background: radial-gradient(circle at 0% 0%, #3b82f6 0%, #1e3a8a 100%);
+            color: white;
+            padding: 120px 0 180px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            background: white;
+            clip-path: polygon(0 100%, 100% 100%, 100% 0);
+        }
+
+        /* Language Switcher */
+        .lang-nav {
+            position: fixed;
+            top: 25px;
+            right: 25px;
+            z-index: 1000;
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            padding: 6px;
+            border-radius: 50px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .lang-btn {
+            border: none;
+            background: transparent;
+            padding: 8px 18px;
+            border-radius: 25px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            color: var(--secondary);
+        }
+
+        .lang-btn.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        /* Premium Phone Mockup */
+        .phone-wrapper {
+            position: relative;
+            max-width: 320px;
+            margin: -140px auto 60px;
+            z-index: 10;
+            perspective: 1000px;
+        }
+
+        .phone-frame {
+            border: 12px solid #111;
+            border-radius: 48px;
+            overflow: hidden;
+            box-shadow: 0 40px 80px rgba(0,0,0,0.25);
+            background: #fff;
+            transform: rotateY(-5deg) rotateX(5deg);
+            transition: 0.6s ease;
+        }
+
+        .phone-frame:hover {
+            transform: rotateY(0deg) rotateX(0deg) scale(1.02);
+        }
+
+        .phone-frame img { width: 100%; display: block; }
+
+        /* Feature Cards */
+        .feature-card {
+            border: none;
+            border-radius: 32px;
+            padding: 45px;
+            background: #fff;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.03);
+            transition: 0.4s;
+            height: 100%;
+            border: 1px solid #f1f5f9;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-12px);
+            box-shadow: 0 30px 60px rgba(37, 99, 235, 0.08);
+            border-color: rgba(37, 99, 235, 0.1);
+        }
+
+        .icon-circle {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            color: var(--primary);
+            border-radius: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        /* App Tour / Showcase Section */
+        .showcase-section {
+            padding: 120px 0;
+            background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .showcase-section::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 700px;
+            height: 700px;
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.08) 0%, transparent 70%);
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+
+        .mini-phone {
+            border: 8px solid #0f172a;
+            border-radius: 36px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(15, 23, 42, 0.15);
+            background: #fff;
+            transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .mini-phone::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 6px;
+            background: #0f172a;
+            border-radius: 0 0 8px 8px;
+            z-index: 2;
+        }
+
+        .mini-phone img {
+            width: 100%;
+            display: block;
+        }
+
+        .mini-phone:hover {
+            transform: translateY(-15px) scale(1.03);
+            box-shadow: 0 40px 80px rgba(37, 99, 235, 0.2);
+        }
+
+        .screen-caption {
+            text-align: center;
+            margin-top: 28px;
+        }
+
+        .screen-caption h5 {
+            font-weight: 800;
+            margin-bottom: 6px;
+            color: var(--dark);
+        }
+
+        .screen-caption p {
+            color: #64748b;
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .stagger-up { transform: translateY(-40px); }
+
+        @media (max-width: 991px) {
+            .stagger-up { transform: none; }
+        }
+
+        /* Workload Section */
+        .work-section { padding: 120px 0; background-color: #fcfdfe; }
+
+        .benefit-pill {
+            display: inline-flex;
+            align-items: center;
+            background: white;
+            padding: 18px 25px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+            width: 100%;
+            border-left: 5px solid var(--primary);
+        }
+
+        /* Contact Section */
+        .contact-section {
+            padding: 120px 0;
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .contact-section::before {
+            content: '';
+            position: absolute;
+            top: -100px;
+            right: -100px;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .contact-card {
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 32px;
+            padding: 60px 50px;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .contact-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            border-radius: 24px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+            font-size: 32px;
+            color: white;
+            box-shadow: 0 15px 35px rgba(37, 99, 235, 0.3);
+        }
+
+        .email-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background: white;
+            color: var(--primary);
+            padding: 18px 35px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 18px;
+            text-decoration: none;
+            transition: 0.3s;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            margin-top: 20px;
+        }
+
+        .email-link:hover {
+            transform: translateY(-3px);
+            background: var(--accent);
+            color: white;
+            box-shadow: 0 20px 40px rgba(56, 189, 248, 0.3);
+        }
+
+        footer { background: var(--dark); color: white; padding: 80px 0 40px; }
+
+        .cta-btn {
+            background: #fff;
+            color: var(--primary);
+            font-weight: 800;
+            padding: 18px 45px;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: 0.3s;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .cta-btn:hover { background: var(--accent); color: white; transform: translateY(-3px); }
+    </style>
+</head>
+<body>
+
+    <nav class="lang-nav">
+        <button class="lang-btn active" onclick="setLang('en', this)">English</button>
+        <button class="lang-btn" onclick="setLang('hi', this)">हिन्दी</button>
+        <button class="lang-btn" onclick="setLang('gu', this)">ગુજરાતી</button>
+    </nav>
+
+    <header class="hero-section text-center">
+        <div class="container">
+            <h1 id="h-title" class="display-3 fw-800 mb-4">Diamond Trading, <span style="color: var(--accent);">Simplified.</span></h1>
+            <p id="h-sub" class="lead mb-5 opacity-90 px-md-5">Modernize your business with Carat One. Track inventory, carats, and invoices in one secure digital vault.</p>
+            <a href="#" class="cta-btn" id="h-btn">CaratOne - Coming Soon</a>
+        </div>
+    </header>
+
+    <div class="phone-wrapper">
+        <div class="phone-frame">
+            <img src="assets/img/dashboard.jpeg" alt="App Dashboard" onerror="this.src='https://via.placeholder.com/320x680/2563eb/ffffff?text=Image+Missing'">
+        </div>
+    </div>
+
+    <section class="container py-5">
+        <div class="text-center mb-5 pb-4">
+            <h2 id="f-heading" class="fw-800 display-5">Built for Diamond Traders</h2>
+            <p id="f-sub" class="text-muted lead">Eliminate manual registers and manage your entire stock with 100% accuracy.</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="feature-card">
+                    <div class="icon-circle"><i class="fas fa-gem"></i></div>
+                    <h4 id="f1-t" class="fw-700">Stock Management</h4>
+                    <p id="f1-d" class="text-muted">Live tracking of Opening Carats, Sold Carats, and Inventory Valuation. Know your business health in seconds.</p>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="feature-card">
+                    <div class="icon-circle"><i class="fas fa-file-invoice-dollar"></i></div>
+                    <h4 id="f2-t" class="fw-700">Digital Invoicing</h4>
+                    <p id="f2-d" class="text-muted">Generate GST invoices or quick Cash Sell entries. Professional PDF reports ready to share instantly.</p>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="feature-card">
+                    <div class="icon-circle"><i class="fas fa-users"></i></div>
+                    <h4 id="f3-t" class="fw-700">Brokerage & Parties</h4>
+                    <p id="f3-d" class="text-muted">Detailed broker performance reports. Manage commissions and track due payments effortlessly.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="showcase-section">
+        <div class="container position-relative">
+            <div class="text-center mb-5 pb-4">
+                <h2 id="s-heading" class="fw-800 display-5">Take a Tour Inside</h2>
+                <p id="s-sub" class="text-muted lead">Every screen is crafted for speed, clarity, and total control.</p>
+            </div>
+            <div class="row g-5 justify-content-center align-items-center">
+                <div class="col-md-6 col-lg-3">
+                    <div class="mini-phone">
+                        <img src="assets/img/inventory.jpeg" alt="Inventory Screen" onerror="this.src='https://via.placeholder.com/280x600/2563eb/ffffff?text=Inventory'">
+                    </div>
+                    <div class="screen-caption">
+                        <h5 id="s1-t">Inventory at a Glance</h5>
+                        <p id="s1-d">Real-time carat stock with valuation breakdowns.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3 stagger-up">
+                    <div class="mini-phone">
+                        <img src="assets/img/invoice.jpeg" alt="Invoice Screen" onerror="this.src='https://via.placeholder.com/280x600/1e3a8a/ffffff?text=Invoice'">
+                    </div>
+                    <div class="screen-caption">
+                        <h5 id="s2-t">Smart Invoicing</h5>
+                        <p id="s2-d">Generate GST or Cash Sell invoices in seconds.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="mini-phone">
+                        <img src="assets/img/expenses.jpeg" alt="Expenses Screen" onerror="this.src='https://via.placeholder.com/280x600/38bdf8/ffffff?text=Expenses'">
+                    </div>
+                    <div class="screen-caption">
+                        <h5 id="s3-t">Daily Expense Ledger</h5>
+                        <p id="s3-d">Track every rupee with categorized expense logs.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3 stagger-up">
+                    <div class="mini-phone">
+                        <img src="assets/img/brokers.jpeg" alt="Brokers Screen" onerror="this.src='https://via.placeholder.com/280x600/0f172a/ffffff?text=Brokers'">
+                    </div>
+                    <div class="screen-caption">
+                        <h5 id="s4-t">Broker Insights</h5>
+                        <p id="s4-d">Performance reports and commission tracking, simplified.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="mini-phone">
+                        <img src="assets/img/purchase.jpeg" alt="Add Purchase Screen" onerror="this.src='https://via.placeholder.com/280x600/2563eb/ffffff?text=Purchase'">
+                    </div>
+                    <div class="screen-caption">
+                        <h5 id="s5-t">Quick Purchase Entry</h5>
+                        <p id="s5-d">Auto-calculated amounts with party and broker details.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3 stagger-up">
+                    <div class="mini-phone">
+                        <img src="assets/img/sell_mode.jpeg" alt="Sell Mode Screen" onerror="this.src='https://via.placeholder.com/280x600/1e3a8a/ffffff?text=Sell+Mode'">
+                    </div>
+                    <div class="screen-caption">
+                        <h5 id="s6-t">Flexible Sell Modes</h5>
+                        <p id="s6-d">Pick a Cash sell or full GST invoice in one tap.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="mini-phone">
+                        <img src="assets/img/cash_sell.jpeg" alt="Cash Sell Screen" onerror="this.src='https://via.placeholder.com/280x600/38bdf8/ffffff?text=Cash+Sell'">
+                    </div>
+                    <div class="screen-caption">
+                        <h5 id="s7-t">Cash Sell, Streamlined</h5>
+                        <p id="s7-d">Add items, apply discounts, save in seconds.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="work-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 pr-lg-5">
+                    <h2 id="w-title" class="fw-800 display-5 mb-4">Reduce Your Workload</h2>
+                    <p id="w-sub" class="lead text-muted mb-5">Stop wasting hours on manual math. Carat One automates your entire trading workflow.</p>
+
+                    <div class="benefit-pill">
+                        <i class="fas fa-check-circle text-success me-3"></i>
+                        <span id="c1-t" class="fw-600">Auto-calculated Profit, Loss & Valuation</span>
+                    </div>
+                    <div class="benefit-pill">
+                        <i class="fas fa-check-circle text-success me-3"></i>
+                        <span id="c2-t" class="fw-600">One-Tap Year-End Reports & Tax Summaries</span>
+                    </div>
+                    <div class="benefit-pill">
+                        <i class="fas fa-check-circle text-success me-3"></i>
+                        <span id="c3-t" class="fw-600">Secure Digital Ledger for Daily Expenses</span>
+                    </div>
+                </div>
+                <div class="col-lg-6 text-center mt-5 mt-lg-0">
+                    <img src="assets/img/reports.jpeg" class="img-fluid rounded-4 shadow-lg" style="max-height: 550px;" alt="Reports" onerror="this.src='https://via.placeholder.com/400x550/1e3a8a/ffffff?text=Image+Missing'">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="contact-section">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="contact-card">
+                        <div class="contact-icon"><i class="fas fa-envelope-open-text"></i></div>
+                        <h2 id="contact-title" class="fw-800 display-5 mb-3">Get in Touch</h2>
+                        <p id="contact-sub" class="lead opacity-75 mb-2">Have questions, feedback, or partnership ideas?</p>
+                        <p id="contact-desc" class="opacity-75 mb-2">We'd love to hear from you. Drop us an email and we'll get back to you shortly.</p>
+                        <a href="mailto:caratone62@gmail.com" class="email-link">
+                            <i class="fas fa-envelope"></i> caratone62@gmail.com
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="text-center">
+        <div class="container">
+            <h2 class="text-white fw-800 mb-4">Carat One</h2>
+            <p id="footer-text" class="opacity-75">The Professional Ledger for Modern Diamond Merchants.</p>
+            <div class="mt-4">
+                <a href="privacy.html" id="footer-privacy" class="text-white opacity-75 mx-3 text-decoration-none fw-600">Privacy Policy</a>
+                <a href="terms.html" id="footer-terms" class="text-white opacity-75 mx-3 text-decoration-none fw-600">Terms &amp; Conditions</a>
+            </div>
+            <div class="mt-5 pt-4 border-top border-secondary">
+                <p class="small opacity-50">&copy; 2026 Carat One. All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const translations = {
+            en: {
+                "h-title": "Diamond Trading, Simplified.",
+                "h-sub": "Modernize your business with Carat One. Track inventory, carats, and invoices in one secure digital vault.",
+                "h-btn": "CaratOne - Coming Soon",
+                "f-heading": "Built for Diamond Traders",
+                "f-sub": "Eliminate manual registers and manage your entire stock with 100% accuracy.",
+                "f1-t": "Stock Management",
+                "f1-d": "Live tracking of Opening Carats, Sold Carats, and Inventory Valuation. Know your business health in seconds.",
+                "f2-t": "Digital Invoicing",
+                "f2-d": "Generate GST invoices or quick Cash Sell entries. Professional PDF reports ready to share instantly.",
+                "f3-t": "Brokerage & Parties",
+                "f3-d": "Detailed broker performance reports. Manage commissions and track due payments effortlessly.",
+                "s-heading": "Take a Tour Inside",
+                "s-sub": "Every screen is crafted for speed, clarity, and total control.",
+                "s1-t": "Inventory at a Glance",
+                "s1-d": "Real-time carat stock with valuation breakdowns.",
+                "s2-t": "Smart Invoicing",
+                "s2-d": "Generate GST or Cash Sell invoices in seconds.",
+                "s3-t": "Daily Expense Ledger",
+                "s3-d": "Track every rupee with categorized expense logs.",
+                "s4-t": "Broker Insights",
+                "s4-d": "Performance reports and commission tracking, simplified.",
+                "s5-t": "Quick Purchase Entry",
+                "s5-d": "Auto-calculated amounts with party and broker details.",
+                "s6-t": "Flexible Sell Modes",
+                "s6-d": "Pick a Cash sell or full GST invoice in one tap.",
+                "s7-t": "Cash Sell, Streamlined",
+                "s7-d": "Add items, apply discounts, save in seconds.",
+                "w-title": "Reduce Your Workload",
+                "w-sub": "Stop wasting hours on manual math. Carat One automates your entire trading workflow.",
+                "c1-t": "Auto-calculated Profit, Loss & Valuation",
+                "c2-t": "One-Tap Year-End Reports & Tax Summaries",
+                "c3-t": "Secure Digital Ledger for Daily Expenses",
+                "contact-title": "Get in Touch",
+                "contact-sub": "Have questions, feedback, or partnership ideas?",
+                "contact-desc": "We'd love to hear from you. Drop us an email and we'll get back to you shortly.",
+                "footer-text": "The Professional Ledger for Modern Diamond Merchants.",
+                "footer-privacy": "Privacy Policy",
+                "footer-terms": "Terms & Conditions"
+            },
+            hi: {
+                "h-title": "हीरा व्यापार, अब और भी आसान।",
+                "h-sub": "कैरेट वन के साथ अपने व्यवसाय को आधुनिक बनाएं। इन्वेंट्री, कैरेट और इनवॉइस को एक ही सुरक्षित डिजिटल वॉल्ट में ट्रैक करें।",
+                "h-btn": "कैरेट वन - जल्द आ रहा है",
+                "f-heading": "हीरा व्यापारियों के लिए निर्मित",
+                "f-sub": "मैन्युअल रजिस्टर खत्म करें और 100% सटीकता के साथ अपने पूरे स्टॉक को प्रबंधित करें।",
+                "f1-t": "स्टॉक प्रबंधन",
+                "f1-d": "ओपनिंग कैरेट, बेचे गए कैरेट और स्टॉक मूल्यांकन की रीयल-टाइम ट्रैकिंग। सेकंडों में अपने व्यवसाय की स्थिति जानें।",
+                "f2-t": "डिजिटल इनवॉइसिंग",
+                "f2-d": "पेशेवर GST इनवॉइस या त्वरित नकद बिक्री प्रविष्टियां बनाएं। पेशेवर PDF रिपोर्ट तुरंत साझा करें।",
+                "f3-t": "ब्रोकरेज और पार्टियां",
+                "f3-d": "विस्तृत ब्रोकर प्रदर्शन रिपोर्ट। कमीशन प्रबंधित करें और बकाया भुगतान को आसानी से ट्रैक करें।",
+                "s-heading": "ऐप के अंदर एक नज़र",
+                "s-sub": "हर स्क्रीन गति, स्पष्टता और पूर्ण नियंत्रण के लिए तैयार की गई है।",
+                "s1-t": "एक नज़र में इन्वेंट्री",
+                "s1-d": "मूल्यांकन विवरण के साथ रीयल-टाइम कैरेट स्टॉक।",
+                "s2-t": "स्मार्ट इनवॉइसिंग",
+                "s2-d": "सेकंडों में GST या नकद बिक्री इनवॉइस बनाएं।",
+                "s3-t": "दैनिक खर्च लेजर",
+                "s3-d": "श्रेणीबद्ध खर्च लॉग के साथ हर रुपये को ट्रैक करें।",
+                "s4-t": "ब्रोकर इनसाइट्स",
+                "s4-d": "प्रदर्शन रिपोर्ट और कमीशन ट्रैकिंग, सरल बनाए गए।",
+                "s5-t": "त्वरित खरीद प्रविष्टि",
+                "s5-d": "स्वचालित गणना की गई राशि, पार्टी और ब्रोकर विवरण के साथ।",
+                "s6-t": "लचीले बिक्री मोड",
+                "s6-d": "एक टैप में नकद बिक्री या पूर्ण GST इनवॉइस चुनें।",
+                "s7-t": "नकद बिक्री, सरल बनाई गई",
+                "s7-d": "आइटम जोड़ें, छूट लागू करें, सेकंडों में सहेजें।",
+                "w-title": "अपना कार्यभार कम करें",
+                "w-sub": "मैन्युअल गणित पर समय बर्बाद करना बंद करें। कैरेट वन आपके संपूर्ण व्यापार वर्कफ़्लो को स्वचालित करता है।",
+                "c1-t": "स्वचालित लाभ, हानि और मूल्यांकन गणना",
+                "c2-t": "एक-टैप वर्ष-अंत रिपोर्ट और टैक्स सारांश",
+                "c3-t": "दैनिक खर्चों के लिए सुरक्षित डिजिटल लेजर",
+                "contact-title": "संपर्क करें",
+                "contact-sub": "कोई प्रश्न, प्रतिक्रिया या साझेदारी का विचार है?",
+                "contact-desc": "हमें आपसे बात करके खुशी होगी। हमें ईमेल करें और हम जल्द ही आपसे संपर्क करेंगे।",
+                "footer-text": "आधुनिक हीरा व्यापारियों के लिए पेशेवर लेजर।",
+                "footer-privacy": "गोपनीयता नीति",
+                "footer-terms": "नियम और शर्तें"
+            },
+            gu: {
+                "h-title": "હીરાનો વેપાર, હવે થયો સરળ.",
+                "h-sub": "કેરેટ વન સાથે તમારા વ્યવસાયને આધુનિક બનાવો. ઇન્વેન્ટરી, કેરેટ અને ઇનવોઇસ એક જ સુરક્ષિત ડિજિટલ વૉલ્ટમાં ટ્રૅક કરો.",
+                "h-btn": "કેરેટ વન - જલ્દી આવી રહ્યું છે",
+                "f-heading": "હીરાના વેપારીઓ માટે બનાવેલ",
+                "f-sub": "મેન્યુઅલ રજિસ્ટર દૂર કરો અને 100% ચોકસાઈ સાથે તમારા આખા સ્ટોકને મેનેજ કરો.",
+                "f1-t": "સ્ટોક મેનેજમેન્ટ",
+                "f1-d": "ઓપનિંગ કેરેટ, વેચાયેલા કેરેટ અને ઇન્વેન્ટરી મૂલ્યાંકનનું રીઅલ-ટાઇમ ટ્રેકિંગ. સેકન્ડોમાં તમારા વ્યવસાયની સ્થિતિ જાણો.",
+                "f2-t": "ડિજિટલ ઇનવોઇસિંગ",
+                "f2-d": "પ્રોફેશનલ GST ઇનવોઇસ અથવા ઝડપી રોકડ વેચાણ એન્ટ્રીઓ બનાવો. પ્રોફેશનલ PDF રિપોર્ટ્સ તરત જ શેર કરો.",
+                "f3-t": "બ્રોકરેજ અને પાર્ટીઓ",
+                "f3-d": "વિગતવાર બ્રોકર પ્રદર્શન અહેવાલો. કમિશન મેનેજ કરો અને બાકી ચુકવણીઓને વિના પ્રયાસે ટ્રૅક કરો.",
+                "s-heading": "ઍપની અંદર એક ટૂર",
+                "s-sub": "દરેક સ્ક્રીન ગતિ, સ્પષ્ટતા અને સંપૂર્ણ નિયંત્રણ માટે તૈયાર કરેલી છે.",
+                "s1-t": "એક નજરમાં ઇન્વેન્ટરી",
+                "s1-d": "મૂલ્યાંકન વિગતો સાથે રીઅલ-ટાઇમ કેરેટ સ્ટોક.",
+                "s2-t": "સ્માર્ટ ઇનવોઇસિંગ",
+                "s2-d": "સેકન્ડોમાં GST અથવા રોકડ વેચાણ ઇનવોઇસ બનાવો.",
+                "s3-t": "દૈનિક ખર્ચ લેજર",
+                "s3-d": "વર્ગીકૃત ખર્ચ લોગ સાથે દરેક રૂપિયાને ટ્રૅક કરો.",
+                "s4-t": "બ્રોકર ઇનસાઇટ્સ",
+                "s4-d": "પ્રદર્શન અહેવાલો અને કમિશન ટ્રેકિંગ, સરળ બનાવ્યું.",
+                "s5-t": "ઝડપી ખરીદ એન્ટ્રી",
+                "s5-d": "પાર્ટી અને બ્રોકર વિગતો સાથે સ્વયંસંચાલિત રકમ.",
+                "s6-t": "લવચીક વેચાણ મોડ્સ",
+                "s6-d": "એક ટેપમાં રોકડ વેચાણ અથવા સંપૂર્ણ GST ઇનવોઇસ પસંદ કરો.",
+                "s7-t": "રોકડ વેચાણ, સરળ બનાવ્યું",
+                "s7-d": "આઇટમ્સ ઉમેરો, ડિસ્કાઉન્ટ લાગુ કરો, સેકન્ડોમાં સાચવો.",
+                "w-title": "તમારા કામનું ભારણ ઘટાડો",
+                "w-sub": "મેન્યુઅલ ગણતરીમાં કલાકો બગાડવાનું બંધ કરો. કેરેટ વન તમારા આખા ટ્રેડિંગ વર્કફ્લોને ઓટોમેટ કરે છે.",
+                "c1-t": "નફો, નુકસાન અને મૂલ્યાંકનની સ્વચાલિત ગણતરી",
+                "c2-t": "એક-ટેપ વર્ષ-અંતના રિપોર્ટ્સ અને ટેક્સ સારાંશ",
+                "c3-t": "દૈનિક ખર્ચ માટે સુરક્ષિત ડિજિટલ લેજર",
+                "contact-title": "સંપર્ક કરો",
+                "contact-sub": "કોઈ પ્રશ્નો, પ્રતિસાદ અથવા ભાગીદારીના વિચારો છે?",
+                "contact-desc": "અમને તમારી પાસેથી સાંભળવું ગમશે. અમને ઇમેઇલ કરો અને અમે જલ્દી જ તમારો સંપર્ક કરીશું.",
+                "footer-text": "આધુનિક હીરાના વેપારીઓ માટે વ્યાવસાયિક લેજર.",
+                "footer-privacy": "ગોપનીયતા નીતિ",
+                "footer-terms": "નિયમો અને શરતો"
+            }
+        };
+
+        function setLang(lang, btn) {
+            document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const data = translations[lang];
+            for (let key in data) {
+                const el = document.getElementById(key);
+                if (el) el.innerText = data[key];
+            }
+        }
+    </script>
+</body>
+</html>
