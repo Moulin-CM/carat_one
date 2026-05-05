@@ -67,6 +67,14 @@
             border-radius: 50px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
             border: 1px solid rgba(255,255,255,0.3);
+            display: -webkit-inline-box;
+            display: -ms-inline-flexbox;
+            display: inline-flex;
+            -webkit-box-align: center;
+            -ms-flex-align: center;
+            align-items: center;
+            gap: 2px;
+            line-height: 1;
         }
 
         .lang-btn {
@@ -79,6 +87,17 @@
             cursor: pointer;
             transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             color: var(--secondary);
+            line-height: 1;
+            display: -webkit-inline-box;
+            display: -ms-inline-flexbox;
+            display: inline-flex;
+            -webkit-box-align: center;
+            -ms-flex-align: center;
+            align-items: center;
+            -webkit-box-pack: center;
+            -ms-flex-pack: center;
+            justify-content: center;
+            font-family: inherit;
         }
 
         .lang-btn.active {
@@ -360,25 +379,16 @@
 
         /* Phones (≤ 767px) */
         @media (max-width: 767.98px) {
-            .lang-nav {
-                top: auto;
-                bottom: 18px;
-                left: 50%;
-                right: auto;
-                -webkit-transform: translateX(-50%);
-                transform: translateX(-50%);
-                padding: 5px;
-                box-shadow: 0 12px 30px rgba(0,0,0,0.18);
-            }
-            .lang-btn { padding: 8px 16px; font-size: 12px; }
+            .lang-nav { top: 15px; right: 15px; padding: 5px; }
+            .lang-btn { padding: 7px 14px; font-size: 11px; }
 
-            .hero-section { padding: 70px 16px 160px; }
+            .hero-section { padding: 80px 16px 130px; }
             .hero-section h1 { font-size: 2rem; line-height: 1.2; }
             .hero-section .lead { font-size: 0.95rem; padding: 0 10px; }
             .hero-section::after { height: 60px; }
             .cta-btn { padding: 14px 30px; font-size: 0.95rem; }
 
-            .phone-wrapper { max-width: 220px; margin: -30px auto 30px; perspective: none; }
+            .phone-wrapper { max-width: 220px; margin: -80px auto 30px; perspective: none; }
             .phone-frame {
                 border-width: 8px;
                 border-radius: 36px;
