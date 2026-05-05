@@ -17,12 +17,21 @@
             --glass: rgba(255, 255, 255, 0.85);
         }
 
+        * { -webkit-box-sizing: border-box; box-sizing: border-box; }
+
+        html { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             color: var(--dark);
             background-color: #fff;
             scroll-behavior: smooth;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
+
+        img { max-width: 100%; height: auto; }
 
         /* Premium Gradient Background */
         .hero-section {
@@ -41,6 +50,7 @@
             width: 100%;
             height: 100px;
             background: white;
+            -webkit-clip-path: polygon(0 100%, 100% 100%, 100% 0);
             clip-path: polygon(0 100%, 100% 100%, 100% 0);
         }
 
@@ -51,6 +61,7 @@
             right: 25px;
             z-index: 1000;
             background: var(--glass);
+            -webkit-backdrop-filter: blur(12px);
             backdrop-filter: blur(12px);
             padding: 6px;
             border-radius: 50px;
@@ -89,13 +100,17 @@
             border: 12px solid #111;
             border-radius: 48px;
             overflow: hidden;
+            -webkit-box-shadow: 0 40px 80px rgba(0,0,0,0.25);
             box-shadow: 0 40px 80px rgba(0,0,0,0.25);
             background: #fff;
+            -webkit-transform: rotateY(-5deg) rotateX(5deg);
             transform: rotateY(-5deg) rotateX(5deg);
+            -webkit-transition: 0.6s ease;
             transition: 0.6s ease;
         }
 
         .phone-frame:hover {
+            -webkit-transform: rotateY(0deg) rotateX(0deg) scale(1.02);
             transform: rotateY(0deg) rotateX(0deg) scale(1.02);
         }
 
@@ -245,6 +260,7 @@
 
         .contact-card {
             background: rgba(255, 255, 255, 0.06);
+            -webkit-backdrop-filter: blur(20px);
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 32px;
@@ -305,6 +321,105 @@
         }
 
         .cta-btn:hover { background: var(--accent); color: white; transform: translateY(-3px); }
+
+        /* ============================================
+           RESPONSIVE BREAKPOINTS
+           ============================================ */
+
+        /* Large desktops: keep defaults */
+
+        /* Tablets & small laptops (≤ 1199px) */
+        @media (max-width: 1199.98px) {
+            .hero-section { padding: 100px 0 150px; }
+            .phone-wrapper { max-width: 280px; margin: -120px auto 50px; }
+            .feature-card { padding: 38px; }
+            .showcase-section,
+            .work-section,
+            .contact-section { padding: 100px 0; }
+        }
+
+        /* Tablets (≤ 991px) */
+        @media (max-width: 991.98px) {
+            .hero-section { padding: 90px 20px 130px; }
+            .hero-section h1 { font-size: 2.5rem; }
+            .hero-section .lead { font-size: 1.05rem; }
+            .phone-wrapper { max-width: 260px; margin: -110px auto 40px; }
+            .phone-frame { border-width: 10px; border-radius: 42px; }
+            .feature-card { padding: 32px; border-radius: 26px; }
+            .icon-circle { width: 60px; height: 60px; font-size: 24px; margin-bottom: 22px; }
+            .showcase-section,
+            .work-section,
+            .contact-section { padding: 80px 0; }
+            .mini-phone { border-width: 7px; border-radius: 30px; max-width: 220px; margin: 0 auto; }
+            .screen-caption h5 { font-size: 1rem; }
+            .screen-caption p { font-size: 13px; }
+            .stagger-up { transform: none; }
+            .contact-card { padding: 50px 35px; border-radius: 26px; }
+            .contact-icon { width: 70px; height: 70px; font-size: 28px; }
+        }
+
+        /* Phones (≤ 767px) */
+        @media (max-width: 767.98px) {
+            .lang-nav { top: 15px; right: 15px; padding: 4px; }
+            .lang-btn { padding: 6px 12px; font-size: 11px; }
+
+            .hero-section { padding: 90px 16px 110px; }
+            .hero-section h1 { font-size: 2rem; line-height: 1.2; }
+            .hero-section .lead { font-size: 0.95rem; padding: 0 10px; }
+            .hero-section::after { height: 60px; }
+            .cta-btn { padding: 14px 30px; font-size: 0.95rem; }
+
+            .phone-wrapper { max-width: 220px; margin: -90px auto 30px; perspective: none; }
+            .phone-frame {
+                border-width: 8px;
+                border-radius: 36px;
+                -webkit-transform: none;
+                transform: none;
+            }
+
+            section.container.py-5 { padding-left: 15px; padding-right: 15px; }
+            .feature-card { padding: 28px; border-radius: 22px; }
+
+            .showcase-section,
+            .work-section,
+            .contact-section { padding: 60px 0; }
+            .showcase-section .row > [class*="col-"] { margin-bottom: 30px; }
+            .mini-phone { max-width: 200px; border-width: 6px; border-radius: 26px; }
+            .mini-phone::before { width: 45px; height: 5px; }
+            .screen-caption { margin-top: 20px; }
+
+            .work-section .pr-lg-5 { padding-right: 12px; }
+            .benefit-pill { padding: 14px 18px; border-radius: 16px; font-size: 14px; }
+
+            .contact-card { padding: 40px 24px; border-radius: 22px; }
+            .contact-icon { width: 64px; height: 64px; font-size: 26px; margin-bottom: 22px; }
+            .contact-section h2 { font-size: 1.75rem; }
+            .email-link { padding: 14px 22px; font-size: 15px; gap: 8px; }
+
+            footer { padding: 50px 0 30px; }
+            footer h2 { font-size: 1.6rem; }
+        }
+
+        /* Small phones (≤ 480px) */
+        @media (max-width: 480px) {
+            .lang-btn { padding: 5px 10px; font-size: 10px; }
+            .hero-section h1 { font-size: 1.7rem; }
+            .hero-section .lead { font-size: 0.9rem; }
+            .phone-wrapper { max-width: 200px; }
+            .mini-phone { max-width: 180px; }
+            .feature-card { padding: 24px; }
+            .email-link { font-size: 14px; word-break: break-all; }
+        }
+
+        /* Reduced motion accessibility */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+            .phone-frame { transform: none; }
+        }
     </style>
 </head>
 <body>
