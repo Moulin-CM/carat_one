@@ -360,16 +360,25 @@
 
         /* Phones (≤ 767px) */
         @media (max-width: 767.98px) {
-            .lang-nav { top: 15px; right: 15px; padding: 4px; }
-            .lang-btn { padding: 6px 12px; font-size: 11px; }
+            .lang-nav {
+                top: auto;
+                bottom: 18px;
+                left: 50%;
+                right: auto;
+                -webkit-transform: translateX(-50%);
+                transform: translateX(-50%);
+                padding: 5px;
+                box-shadow: 0 12px 30px rgba(0,0,0,0.18);
+            }
+            .lang-btn { padding: 8px 16px; font-size: 12px; }
 
-            .hero-section { padding: 90px 16px 110px; }
+            .hero-section { padding: 70px 16px 160px; }
             .hero-section h1 { font-size: 2rem; line-height: 1.2; }
             .hero-section .lead { font-size: 0.95rem; padding: 0 10px; }
             .hero-section::after { height: 60px; }
             .cta-btn { padding: 14px 30px; font-size: 0.95rem; }
 
-            .phone-wrapper { max-width: 220px; margin: -90px auto 30px; perspective: none; }
+            .phone-wrapper { max-width: 220px; margin: -30px auto 30px; perspective: none; }
             .phone-frame {
                 border-width: 8px;
                 border-radius: 36px;
