@@ -117,6 +117,7 @@ class _InventoryListViewContentState extends State<_InventoryListViewContent> {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: SizedBox(
           width: double.infinity,
+          height: 56,
           child: ElevatedButton.icon(
             onPressed: () async {
               final result = await Navigator.push(
@@ -132,7 +133,6 @@ class _InventoryListViewContentState extends State<_InventoryListViewContent> {
             icon: const Icon(Icons.add_rounded),
             label: const Text('Add Inventory', style: TextStyle(fontWeight: FontWeight.w700)),
             style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 14),
               backgroundColor: _accent,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -686,4 +686,3 @@ class _InventoryListViewContentState extends State<_InventoryListViewContent> {
     }
   }
 }
-
