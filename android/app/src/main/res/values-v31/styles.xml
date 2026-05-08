@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Android 12+ (API 31+) uses the system SplashScreen API and ignores
+    android:windowBackground for the launch animation. We declare a
+    Theme.SplashScreen-style theme so the splash uses our brand colors
+    and the launcher icon, then post-splash transitions to NormalTheme.
+-->
+<resources>
+    <style name="LaunchTheme" parent="@android:style/Theme.Light.NoTitleBar">
+        <!-- The flat color the system shows behind the splash icon. We pick
+             the lighter end of the Flutter gradient so the hand-off to the
+             Flutter splash looks continuous. -->
+        <item name="android:windowSplashScreenBackground">#FFF9FBFF</item>
+
+        <!-- Branded icon for the splash. The system masks this to a circle
+             on Android 12+, so the launcher icon works well here. -->
+        <item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_app_logo</item>
+
+        <!-- Keep our launch_background as a fallback for the brief moment
+             before the splash icon scales in. -->
+        <item name="android:windowBackground">@drawable/launch_background</item>
+    </style>
+
+    <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
+        <item name="android:windowBackground">?android:colorBackground</item>
+    </style>
+</resources>

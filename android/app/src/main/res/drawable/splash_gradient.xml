@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Light blue gradient that matches the Flutter SplashView backdrop
+    (Color(0xFFE7EEFF) -> Color(0xFFF9FBFF), top -> bottom).
+    Shown instantly by the system as the activity's window background
+    so the user never sees a flash of white before Flutter draws.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:startColor="#FFE7EEFF"
+        android:endColor="#FFF9FBFF"
+        android:angle="270"
+        android:type="linear" />
+</shape>
