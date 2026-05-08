@@ -1,20 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder used by the Flutter tool.
-    If you run `flutter run` or `flutter build web`, this placeholder will be
-    replaced automatically.
-  -->
   <base href="/carat_one/app/">
 
   <meta charset="UTF-8">
@@ -25,10 +11,10 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="CaratOne">
-  <link rel="apple-touch-icon" href="icons/favicon-512.png">
+  <link rel="apple-touch-icon" href="../assets/img/favicon-512.png">
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
+  <link rel="icon" type="image/png" href="../assets/img/favicon-512.png"/>
 
   <title>CaratOne</title>
   <link rel="manifest" href="manifest.json">
@@ -37,24 +23,8 @@
     // The value below is injected by flutter build, do not touch.
     const serviceWorkerVersion = "1305713355";
   </script>
-  <!-- This script adds the flutter initialization JS code -->
-  <script src="flutter.js" defer></script>
 </head>
 <body>
-  <script>
-    window.addEventListener('load', function(ev) {
-      // Download main.dart.js
-      _flutter.loader.loadEntrypoint({
-        serviceWorker: {
-          serviceWorkerVersion: serviceWorkerVersion,
-        },
-        onEntrypointLoaded: function(engineInitializer) {
-          engineInitializer.initializeEngine().then(function(appRunner) {
-            appRunner.runApp();
-          });
-        }
-      });
-    });
-  </script>
+  <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
