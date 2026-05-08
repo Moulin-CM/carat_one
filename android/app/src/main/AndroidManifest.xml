@@ -54,6 +54,25 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <!--
+            Google AdMob: REQUIRED app-level meta-data.
+            The value below is Google's official sample/test App ID; using it is fine
+            during development. Before publishing, REPLACE with your real AdMob App ID
+            from https://apps.admob.com/ (format: ca-app-pub-XXXXXXXXXXXXXXXX~YYYYYYYYYY).
+            Without a valid value the app will crash on launch.
+        -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-3940256099942544~3347511713" />
+
+        <!-- Optional: delay AdMob init so the splash is fast (we init manually). -->
+        <meta-data
+            android:name="com.google.android.gms.ads.flag.OPTIMIZE_INITIALIZATION"
+            android:value="true" />
+        <meta-data
+            android:name="com.google.android.gms.ads.flag.OPTIMIZE_AD_LOADING"
+            android:value="true" />
     </application>
 </manifest>
 

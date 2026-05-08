@@ -9,6 +9,8 @@ import '../../models/expense_model.dart';
 import '../../services/expense_report_pdf_service.dart';
 import '../../services/expense_storage_service.dart';
 import '../../widgets/app_bar_factory.dart';
+import '../../widgets/ads/banner_ad_widget.dart';
+import '../../widgets/list_skeleton.dart';
 
 enum _PeriodMode { monthly, yearly, custom }
 
@@ -152,7 +154,7 @@ class _ExpenseReportViewState extends State<ExpenseReportView> {
                 _summaryCard(),
                 Expanded(
                   child: _loading
-                      ? const Center(child: CircularProgressIndicator())
+                      ? const ListSkeleton()
                       : (_filtered.isEmpty
                           ? _emptyState()
                           : _transactionList()),
@@ -162,6 +164,7 @@ class _ExpenseReportViewState extends State<ExpenseReportView> {
           ),
         ],
       ),
+      bottomNavigationBar: const BottomBannerAd(),
     );
   }
 

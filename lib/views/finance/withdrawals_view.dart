@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import '../../models/withdrawal_model.dart';
 import '../../services/withdrawal_storage_service.dart';
 import '../../widgets/app_bar_factory.dart';
+import '../../widgets/ads/banner_ad_widget.dart';
+import '../../widgets/list_skeleton.dart';
 
 class WithdrawalsView extends StatefulWidget {
   const WithdrawalsView({super.key});
@@ -63,7 +65,7 @@ class _WithdrawalsViewState extends State<WithdrawalsView> {
                 _totalCard(),
                 Expanded(
                   child: _loading
-                      ? const Center(child: CircularProgressIndicator())
+                      ? const ListSkeleton()
                       : (_items.isEmpty
                           ? _emptyState()
                           : RefreshIndicator(
@@ -96,6 +98,7 @@ class _WithdrawalsViewState extends State<WithdrawalsView> {
         label: const Text('Add Withdrawal'),
         backgroundColor: _accent,
       ),
+      bottomNavigationBar: const BottomBannerAd(),
     );
   }
 

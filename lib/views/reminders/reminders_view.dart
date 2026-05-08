@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../viewmodels/reminder_viewmodel.dart';
 import '../../models/invoice_reminder_model.dart';
+import '../../widgets/list_skeleton.dart';
 
 class RemindersView extends StatelessWidget {
   const RemindersView({super.key});
@@ -63,7 +64,7 @@ class _RemindersViewContent extends StatelessWidget {
           _buildBackdrop(accent, deepAccent),
           SafeArea(
             child: viewModel.isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? const ListSkeleton()
                 : reminders.isEmpty
                     ? _buildEmptyState(accent, deepAccent)
                     : RefreshIndicator(

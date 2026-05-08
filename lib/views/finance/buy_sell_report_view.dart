@@ -11,6 +11,8 @@ import '../../services/buy_sell_report_pdf_service.dart';
 import '../../services/invoice_storage_service.dart';
 import '../../services/purchase_storage_service.dart';
 import '../../widgets/app_bar_factory.dart';
+import '../../widgets/ads/banner_ad_widget.dart';
+import '../../widgets/list_skeleton.dart';
 
 enum _PeriodMode { monthly, yearly, custom }
 
@@ -148,7 +150,7 @@ class _BuySellReportViewState extends State<BuySellReportView> {
                 _periodSelector(),
                 Expanded(
                   child: _loading
-                      ? const Center(child: CircularProgressIndicator())
+                      ? const ListSkeleton()
                       : RefreshIndicator(
                           onRefresh: _load,
                           child: ListView(
@@ -185,7 +187,15 @@ class _BuySellReportViewState extends State<BuySellReportView> {
           ),
         ],
       ),
-      bottomNavigationBar: _actionBar(),
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Banner sits above the action bar — never overlaps interactive
+          // elements, satisfying AdMob's accidental-click policy.
+          const BannerAdWidget(),
+          _actionBar(),
+        ],
+      ),
     );
   }
 

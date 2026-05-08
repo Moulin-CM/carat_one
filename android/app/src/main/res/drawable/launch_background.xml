@@ -1,13 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Modify this file to customize your launch splash screen -->
+<!--
+    Native launch splash. Shown by the OS the instant the activity is
+    created, before Flutter's engine has drawn anything. Designed to
+    match lib/views/splash/splash_view.dart so the transition from the
+    native splash to the Flutter splash is seamless (no white flash).
+-->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:drawable="@android:color/white" />
+    <!-- Light blue gradient backdrop (matches SplashView._buildBackdrop). -->
+    <item android:drawable="@drawable/splash_gradient" />
 
-    <!-- You can insert your own image assets here -->
-    <!-- <item>
+    <!-- Centered app logo. Uses the launcher mipmap so it scales nicely
+         across densities. -->
+    <item>
         <bitmap
             android:gravity="center"
-            android:src="@mipmap/launch_image" />
-    </item> -->
+            android:src="@mipmap/ic_app_logo" />
+    </item>
 </layer-list>
-

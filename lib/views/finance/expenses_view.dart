@@ -6,6 +6,8 @@ import '../../models/expense_model.dart';
 import '../../services/expense_storage_service.dart';
 import '../../viewmodels/purchase_viewmodel.dart';
 import '../../widgets/app_bar_factory.dart';
+import '../../widgets/ads/banner_ad_widget.dart';
+import '../../widgets/list_skeleton.dart';
 import 'expense_report_view.dart';
 
 class ExpensesView extends StatelessWidget {
@@ -67,7 +69,7 @@ class _ExpensesContentState extends State<_ExpensesContent> {
                 _summaryBar(context, vm),
                 Expanded(
                   child: vm.isLoading
-                      ? const Center(child: CircularProgressIndicator())
+                      ? const ListSkeleton()
                       : _expensesList(context, vm),
                 ),
               ],
@@ -81,6 +83,7 @@ class _ExpensesContentState extends State<_ExpensesContent> {
         label: const Text('Add Entry'),
         backgroundColor: _accent,
       ),
+      bottomNavigationBar: const BottomBannerAd(),
     );
   }
 

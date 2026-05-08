@@ -11,7 +11,20 @@
       "Bash(python *)",
       "Bash(git mv *)",
       "Bash(magick -version)",
-      "Bash(convert -version)"
+      "Bash(convert -version)",
+      "PowerShell(flutter clean *)",
+      "PowerShell(flutter pub *)",
+      "PowerShell(Get-ChildItem -Path \"E:\\\\Pappa\\\\carat_one_updated\\\\android\\\\app\\\\.cxx\" -ErrorAction SilentlyContinue | Select-Object Name; Get-ChildItem -Path \"E:\\\\Pappa\\\\carat_one_updated\\\\android\" -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -in @\\('.gradle','build'\\) } | Select-Object FullName)",
+      "PowerShell(Remove-Item *)",
+      "Bash(where magick *)",
+      "Bash(where inkscape *)",
+      "Bash(where rsvg-convert *)",
+      "Bash(where dart *)",
+      "Bash(where flutter *)",
+      "Bash(dart run *)",
+      "Bash(dir E:Pappacarat_one_updated *)",
+      "PowerShell(flutter *)",
+      "PowerShell(flutter analyze *)"
     ]
   }
 }

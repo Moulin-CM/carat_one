@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import '../../models/purchase_model.dart';
 import '../../models/stock_valuation_item.dart';
 import '../../viewmodels/purchase_viewmodel.dart';
+import '../../widgets/ads/native_ad_card.dart';
+import '../../widgets/list_skeleton.dart';
 import '../finance/buy_sell_report_view.dart';
 import 'purchase_form_view.dart';
 import 'purchase_detail_view.dart';
@@ -199,17 +201,12 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
                 const SizedBox(height: 8),
                 Expanded(
                   child: vm.isLoading
-                      ? const Center(child: CircularProgressIndicator())
+                      ? const ListSkeleton()
                       : vm.isEmpty
                           ? _emptyState()
                           : RefreshIndicator(
                               onRefresh: () => context.read<PurchaseViewModel>().loadPurchases(),
-                              child: ListView.builder(
-                                padding: const EdgeInsets.fromLTRB(16, 4, 16, 100),
-                                itemCount: vm.purchases.length,
-                                itemBuilder: (ctx, i) =>
-                                    _purchaseCard(ctx, vm.purchases[i], vm, fmt, caratFmt),
-                              ),
+                              child: _buildPurchaseListWithAds(context, vm, fmt, caratFmt),
                             ),
                 ),
               ],
@@ -227,8 +224,8 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
             context.read<PurchaseViewModel>().loadPurchases();
           }
         },
-        icon: const Icon(Icons.add_rounded),
-        label: const Text('Add Purchase'),
+        icon: const Icon(Icons.add_rounded, color: Colors.white),
+        label: const Text('Add Purchase', style: TextStyle(color: Colors.white)),
         backgroundColor: _accent,
       ),
     );
@@ -739,6 +736,38 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
           );
         },
       ),
+    );
+  }
+
+  /// One native ad after every [_adInterval] purchase rows.
+  /// Same approach as the invoice list — see notes there.
+  static const int _adInterval = 7;
+
+  Widget _buildPurchaseListWithAds(
+      BuildContext context,
+      PurchaseViewModel vm,
+      NumberFormat fmt,
+      NumberFormat caratFmt) {
+    final purchases = vm.purchases;
+    final adCount = purchases.length ~/ _adInterval;
+    final totalSlots = purchases.length + adCount;
+
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 100),
+      itemCount: totalSlots,
+      itemBuilder: (ctx, index) {
+        const groupSize = _adInterval + 1;
+        final positionInGroup = index % groupSize;
+        if (positionInGroup == _adInterval) {
+          return const NativeAdCard();
+        }
+        final purchaseIndex =
+            (index ~/ groupSize) * _adInterval + positionInGroup;
+        if (purchaseIndex >= purchases.length) {
+          return const SizedBox.shrink();
+        }
+        return _purchaseCard(ctx, purchases[purchaseIndex], vm, fmt, caratFmt);
+      },
     );
   }
 

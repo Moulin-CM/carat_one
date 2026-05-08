@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, Tar
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../services/version_check_manager.dart';
 import '../../services/version_check_service.dart';
+import '../../widgets/dashboard_skeleton.dart';
 import 'welcome_view.dart';
 import '../shell/main_shell.dart';
 
@@ -24,6 +25,8 @@ class _AuthWrapperState extends State<AuthWrapper> {
 
   Future<void> _checkVersionOnStartup() async {
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+      // Both calls do network IO + plugin channel work; awaiting them on
+      // the platform thread keeps the UI thread free.
       await VersionCheckService.initialize();
       if (mounted) {
         await VersionCheckManager.checkAndShowUpdateDialog(
@@ -42,9 +45,13 @@ class _AuthWrapperState extends State<AuthWrapper> {
   @override
   Widget build(BuildContext context) {
     if (_isCheckingVersion) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      // Render the dashboard layout as a shimmer placeholder so the
+      // post-splash transition lands on something that already looks
+      // like the destination, not a white screen with a spinner.
+      // Render the bottom-nav placeholder too — destination is MainShell
+      // (when logged in) which has a bottom nav, so showing it here keeps
+      // the navbar from popping in 2-3 seconds later.
+      return const DashboardSkeleton(showBottomNav: true);
     }
 
     return StreamBuilder<User?>(
@@ -52,9 +59,10 @@ class _AuthWrapperState extends State<AuthWrapper> {
       builder: (context, snapshot) {
         // Still waiting for Firebase to restore session
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
+          // Render the bottom-nav placeholder too — destination is MainShell
+      // (when logged in) which has a bottom nav, so showing it here keeps
+      // the navbar from popping in 2-3 seconds later.
+      return const DashboardSkeleton(showBottomNav: true);
         }
 
         final isLoggedIn = snapshot.hasData && snapshot.data != null;

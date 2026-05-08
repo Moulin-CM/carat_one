@@ -4,6 +4,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/invoice_model.dart';
+import 'storage_parsers.dart';
 
 class InvoiceStorageService {
   static const String _invoicesKey = 'saved_invoices';
@@ -90,11 +91,12 @@ class InvoiceStorageService {
     try {
       debugPrint('[InvoiceStorage] Fetching from Firebase for uid: $uid');
       final snapshot = await _getUserInvoiceRef(uid).get();
-      final List<InvoiceModel> remote = _parseSnapshot(snapshot);
+      final List<InvoiceModel> remote = await _parseSnapshot(snapshot);
       debugPrint('[InvoiceStorage] Firebase returned ${remote.length} invoices');
 
       if (remote.isNotEmpty) {
-        remote.sort((a, b) => b.invoiceDate.compareTo(a.invoiceDate));
+        // Already sorted by parseInvoiceMapJson — write the cache from a
+        // background isolate too so we don't re-encode on the UI thread.
         await _cacheLocally(remote, storageKey);
         return remote;
       }
@@ -142,7 +144,7 @@ class InvoiceStorageService {
 
   // ─── Private helpers ──────────────────────────────────────────────────────
 
-  static List<InvoiceModel> _parseSnapshot(DataSnapshot snapshot) {
+  static Future<List<InvoiceModel>> _parseSnapshot(DataSnapshot snapshot) async {
     if (snapshot.value == null) return [];
 
     // _deepConvert handles the difference between mobile (LinkedHashMap) and
@@ -154,18 +156,11 @@ class InvoiceStorageService {
       return [];
     }
 
-    final List<InvoiceModel> result = [];
-    converted.forEach((key, value) {
-      if (value is Map<String, dynamic>) {
-        try {
-          value['id'] = key;
-          result.add(InvoiceModel.fromJson(value));
-        } catch (e) {
-          debugPrint('[InvoiceStorage] Failed to parse invoice $key: $e');
-        }
-      }
-    });
-
+    // Hop to a background isolate for the heavy json-decode + N×fromJson
+    // pass. We pay a single jsonEncode here (fast — primitives only) so
+    // the data is cheap to ship across the isolate boundary.
+    final encoded = jsonEncode(converted);
+    final result = await compute(parseInvoiceMapJson, encoded);
     debugPrint('[InvoiceStorage] Parsed ${result.length} invoices from snapshot');
     return result;
   }
@@ -175,11 +170,8 @@ class InvoiceStorageService {
       final prefs = await SharedPreferences.getInstance();
       final raw = prefs.getString(storageKey);
       if (raw == null || raw.isEmpty) return [];
-      final List<dynamic> decoded = jsonDecode(raw);
-      return decoded
-          .map((json) => InvoiceModel.fromJson(json))
-          .toList()
-        ..sort((a, b) => b.invoiceDate.compareTo(a.invoiceDate));
+      // Parse + sort on a background isolate.
+      return await compute(parseInvoiceListJson, raw);
     } catch (_) {
       return [];
     }
@@ -188,8 +180,14 @@ class InvoiceStorageService {
   static Future<void> _cacheLocally(
       List<InvoiceModel> invoices, String storageKey) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(
-        storageKey, jsonEncode(invoices.map((inv) => inv.toJson()).toList()));
+    // Encode + serialise on a background isolate so writing the cache
+    // doesn't add to the UI-thread cost on cold loads with many invoices.
+    final encoded = await compute(_encodeInvoices, invoices);
+    await prefs.setString(storageKey, encoded);
+  }
+
+  static String _encodeInvoices(List<InvoiceModel> invoices) {
+    return jsonEncode(invoices.map((inv) => inv.toJson()).toList());
   }
 
   static Future<void> _migrateLocalToFirebase(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../services/ads_service.dart';
 import '../../viewmodels/settings_viewmodel.dart';
 import '../export_import/export_import_view.dart';
 
@@ -229,6 +230,26 @@ class _SettingsViewContentState extends State<_SettingsViewContent> {
                       ),
                     ],
                   ),
+                  // Support the developer (rewarded ad — fully opt-in).
+                  // AdMob policy: rewarded ads must be voluntary and the user
+                  // must understand they will see an ad. The dialog below
+                  // makes both crystal clear.
+                  if (AdsService.instance.isSupported) ...[
+                    const SizedBox(height: 18),
+                    _buildSection(
+                      title: 'Support CaratOne',
+                      icon: Icons.favorite_rounded,
+                      children: [
+                        _buildActionButton(
+                          'Watch a Short Ad',
+                          'Help keep CaratOne free — watch a 30-second ad to support development',
+                          Icons.play_circle_fill_rounded,
+                          Colors.pinkAccent,
+                          () => _handleSupportRewarded(context),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -753,5 +774,74 @@ class _SettingsViewContentState extends State<_SettingsViewContent> {
         }
       }
     }
+  }
+
+  /// Opt-in rewarded ad. AdMob policy is strict here:
+  ///   1. The user must explicitly choose to watch the ad.
+  ///   2. They must understand a video ad will play.
+  ///   3. The reward is given only on completion (handled by AdsService).
+  /// We make all three obvious with this confirmation dialog.
+  Future<void> _handleSupportRewarded(BuildContext context) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Icon(Icons.favorite_rounded, color: Colors.pinkAccent),
+            const SizedBox(width: 8),
+            const Text('Thank You!'),
+          ],
+        ),
+        content: const Text(
+          'A short video ad will play. When it finishes you\'ll get a '
+          'thank-you and we earn a small amount that keeps CaratOne free.\n\n'
+          'You can close the ad at any time.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Maybe Later'),
+          ),
+          ElevatedButton.icon(
+            onPressed: () => Navigator.pop(ctx, true),
+            icon: const Icon(Icons.play_arrow_rounded),
+            label: const Text('Watch Ad'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.pinkAccent,
+              foregroundColor: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true || !context.mounted) return;
+
+    await AdsService.instance.showRewarded(
+      onReward: () {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.favorite_rounded, color: Colors.white, size: 18),
+                SizedBox(width: 8),
+                Text('Thanks for supporting CaratOne ❤️'),
+              ],
+            ),
+            backgroundColor: Colors.pinkAccent,
+          ),
+        );
+      },
+      onUnavailable: () {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Ad not available right now — please try again later.'),
+          ),
+        );
+      },
+    );
   }
 }

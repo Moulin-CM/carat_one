@@ -24,7 +24,7 @@ if (flutterVersionName == null) {
 }
 
 android {
-    namespace "com.invoice.generator"
+    namespace "com.mobile.caratone"
     buildToolsVersion "36.1.0"
     compileSdk 35
 
@@ -43,7 +43,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.invoice.generator"
+        applicationId "com.mobile.caratone"
         minSdkVersion 23
         targetSdkVersion 35
         versionCode flutterVersionCode.toInteger()

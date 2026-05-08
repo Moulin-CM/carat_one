@@ -5,6 +5,7 @@ import '../purchase/purchase_list_view.dart';
 import '../invoice/invoice_list_view.dart';
 import '../settings/settings_view.dart';
 import '../../viewmodels/dashboard_viewmodel.dart';
+import '../../widgets/ads/banner_ad_widget.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -48,44 +49,53 @@ class _MainShellState extends State<MainShell> {
           ],
         ),
         child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: _items.asMap().entries.map((e) {
-                final selected = _currentIndex == e.key;
-                return GestureDetector(
-                  onTap: () => setState(() => _currentIndex = e.key),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: selected ? _accent.withOpacity(0.12) : Colors.transparent,
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          e.value.icon,
-                          color: selected ? _accent : Colors.grey[400],
-                          size: 24,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Persistent banner ad sits just above the bottom nav so it's
+              // visible across Dashboard / Purchases / Sells / Settings tabs.
+              // Placed inside the nav container so it never overlaps content.
+              const BannerAdWidget(showDivider: false),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: _items.asMap().entries.map((e) {
+                    final selected = _currentIndex == e.key;
+                    return GestureDetector(
+                      onTap: () => setState(() => _currentIndex = e.key),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: selected ? _accent.withOpacity(0.12) : Colors.transparent,
+                          borderRadius: BorderRadius.circular(14),
                         ),
-                        const SizedBox(height: 3),
-                        Text(
-                          e.value.label,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                            color: selected ? _accent : Colors.grey[400],
-                          ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              e.value.icon,
+                              color: selected ? _accent : Colors.grey[400],
+                              size: 24,
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              e.value.label,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                                color: selected ? _accent : Colors.grey[400],
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
           ),
         ),
       ),

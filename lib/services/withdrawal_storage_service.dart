@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/withdrawal_model.dart';
+import 'storage_parsers.dart';
 
 class WithdrawalStorageService {
   static const String _key = 'saved_withdrawals';
@@ -62,38 +64,33 @@ class WithdrawalStorageService {
     try {
       final snapshot = await _getUserRef(uid).get();
       if (snapshot.value != null) {
-        final List<WithdrawalModel> remote = [];
         final data = _deepConvert(snapshot.value);
         if (data is Map) {
-          data.forEach((key, value) {
-            if (value is Map<String, dynamic>) {
-              value['id'] = key;
-              remote.add(WithdrawalModel.fromJson(value));
-            }
-          });
-        }
-        if (remote.isNotEmpty) {
-          remote.sort((a, b) => b.takenDate.compareTo(a.takenDate));
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString(_localKey(uid),
-              jsonEncode(remote.map((w) => w.toJson()).toList()));
-          return remote;
+          // jsonEncode on UI thread (cheap, primitives only) → compute()
+          // does the decode + N×fromJson on a background isolate.
+          final encoded = jsonEncode(data);
+          final remote = await compute(parseWithdrawalMapJson, encoded);
+          if (remote.isNotEmpty) {
+            final cacheString = await compute(_encodeWithdrawals, remote);
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setString(_localKey(uid), cacheString);
+            return remote;
+          }
         }
       }
     } catch (_) {}
     try {
       final prefs = await SharedPreferences.getInstance();
       final raw = prefs.getString(_localKey(uid));
-      if (raw != null) {
-        final list = jsonDecode(raw) as List<dynamic>;
-        final local = list
-            .map((e) => WithdrawalModel.fromJson(e as Map<String, dynamic>))
-            .toList();
-        local.sort((a, b) => b.takenDate.compareTo(a.takenDate));
-        return local;
+      if (raw != null && raw.isNotEmpty) {
+        return await compute(parseWithdrawalListJson, raw);
       }
     } catch (_) {}
     return [];
+  }
+
+  static String _encodeWithdrawals(List<WithdrawalModel> items) {
+    return jsonEncode(items.map((w) => w.toJson()).toList());
   }
 
   static Future<void> deleteWithdrawal(String id) async {

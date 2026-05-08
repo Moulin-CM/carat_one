@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../viewmodels/inventory_viewmodel.dart';
+import '../../widgets/ads/banner_ad_widget.dart';
+import '../../widgets/list_skeleton.dart';
 import 'inventory_list_view.dart';
 import 'inventory_form_view.dart';
 
@@ -28,9 +30,7 @@ class _InventoryDashboardViewContent extends StatelessWidget {
     final currencyFormat = NumberFormat.currency(symbol: '₹', decimalDigits: 0);
 
     if (viewModel.isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: ListSkeleton());
     }
 
     return Scaffold(
@@ -97,6 +97,7 @@ class _InventoryDashboardViewContent extends StatelessWidget {
         label: const Text('Add Stock'),
         backgroundColor: accent,
       ),
+      bottomNavigationBar: const BottomBannerAd(),
     );
   }
 

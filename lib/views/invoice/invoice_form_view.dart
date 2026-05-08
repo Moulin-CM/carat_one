@@ -11,6 +11,7 @@ import '../../widgets/custom_button.dart';
 import '../../widgets/custom_card.dart';
 import '../../widgets/custom_info_row.dart';
 import '../../widgets/app_bar_factory.dart';
+import '../../services/ads_service.dart';
 
 class InvoiceFormView extends StatelessWidget {
   final InvoiceModel? invoice;
@@ -831,6 +832,12 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
               : 'Invoice generated successfully!'),
           backgroundColor: Colors.green,
         ));
+        // Save complete = natural transition. Show an interstitial (subject
+        // to the AdsService frequency cap) THEN pop. We don't await the ad's
+        // dismissal — pop immediately so the user sees the updated list, and
+        // the ad surfaces over it. This is the AdMob-recommended pattern for
+        // post-action interstitials.
+        AdsService.instance.maybeShowInterstitial();
         Navigator.pop(context, true);
       } else if (viewModel.errorMessage != null) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(viewModel.errorMessage!), backgroundColor: Colors.red));

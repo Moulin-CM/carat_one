@@ -8,7 +8,9 @@ import '../../models/invoice_model.dart';
 import '../../viewmodels/invoice_list_viewmodel.dart';
 import '../../services/email_service.dart';
 import '../../services/pdf_service.dart';
+import '../../widgets/ads/native_ad_card.dart';
 import '../../widgets/sell_options_sheet.dart';
+import '../../widgets/list_skeleton.dart';
 import 'invoice_form_view.dart';
 import 'invoice_details_view.dart';
 
@@ -91,16 +93,12 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
                 _buildSearchAndFilter(context, viewModel),
                 Expanded(
                   child: viewModel.isLoading
-                      ? const Center(child: CircularProgressIndicator())
+                      ? const ListSkeleton()
                       : viewModel.isEmpty
                           ? _buildEmptyState()
                           : RefreshIndicator(
                               onRefresh: () => viewModel.loadInvoices(),
-                              child: ListView.builder(
-                                padding: const EdgeInsets.fromLTRB(16, 8, 16, 110),
-                                itemCount: viewModel.invoices.length,
-                                itemBuilder: (context, index) => _buildInvoiceCard(context, viewModel.invoices[index], viewModel),
-                              ),
+                              child: _buildInvoiceListWithAds(context, viewModel),
                             ),
                 ),
               ],
@@ -400,9 +398,9 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
                         fontWeight: FontWeight.w400,
                       ),
                       prefixIcon: Container(
-                        margin: const EdgeInsets.only(left: 4, right: 8),
+                        margin: const EdgeInsets.only(left: 8, right: 8),
                         child: Container(
-                          padding: const EdgeInsets.all(10),
+                          padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
                             color: _accent.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(12),
@@ -748,6 +746,43 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
     await Share.shareXFiles(
       [XFile(filePath)],
       text: 'Invoice ${invoice.invoiceNo}',
+    );
+  }
+
+  /// AdMob native ads interleaved into the invoice list.
+  ///
+  /// Pattern: one ad after every [_adInterval] invoices. We use a constant
+  /// frequency rather than ad-density-based heuristics so layout is
+  /// predictable and we never place two ads adjacent (a common policy
+  /// violation).
+  static const int _adInterval = 7;
+
+  Widget _buildInvoiceListWithAds(
+      BuildContext context, InvoiceListViewModel viewModel) {
+    final invoices = viewModel.invoices;
+    // Total slots = invoices + one ad after every _adInterval invoices.
+    // We only add an ad slot AFTER a full group, so a list of 6 has 0 ads,
+    // 7 has 1, 14 has 2, etc.
+    final adCount = invoices.length ~/ _adInterval;
+    final totalSlots = invoices.length + adCount;
+
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 110),
+      itemCount: totalSlots,
+      itemBuilder: (context, index) {
+        // Compute group of (_adInterval + 1) slots: N invoices then 1 ad.
+        const groupSize = _adInterval + 1;
+        final positionInGroup = index % groupSize;
+        if (positionInGroup == _adInterval) {
+          // Ad slot.
+          return const NativeAdCard();
+        }
+        final invoiceIndex = (index ~/ groupSize) * _adInterval + positionInGroup;
+        if (invoiceIndex >= invoices.length) {
+          return const SizedBox.shrink();
+        }
+        return _buildInvoiceCard(context, invoices[invoiceIndex], viewModel);
+      },
     );
   }
 

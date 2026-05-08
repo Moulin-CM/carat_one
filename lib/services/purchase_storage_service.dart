@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/purchase_model.dart';
+import 'storage_parsers.dart';
 
 class PurchaseStorageService {
   static const String _key = 'saved_purchases';
@@ -61,36 +63,35 @@ class PurchaseStorageService {
     try {
       final snapshot = await _getUserRef(uid).get();
       if (snapshot.value != null) {
-        final List<PurchaseModel> remote = [];
         final data = _deepConvert(snapshot.value);
         if (data is Map) {
-          data.forEach((key, value) {
-            if (value is Map<String, dynamic>) {
-              value['id'] = key;
-              remote.add(PurchaseModel.fromJson(value));
-            }
-          });
-        }
-        if (remote.isNotEmpty) {
-          remote.sort((a, b) => b.addedDate.compareTo(a.addedDate));
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString(_localKey(uid), jsonEncode(remote.map((p) => p.toJson()).toList()));
-          return remote;
+          // Single jsonEncode here, then heavy decode + fromJson runs on a
+          // background isolate via compute().
+          final encoded = jsonEncode(data);
+          final remote = await compute(parsePurchaseMapJson, encoded);
+          if (remote.isNotEmpty) {
+            // Cache encoding also offloaded.
+            final cacheString = await compute(_encodePurchases, remote);
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setString(_localKey(uid), cacheString);
+            return remote;
+          }
         }
       }
     } catch (_) {}
-    // Fall back to local
+    // Fall back to local cache (also parsed off-thread).
     try {
       final prefs = await SharedPreferences.getInstance();
       final raw = prefs.getString(_localKey(uid));
-      if (raw != null) {
-        final list = jsonDecode(raw) as List<dynamic>;
-        final local = list.map((e) => PurchaseModel.fromJson(e as Map<String, dynamic>)).toList();
-        local.sort((a, b) => b.addedDate.compareTo(a.addedDate));
-        return local;
+      if (raw != null && raw.isNotEmpty) {
+        return await compute(parsePurchaseListJson, raw);
       }
     } catch (_) {}
     return [];
+  }
+
+  static String _encodePurchases(List<PurchaseModel> items) {
+    return jsonEncode(items.map((p) => p.toJson()).toList());
   }
 
   static Future<void> deletePurchase(String id) async {

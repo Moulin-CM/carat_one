@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../models/inventory_model.dart';
+import '../../services/ads_service.dart';
 import '../../viewmodels/inventory_form_viewmodel.dart';
 
 class InventoryFormView extends StatelessWidget {
@@ -618,6 +619,8 @@ class _InventoryFormViewContentState extends State<_InventoryFormViewContent> {
           backgroundColor: Colors.green,
         ),
       );
+      // Frequency-capped interstitial on a natural transition.
+      AdsService.instance.maybeShowInterstitial();
       Navigator.pop(context, true);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

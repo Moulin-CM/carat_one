@@ -11,6 +11,7 @@ import '../finance/withdrawals_view.dart';
 import '../finance/buy_sell_report_view.dart';
 import '../finance/brokerage_report_view.dart';
 import '../../widgets/sell_options_sheet.dart';
+import '../../widgets/dashboard_skeleton.dart';
 
 class DashboardView extends StatelessWidget {
   const DashboardView({super.key});
@@ -34,9 +35,10 @@ class _DashboardViewContent extends StatelessWidget {
     const deepAccent = Color(0xFF1E3C72);
 
     if (viewModel.isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      // Show a shimmer skeleton that mirrors the populated dashboard layout,
+      // so the load-to-content transition is smooth instead of a blank
+      // screen with a spinner.
+      return const DashboardSkeleton();
     }
 
     return Scaffold(
@@ -150,8 +152,8 @@ class _DashboardViewContent extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _startNewSell(context),
-        icon: const Icon(Icons.add_rounded),
-        label: const Text('Sell'),
+        icon: const Icon(Icons.add_rounded, color: Colors.white),
+        label: const Text('Sell', style: TextStyle(color: Colors.white)),
         backgroundColor: accent,
       ),
     );

@@ -9,6 +9,7 @@ import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_card.dart';
 import '../../widgets/app_bar_factory.dart';
+import '../../services/ads_service.dart';
 
 class PurchaseFormView extends StatelessWidget {
   final PurchaseModel? purchase;
@@ -246,6 +247,9 @@ class _PurchaseFormContentState extends State<_PurchaseFormContent> {
             backgroundColor: Colors.green,
           ),
         );
+        // Natural transition after a save — try to show an interstitial.
+        // Frequency-capped inside AdsService so it never feels spammy.
+        AdsService.instance.maybeShowInterstitial();
         Navigator.pop(context, true);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(

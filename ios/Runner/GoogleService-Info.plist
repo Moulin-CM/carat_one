@@ -9,7 +9,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.invoice.generator</string>
+	<string>com.mobile.caratone</string>
 	<key>PROJECT_ID</key>
 	<string>caratone-1098a</string>
 	<key>STORAGE_BUCKET</key>
@@ -25,7 +25,7 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:373158700266:ios:57f87ec38a55f7ad572393</string>
+	<string>1:373158700266:ios:484aed7b2d53e3bf572393</string>
 	<key>DATABASE_URL</key>
 	<string>https://caratone-1098a-default-rtdb.firebaseio.com</string>
 </dict>

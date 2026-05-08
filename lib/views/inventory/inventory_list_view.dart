@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../models/inventory_model.dart';
 import '../../viewmodels/inventory_viewmodel.dart';
+import '../../widgets/ads/banner_ad_widget.dart';
+import '../../widgets/ads/native_ad_card.dart';
+import '../../widgets/list_skeleton.dart';
 import 'inventory_form_view.dart';
 
 class InventoryListView extends StatelessWidget {
@@ -90,29 +93,17 @@ class _InventoryListViewContentState extends State<_InventoryListViewContent> {
                 _buildSearchBar(viewModel),
                 Expanded(
                   child: viewModel.isLoading
-                      ? const Center(child: CircularProgressIndicator())
+                      ? const ListSkeleton(dense: true)
                       : filteredItems.isEmpty
                           ? _buildEmptyState()
                           : RefreshIndicator(
                               onRefresh: () => viewModel.loadItems(),
-                              child: ListView.builder(
-                                padding: const EdgeInsets.fromLTRB(16, 8, 16, 110),
-                                itemCount: filteredItems.length + 1,
-                                itemBuilder: (context, index) {
-                                  if (index == filteredItems.length) {
-                                    return _buildTotalsFooter(
-                                      viewModel,
-                                      currencyFormat,
-                                    );
-                                  }
-                                  return _buildInventoryCard(
-                                    context,
-                                    filteredItems[index],
-                                    viewModel,
-                                    currencyFormat,
-                                    dateFormat,
-                                  );
-                                },
+                              child: _buildInventoryListWithAds(
+                                context,
+                                viewModel,
+                                filteredItems,
+                                currencyFormat,
+                                dateFormat,
                               ),
                             ),
                 ),
@@ -151,6 +142,7 @@ class _InventoryListViewContentState extends State<_InventoryListViewContent> {
           ),
         ),
       ),
+      bottomNavigationBar: const BottomBannerAd(),
     );
   }
 
@@ -328,6 +320,49 @@ class _InventoryListViewContentState extends State<_InventoryListViewContent> {
           ),
         ],
       ),
+    );
+  }
+
+  /// Native ad cadence — same constant used across the app's lists.
+  static const int _adInterval = 7;
+
+  Widget _buildInventoryListWithAds(
+    BuildContext context,
+    InventoryViewModel viewModel,
+    List<InventoryModel> filteredItems,
+    NumberFormat currencyFormat,
+    DateFormat dateFormat,
+  ) {
+    final adCount = filteredItems.length ~/ _adInterval;
+    // +1 for the totals footer row.
+    final totalSlots = filteredItems.length + adCount + 1;
+
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 110),
+      itemCount: totalSlots,
+      itemBuilder: (context, index) {
+        // Footer always last.
+        if (index == totalSlots - 1) {
+          return _buildTotalsFooter(viewModel, currencyFormat);
+        }
+        const groupSize = _adInterval + 1;
+        final positionInGroup = index % groupSize;
+        if (positionInGroup == _adInterval) {
+          return const NativeAdCard();
+        }
+        final itemIndex =
+            (index ~/ groupSize) * _adInterval + positionInGroup;
+        if (itemIndex >= filteredItems.length) {
+          return const SizedBox.shrink();
+        }
+        return _buildInventoryCard(
+          context,
+          filteredItems[itemIndex],
+          viewModel,
+          currencyFormat,
+          dateFormat,
+        );
+      },
     );
   }
 

@@ -1,27 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
+import 'package:flutter/foundation.dart'
+    show debugPrint, kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'views/auth/auth_wrapper.dart';
+import 'views/splash/splash_view.dart';
 import 'services/notification_service.dart';
+import 'services/ads_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Firebase must be ready before anything else (auth, db, etc.) — keep
+  // this awaited.
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // Initialize notification service (non-blocking, won't crash if it fails)
-  try {
-    await NotificationService.initialize();
-  } catch (e) {
-    // Notification initialization failed, but app can still run
-    print('Failed to initialize notifications: $e');
-  }
-
-  // Set preferred orientations only on mobile platforms (not web)
+  // Set preferred orientations only on mobile platforms (not web). This
+  // runs before runApp so the first frame is laid out correctly.
   if (!kIsWeb &&
       (defaultTargetPlatform == TargetPlatform.android ||
           defaultTargetPlatform == TargetPlatform.iOS)) {
@@ -31,7 +29,27 @@ Future<void> main() async {
     ]);
   }
 
+  // Kick the UI off immediately. Anything below runs in parallel with the
+  // splash animation so the user never sees a stalled main thread.
   runApp(const InvoiceApp());
+
+  // Notification setup hits platform channels (timezone, exact-alarm
+  // permission, channel creation) — fire-and-forget so it doesn't block
+  // the first frame.
+  // ignore: unawaited_futures
+  Future(() async {
+    try {
+      await NotificationService.initialize();
+    } catch (e) {
+      // Notification initialization failed, but app can still run.
+      debugPrint('Failed to initialize notifications: $e');
+    }
+  });
+
+  // Initialize AdMob in the background — never block app startup on ads.
+  // The service is a no-op on web/desktop so this is safe everywhere.
+  // ignore: unawaited_futures
+  AdsService.instance.initialize();
 }
 
 class InvoiceApp extends StatelessWidget {
@@ -65,7 +83,7 @@ class InvoiceApp extends StatelessWidget {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
       ),
-      home: const AuthWrapper(),
+      home: const SplashView(),
       routes: {
         '/home': (context) => const AuthWrapper(),
       },

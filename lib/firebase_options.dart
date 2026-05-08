@@ -56,7 +56,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyBsuWjVoNzUJfnrHezN_ATsqT4erFxTrLw',
-    appId: '1:373158700266:android:3aa16ddba9a4d447572393',
+    appId: '1:373158700266:android:f2f9e30bf194fae5572393',
     messagingSenderId: '373158700266',
     projectId: 'caratone-1098a',
     databaseURL: 'https://caratone-1098a-default-rtdb.firebaseio.com',
@@ -65,12 +65,12 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyBwcOKkQCVJAEbHmC6FYSwx5vYeVnVxjsc',
-    appId: '1:373158700266:ios:57f87ec38a55f7ad572393',
+    appId: '1:373158700266:ios:484aed7b2d53e3bf572393',
     messagingSenderId: '373158700266',
     projectId: 'caratone-1098a',
     databaseURL: 'https://caratone-1098a-default-rtdb.firebaseio.com',
     storageBucket: 'caratone-1098a.firebasestorage.app',
-    iosBundleId: 'com.invoice.generator',
+    iosBundleId: 'com.mobile.caratone',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
@@ -80,6 +80,6 @@ class DefaultFirebaseOptions {
     projectId: 'caratone-1098a',
     databaseURL: 'https://caratone-1098a-default-rtdb.firebaseio.com',
     storageBucket: 'caratone-1098a.firebasestorage.app',
-    iosBundleId: 'com.invoice.generator',
+    iosBundleId: 'com.mobile.caratone',
   );
 }
