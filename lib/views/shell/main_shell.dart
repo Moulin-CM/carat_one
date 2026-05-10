@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../dashboard/dashboard_view.dart';
 import '../purchase/purchase_list_view.dart';
 import '../invoice/invoice_list_view.dart';
 import '../settings/settings_view.dart';
-import '../../viewmodels/dashboard_viewmodel.dart';
 import '../../widgets/ads/banner_ad_widget.dart';
 
 class MainShell extends StatefulWidget {
@@ -115,19 +113,8 @@ class _DashboardTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => DashboardViewModel()..loadInvoices(),
-      child: const _DashboardTabContent(),
-    );
-  }
-}
-
-class _DashboardTabContent extends StatelessWidget {
-  const _DashboardTabContent();
-
-  @override
-  Widget build(BuildContext context) {
-    // Reuse DashboardView but without its own navigation shell
+    // DashboardView creates its own ChangeNotifierProvider<DashboardViewModel>
+    // internally, so we just render it directly here.
     return const DashboardView();
   }
 }

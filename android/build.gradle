@@ -22,12 +22,34 @@ allprojects {
 rootProject.buildDir = '../build'
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
-}
-subprojects {
-    project.evaluationDependsOn(':app')
+
+    // Global configuration to force all subprojects (plugins) to use the same stable SDK versions
+    def configureAndroidProject = { p ->
+        if (p.hasProperty('android')) {
+            p.android {
+                compileSdk 35
+                defaultConfig {
+                    minSdkVersion 23
+                    targetSdkVersion 35
+                }
+            }
+        }
+    }
+
+    if (project.state.executed) {
+        configureAndroidProject(project)
+    } else {
+        project.afterEvaluate {
+            configureAndroidProject(it)
+        }
+    }
+
+    // Prevent circular dependency by only applying to other subprojects
+    if (project.name != 'app') {
+        project.evaluationDependsOn(':app')
+    }
 }
 
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }
-

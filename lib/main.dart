@@ -3,11 +3,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart'
     show debugPrint, kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'views/auth/auth_wrapper.dart';
 import 'views/splash/splash_view.dart';
 import 'services/notification_service.dart';
 import 'services/ads_service.dart';
+import 'services/subscription_service.dart';
+import 'viewmodels/subscription_viewmodel.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,6 +20,10 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Initialize Subscriptions
+  final subService = SubscriptionService();
+  await subService.initialize();
 
   // Set preferred orientations only on mobile platforms (not web). This
   // runs before runApp so the first frame is laid out correctly.
@@ -31,7 +38,14 @@ Future<void> main() async {
 
   // Kick the UI off immediately. Anything below runs in parallel with the
   // splash animation so the user never sees a stalled main thread.
-  runApp(const InvoiceApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => SubscriptionViewModel()),
+      ],
+      child: const InvoiceApp(),
+    ),
+  );
 
   // Notification setup hits platform channels (timezone, exact-alarm
   // permission, channel creation) — fire-and-forget so it doesn't block
@@ -90,4 +104,3 @@ class InvoiceApp extends StatelessWidget {
     );
   }
 }
-

@@ -6,6 +6,8 @@ import '../../models/stock_valuation_item.dart';
 import '../../viewmodels/purchase_viewmodel.dart';
 import '../../widgets/ads/native_ad_card.dart';
 import '../../widgets/list_skeleton.dart';
+import '../../widgets/paywall_dialog.dart';
+import '../../services/quota_service.dart';
 import '../finance/buy_sell_report_view.dart';
 import 'purchase_form_view.dart';
 import 'purchase_detail_view.dart';
@@ -215,20 +217,34 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () async {
-          final result = await Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const PurchaseFormView()),
-          );
-          if (result == true && context.mounted) {
-            context.read<PurchaseViewModel>().loadPurchases();
-          }
-        },
+        onPressed: () => _startNewPurchase(context),
         icon: const Icon(Icons.add_rounded, color: Colors.white),
         label: const Text('Add Purchase', style: TextStyle(color: Colors.white)),
         backgroundColor: _accent,
       ),
     );
+  }
+
+  Future<void> _startNewPurchase(BuildContext context) async {
+    final canAdd = await QuotaService().canAddEntry(true);
+    if (!canAdd && context.mounted) {
+      showDialog(
+        context: context,
+        builder: (context) => const PaywallDialog(
+          message: 'You have reached your monthly limit for adding purchases. Please upgrade your plan to continue adding unlimited entries.',
+        ),
+      );
+      return;
+    }
+
+    if (!context.mounted) return;
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const PurchaseFormView()),
+    );
+    if (result == true && context.mounted) {
+      context.read<PurchaseViewModel>().loadPurchases();
+    }
   }
 
   Widget _summaryTile(String label, String value, IconData icon,

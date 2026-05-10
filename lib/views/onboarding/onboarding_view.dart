@@ -64,12 +64,13 @@ class _OnboardingViewState extends State<OnboardingView> {
   Future<void> _finishOnboarding() async {
     await OnboardingService.setOnboardingCompleted();
     if (!mounted) return;
+    // Use an instant (zero-duration) transition so the loading dashboard
+    // skeleton is never visible through the animation.
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
-        transitionDuration: const Duration(milliseconds: 400),
+        transitionDuration: Duration.zero,
+        reverseTransitionDuration: Duration.zero,
         pageBuilder: (_, __, ___) => const AuthWrapper(),
-        transitionsBuilder: (_, animation, __, child) =>
-            FadeTransition(opacity: animation, child: child),
       ),
     );
   }

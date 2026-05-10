@@ -7,12 +7,15 @@ import 'package:printing/printing.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../models/invoice_model.dart';
 import '../../models/purchase_model.dart';
+import '../../models/subscription_plan.dart';
 import '../../services/buy_sell_report_pdf_service.dart';
 import '../../services/invoice_storage_service.dart';
 import '../../services/purchase_storage_service.dart';
+import '../../services/subscription_service.dart';
 import '../../widgets/app_bar_factory.dart';
 import '../../widgets/ads/banner_ad_widget.dart';
 import '../../widgets/list_skeleton.dart';
+import '../subscription/subscription_plans_view.dart';
 
 enum _PeriodMode { monthly, yearly, custom }
 
@@ -44,6 +47,8 @@ class _BuySellReportViewState extends State<BuySellReportView> {
   List<InvoiceModel> _allSells = [];
   bool _loading = true;
   bool _busy = false;
+
+  final _subService = SubscriptionService();
 
   @override
   void initState() {
@@ -190,8 +195,6 @@ class _BuySellReportViewState extends State<BuySellReportView> {
       bottomNavigationBar: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Banner sits above the action bar — never overlaps interactive
-          // elements, satisfying AdMob's accidental-click policy.
           const BannerAdWidget(),
           _actionBar(),
         ],
@@ -260,9 +263,19 @@ class _BuySellReportViewState extends State<BuySellReportView> {
   Widget _periodTabs() {
     Widget tab(String label, _PeriodMode mode) {
       final selected = _mode == mode;
+      final status = _subService.currentStatus;
+      final isLocked = (mode == _PeriodMode.yearly || mode == _PeriodMode.custom) && 
+                       status.plan == SubscriptionTier.starter;
+
       return Expanded(
         child: GestureDetector(
-          onTap: () => setState(() => _mode = mode),
+          onTap: () {
+            if (isLocked) {
+              _showUpgradeDialog('Yearly and Custom reports are available in Pro and Business plans.');
+              return;
+            }
+            setState(() => _mode = mode);
+          },
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 10),
             decoration: BoxDecoration(
@@ -278,15 +291,21 @@ class _BuySellReportViewState extends State<BuySellReportView> {
                     ]
                   : [],
             ),
-            child: Center(
-              child: Text(
-                label,
-                style: TextStyle(
-                  color: selected ? _deep : Colors.grey[600],
-                  fontWeight: FontWeight.w700,
-                  fontSize: 13,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (isLocked) 
+                  const Icon(Icons.lock_outline_rounded, size: 12, color: Colors.grey),
+                if (isLocked) const SizedBox(width: 4),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: isLocked ? Colors.grey : (selected ? _deep : Colors.grey[600]),
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
         ),
@@ -305,6 +324,32 @@ class _BuySellReportViewState extends State<BuySellReportView> {
           tab('Monthly', _PeriodMode.monthly),
           tab('Yearly', _PeriodMode.yearly),
           tab('Custom', _PeriodMode.custom),
+        ],
+      ),
+    );
+  }
+
+  void _showUpgradeDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Upgrade Plan'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SubscriptionPlansView()),
+              );
+            },
+            child: const Text('View Plans'),
+          ),
         ],
       ),
     );

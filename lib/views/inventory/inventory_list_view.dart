@@ -6,6 +6,9 @@ import '../../viewmodels/inventory_viewmodel.dart';
 import '../../widgets/ads/banner_ad_widget.dart';
 import '../../widgets/ads/native_ad_card.dart';
 import '../../widgets/list_skeleton.dart';
+import '../../widgets/paywall_dialog.dart';
+import '../../services/quota_service.dart';
+import '../subscription/subscription_plans_view.dart';
 import 'inventory_form_view.dart';
 
 class InventoryListView extends StatelessWidget {
@@ -119,17 +122,7 @@ class _InventoryListViewContentState extends State<_InventoryListViewContent> {
           width: double.infinity,
           height: 56,
           child: ElevatedButton.icon(
-            onPressed: () async {
-              final result = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const InventoryFormView(),
-                ),
-              );
-              if (result == true && context.mounted) {
-                viewModel.loadItems();
-              }
-            },
+            onPressed: () => _startNewInventory(context, viewModel),
             icon: const Icon(Icons.add_rounded),
             label: const Text('Add Inventory', style: TextStyle(fontWeight: FontWeight.w700)),
             style: ElevatedButton.styleFrom(
@@ -144,6 +137,30 @@ class _InventoryListViewContentState extends State<_InventoryListViewContent> {
       ),
       bottomNavigationBar: const BottomBannerAd(),
     );
+  }
+
+  Future<void> _startNewInventory(BuildContext context, InventoryViewModel viewModel) async {
+    final canAdd = await QuotaService().canAddEntry(true); // Inventory counted as purchase entry
+    if (!canAdd && context.mounted) {
+      showDialog(
+        context: context,
+        builder: (context) => const PaywallDialog(
+          message: 'You have reached your monthly limit for adding inventory. Please upgrade your plan to continue adding unlimited entries.',
+        ),
+      );
+      return;
+    }
+
+    if (!context.mounted) return;
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const InventoryFormView(),
+      ),
+    );
+    if (result == true && context.mounted) {
+      viewModel.loadItems();
+    }
   }
 
   Widget _buildBackdrop() {

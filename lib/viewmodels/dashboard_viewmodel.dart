@@ -3,24 +3,30 @@ import '../models/invoice_model.dart';
 import '../models/purchase_model.dart';
 import '../models/withdrawal_model.dart';
 import '../models/app_settings_model.dart';
+import '../models/user_profile_model.dart';
 import '../services/invoice_storage_service.dart';
 import '../services/purchase_storage_service.dart';
 import '../services/withdrawal_storage_service.dart';
 import '../services/settings_service.dart';
 import '../services/auth_service.dart';
+import '../services/user_service.dart';
 
 class DashboardViewModel extends ChangeNotifier {
   final AuthService _authService = AuthService();
+  final UserService _userService = UserService();
   List<InvoiceModel> _invoices = [];
   List<PurchaseModel> _purchases = [];
   List<WithdrawalModel> _withdrawals = [];
   AppSettingsModel _settings = AppSettingsModel();
+  UserProfileModel? _userProfile;
   bool _isLoading = false;
+  bool _hasLoadedOnce = false;
   String? _errorMessage;
 
   List<InvoiceModel> get invoices => _invoices;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+  UserProfileModel? get userProfile => _userProfile;
 
   /// Number of sell entries (formerly "Total Invoices"). Includes every
   /// invoice record regardless of cash/bill mode or financial year.
@@ -32,8 +38,8 @@ class DashboardViewModel extends ChangeNotifier {
   /// Remaining (unsold) carat in stock for the current financial year.
   /// Mirrors the figure on the Purchase tab. "For Other" purchases are
   /// excluded.
-  double get totalRemainingCarat => _purchasesInCurrentYear
-      .fold(0.0, (sum, p) => sum + p.remainingCarat);
+  double get totalRemainingCarat =>
+      _purchasesInCurrentYear.fold(0.0, (sum, p) => sum + p.remainingCarat);
 
   DateTime? get _yearStart => _settings.currentYearStart();
 
@@ -76,15 +82,14 @@ class DashboardViewModel extends ChangeNotifier {
 
   /// Net Profit = Sales Profit − Outstanding Withdrawals. Expenses are
   /// intentionally excluded — they only affect the Expenses screen itself.
-  double get netProfitOrLoss =>
-      totalSalesProfit - outstandingWithdrawals;
+  double get netProfitOrLoss => totalSalesProfit - outstandingWithdrawals;
 
   double get thisMonthRevenue {
     final now = DateTime.now();
     final firstDayOfMonth = DateTime(now.year, now.month, 1);
     return _invoices
         .where((invoice) => invoice.invoiceDate
-        .isAfter(firstDayOfMonth.subtract(const Duration(days: 1))))
+            .isAfter(firstDayOfMonth.subtract(const Duration(days: 1))))
         .fold(0.0, (sum, invoice) => sum + invoice.grandTotal);
   }
 
@@ -93,7 +98,7 @@ class DashboardViewModel extends ChangeNotifier {
     final firstDayOfMonth = DateTime(now.year, now.month, 1);
     return _invoices
         .where((invoice) => invoice.invoiceDate
-        .isAfter(firstDayOfMonth.subtract(const Duration(days: 1))))
+            .isAfter(firstDayOfMonth.subtract(const Duration(days: 1))))
         .length;
   }
 
@@ -114,25 +119,41 @@ class DashboardViewModel extends ChangeNotifier {
   }
 
   Future<void> loadInvoices() async {
-    _isLoading = true;
+    // Only show the full skeleton shimmer on the very first load.
+    // Subsequent refreshes (e.g. after returning from InvoiceFormView or
+    // pull-to-refresh) update data silently so the shimmer doesn't flash.
+    if (!_hasLoadedOnce) {
+      _isLoading = true;
+      notifyListeners();
+    }
     _errorMessage = null;
-    notifyListeners();
 
     try {
-      final results = await Future.wait([
+      final uid = _authService.currentUser?.uid;
+
+      // On first load, fetch the user profile alongside invoice data.
+      final futures = <Future>[
         InvoiceStorageService.getAllInvoices(),
         PurchaseStorageService.getAllPurchases(),
         WithdrawalStorageService.getAllWithdrawals(),
         SettingsService.getSettings(),
-      ]);
+        if (!_hasLoadedOnce && uid != null) _userService.getUserProfile(uid),
+      ];
+
+      final results = await Future.wait(futures);
       _invoices = results[0] as List<InvoiceModel>;
       _purchases = results[1] as List<PurchaseModel>;
       _withdrawals = results[2] as List<WithdrawalModel>;
       _settings = results[3] as AppSettingsModel;
+      if (!_hasLoadedOnce && uid != null) {
+        _userProfile = results[4] as UserProfileModel?;
+      }
       _isLoading = false;
+      _hasLoadedOnce = true;
       notifyListeners();
     } catch (e) {
       _isLoading = false;
+      _hasLoadedOnce = true;
       _errorMessage = e.toString();
       notifyListeners();
     }

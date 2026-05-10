@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../viewmodels/dashboard_viewmodel.dart';
+import '../../viewmodels/subscription_viewmodel.dart';
 import '../invoice/invoice_list_view.dart';
 import '../invoice/invoice_form_view.dart';
 import '../profile/profile_view.dart';
@@ -10,23 +11,55 @@ import '../finance/expenses_view.dart';
 import '../finance/withdrawals_view.dart';
 import '../finance/buy_sell_report_view.dart';
 import '../finance/brokerage_report_view.dart';
+import '../subscription/subscription_plans_view.dart';
 import '../../widgets/sell_options_sheet.dart';
 import '../../widgets/dashboard_skeleton.dart';
+import '../../widgets/trial_banner.dart';
+import '../../services/quota_service.dart';
 
-class DashboardView extends StatelessWidget {
+class DashboardView extends StatefulWidget {
   const DashboardView({super.key});
 
   @override
+  State<DashboardView> createState() => _DashboardViewState();
+}
+
+class _DashboardViewState extends State<DashboardView> {
+  // Keep the ViewModel alive for the entire lifetime of the widget so that
+  // Flutter rebuilds triggered by async operations (showMenu, showBottomSheet,
+  // Navigator.push/pop etc.) never recreate the VM or reset _hasLoadedOnce.
+  late final DashboardViewModel _viewModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _viewModel = DashboardViewModel()..loadInvoices();
+  }
+
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => DashboardViewModel()..loadInvoices(),
+    return ChangeNotifierProvider<DashboardViewModel>.value(
+      value: _viewModel,
       child: const _DashboardViewContent(),
     );
   }
 }
 
-class _DashboardViewContent extends StatelessWidget {
+class _DashboardViewContent extends StatefulWidget {
   const _DashboardViewContent();
+
+  @override
+  State<_DashboardViewContent> createState() => _DashboardViewContentState();
+}
+
+class _DashboardViewContentState extends State<_DashboardViewContent> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {
@@ -35,19 +68,27 @@ class _DashboardViewContent extends StatelessWidget {
     const deepAccent = Color(0xFF1E3C72);
 
     if (viewModel.isLoading) {
-      // Show a shimmer skeleton that mirrors the populated dashboard layout,
-      // so the load-to-content transition is smooth instead of a blank
-      // screen with a spinner.
       return const DashboardSkeleton();
     }
 
     return Scaffold(
+      key: _scaffoldKey,
       extendBodyBehindAppBar: true,
+      drawer: _buildDrawer(context, viewModel, accent, deepAccent),
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
+        automaticallyImplyLeading: false,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 8),
+          child: IconButton(
+            icon: const Icon(Icons.menu_rounded),
+            tooltip: 'Open Menu',
+            onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+          ),
+        ),
         title: Padding(
-          padding: const EdgeInsets.only(left: 16),
+          padding: const EdgeInsets.only(left: 4),
           child: Row(
             children: [
               Container(
@@ -56,96 +97,42 @@ class _DashboardViewContent extends StatelessWidget {
                   shape: BoxShape.circle,
                   color: Colors.white.withOpacity(0.8),
                 ),
-                child: Icon(Icons.dashboard_rounded, color: accent),
+                child: Icon(Icons.diamond_rounded, color: accent, size: 20),
               ),
               const SizedBox(width: 10),
               const Text('Dashboard'),
             ],
           ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh_rounded),
-            onPressed: () => viewModel.loadInvoices(),
-            tooltip: 'Refresh',
-          ),
-          PopupMenuButton(
-            icon: const Icon(Icons.more_vert_rounded),
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'reminders',
-                child: Row(
-                  children: [
-                    Icon(Icons.notifications_active_rounded, size: 20),
-                    SizedBox(width: 8),
-                    Text('Reminders'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'profile',
-                child: Row(
-                  children: [
-                    Icon(Icons.person_outline_rounded, size: 20),
-                    SizedBox(width: 8),
-                    Text('Profile'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'logout',
-                child: Row(
-                  children: [
-                    Icon(Icons.logout_rounded, size: 20, color: Colors.red),
-                    SizedBox(width: 8),
-                    Text('Logout', style: TextStyle(color: Colors.red)),
-                  ],
-                ),
-              ),
-            ],
-            onSelected: (value) async {
-              if (value == 'reminders') {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const RemindersView(),
-                  ),
-                );
-              } else if (value == 'logout') {
-                await _handleLogout(context, viewModel);
-              } else if (value == 'profile') {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const ProfileView(),
-                  ),
-                );
-              }
-            },
-          ),
-        ],
       ),
       body: Stack(
         children: [
           _buildBackdrop(accent, deepAccent),
           SafeArea(
-            child: RefreshIndicator(
-              onRefresh: () => viewModel.loadInvoices(),
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildStatsCards(context, viewModel, accent, deepAccent),
-                    const SizedBox(height: 20),
-                    _buildFinanceCard(context, viewModel, accent, deepAccent),
-                    const SizedBox(height: 20),
-                    _buildRecentInvoices(context, viewModel, accent, deepAccent),
-                    const SizedBox(height: 20),
-                    _buildQuickActions(context, accent),
-                  ],
+            child: Column(
+              children: [
+                const TrialBanner(),
+                Expanded(
+                  child: RefreshIndicator(
+                    onRefresh: () => viewModel.loadInvoices(),
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildStatsCards(context, viewModel, accent, deepAccent),
+                          const SizedBox(height: 20),
+                          _buildFinanceCard(context, viewModel, accent, deepAccent),
+                          const SizedBox(height: 20),
+                          _buildRecentInvoices(context, viewModel, accent, deepAccent),
+                          const SizedBox(height: 20),
+                          _buildQuickActions(context, accent),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
         ],
@@ -155,6 +142,393 @@ class _DashboardViewContent extends StatelessWidget {
         icon: const Icon(Icons.add_rounded, color: Colors.white),
         label: const Text('Sell', style: TextStyle(color: Colors.white)),
         backgroundColor: accent,
+      ),
+    );
+  }
+
+  // ─────────────────────────────  DRAWER  ──────────────────────────────────
+
+  /// Generates initials from a full name (e.g. "Raj Patel" → "RP").
+  String _initials(String name) {
+    final parts = name.trim().split(RegExp(r'\s+'));
+    if (parts.isEmpty || parts[0].isEmpty) return '?';
+    if (parts.length == 1) return parts[0][0].toUpperCase();
+    return (parts[0][0] + parts.last[0]).toUpperCase();
+  }
+
+  Widget _buildDrawer(
+    BuildContext context,
+    DashboardViewModel viewModel,
+    Color accent,
+    Color deepAccent,
+  ) {
+    final userName  = viewModel.userProfile?.userName  ?? '';
+    final userEmail = viewModel.userProfile?.email     ?? '';
+    final initials  = _initials(userName);
+
+    return Drawer(
+      width: MediaQuery.of(context).size.width * 0.80,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topRight: Radius.circular(0),
+          bottomRight: Radius.circular(0),
+        ),
+      ),
+      elevation: 24,
+      shadowColor: Colors.black45,
+      child: Column(
+        children: [
+          // ── Rich dark header ──────────────────────────────────────────
+          _buildDrawerHeader(initials, userName, userEmail, accent, deepAccent),
+
+          // ── Menu items ───────────────────────────────────────────────
+          Expanded(
+            child: Container(
+              color: const Color(0xFFF7F9FC),
+              child: ListView(
+                padding: const EdgeInsets.only(top: 16, bottom: 8),
+                children: [
+                  _drawerTile(
+                    context,
+                    icon: Icons.person_outline_rounded,
+                    label: 'Profile',
+                    subtitle: 'View & edit your info',
+                    iconBg: const Color(0xFF1A73E8),
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (_) => const ProfileView()));
+                    },
+                  ),
+                  _drawerTile(
+                    context,
+                    icon: Icons.notifications_active_rounded,
+                    label: 'Reminders',
+                    subtitle: 'Manage your alerts',
+                    iconBg: const Color(0xFF7B5CF0),
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (_) => const RemindersView()));
+                    },
+                  ),
+                  _drawerTile(
+                    context,
+                    icon: Icons.workspace_premium_rounded,
+                    label: 'Subscription',
+                    subtitle: 'Upgrade your plan',
+                    iconBg: const Color(0xFFF59E0B),
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (_) => const SubscriptionPlansView()));
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // ── Logout row ───────────────────────────────────────────────
+          _buildLogoutTile(context, viewModel),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDrawerHeader(
+    String initials,
+    String userName,
+    String userEmail,
+    Color accent,
+    Color deepAccent,
+  ) {
+    return Container(
+      width: double.infinity,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF0D1B3E),  // deep navy
+            Color(0xFF1A2F5A),  // mid navy
+            Color(0xFF1E3C72),  // accent navy
+          ],
+        ),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(22, 28, 22, 28),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Avatar row
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Initials avatar
+                  Container(
+                    width: 54,
+                    height: 54,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: [accent, accent.withOpacity(0.6)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: accent.withOpacity(0.4),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: Text(
+                        initials.isEmpty ? '?' : initials,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  // App logo pill
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.15),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.diamond_rounded,
+                            color: accent, size: 14),
+                        const SizedBox(width: 6),
+                        const Text(
+                          'Carat One',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.4,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 18),
+
+              // User name
+              Text(
+                userName.isEmpty ? 'Loading…' : userName,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 19,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.2,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+
+              const SizedBox(height: 4),
+
+              // Email
+              Text(
+                userEmail.isEmpty ? '' : userEmail,
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.55),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w400,
+                  letterSpacing: 0.1,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _drawerTile(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required String subtitle,
+    required Color iconBg,
+    required VoidCallback onTap,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 4),
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          splashColor: iconBg.withOpacity(0.07),
+          highlightColor: iconBg.withOpacity(0.04),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Row(
+              children: [
+                // Icon box
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: iconBg,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(icon, color: Colors.white, size: 20),
+                ),
+                const SizedBox(width: 14),
+                // Labels
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        label,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF0D1B3E),
+                          letterSpacing: 0.1,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w400,
+                          color: Color(0xFF8A94A6),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Arrow
+                Container(
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF0F3F8),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    size: 13,
+                    color: Color(0xFFB0BAC9),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLogoutTile(BuildContext context, DashboardViewModel viewModel) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          top: BorderSide(color: Colors.grey.shade100, width: 1),
+        ),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+          child: Material(
+            color: const Color(0xFFFFF1F1),
+            borderRadius: BorderRadius.circular(16),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              splashColor: Colors.red.withOpacity(0.08),
+              highlightColor: Colors.red.withOpacity(0.04),
+              onTap: () async {
+                Navigator.pop(context);
+                await _handleLogout(context, viewModel);
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        color: Colors.red.shade400,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(Icons.logout_rounded,
+                          color: Colors.white, size: 20),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Logout',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFFD32F2F),
+                              letterSpacing: 0.1,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Sign out of your account',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.red.shade300,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: Colors.red.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        size: 13,
+                        color: Colors.red.shade300,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -809,12 +1183,51 @@ class _DashboardViewContent extends StatelessWidget {
   }
 
   Future<void> _startNewSell(BuildContext context) async {
+    final viewModel = context.read<DashboardViewModel>();
+    final canAdd = await QuotaService().canAddEntry(false);
+    if (!canAdd && context.mounted) {
+      _showPaywall(context);
+      return;
+    }
+
+    if (!context.mounted) return;
     final isCash = await showSellOptionsSheet(context);
     if (isCash == null || !context.mounted) return;
     await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => InvoiceFormView(isCashSell: isCash),
+      ),
+    );
+    // Silently refresh data after returning from InvoiceFormView so the
+    // new sell entry appears on the dashboard. Since _hasLoadedOnce is
+    // already true, loadInvoices() will NOT show the skeleton shimmer.
+    viewModel.loadInvoices();
+  }
+
+  void _showPaywall(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Limit Reached'),
+        content: const Text(
+            'You have reached your monthly limit for adding sells. Please upgrade your plan to continue adding unlimited entries.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SubscriptionPlansView()),
+              );
+            },
+            child: const Text('View Plans'),
+          ),
+        ],
       ),
     );
   }
@@ -846,7 +1259,6 @@ class _DashboardViewContent extends StatelessWidget {
     if (confirm == true && context.mounted) {
       try {
         await viewModel.logout();
-        // Navigation will be handled by AuthWrapper automatically
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -867,5 +1279,5 @@ class _DashboardViewContent extends StatelessWidget {
       }
     }
   }
-}
 
+}

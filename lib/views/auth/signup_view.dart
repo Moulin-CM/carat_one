@@ -743,8 +743,14 @@ class _SignUpViewContentState extends State<_SignUpViewContent> {
                                     duration: Duration(seconds: 2),
                                   ),
                                 );
-                                // Navigation will be handled by AuthWrapper automatically
-                                Navigator.pop(context);
+                                // Navigate to the root route and clear the entire
+                                // back-stack (Onboarding, WelcomeView, SignUpView).
+                                // Using pushNamedAndRemoveUntil avoids revealing
+                                // the loading dashboard skeleton.
+                                Navigator.of(context).pushNamedAndRemoveUntil(
+                                  '/home',
+                                  (route) => false,
+                                );
                                 }
                               }
                             }

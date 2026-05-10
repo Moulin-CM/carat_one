@@ -8,9 +8,12 @@ import '../../models/invoice_model.dart';
 import '../../viewmodels/invoice_list_viewmodel.dart';
 import '../../services/email_service.dart';
 import '../../services/pdf_service.dart';
+import '../../services/quota_service.dart';
 import '../../widgets/ads/native_ad_card.dart';
 import '../../widgets/sell_options_sheet.dart';
 import '../../widgets/list_skeleton.dart';
+import '../../widgets/paywall_dialog.dart';
+import '../subscription/subscription_plans_view.dart';
 import 'invoice_form_view.dart';
 import 'invoice_details_view.dart';
 
@@ -656,6 +659,18 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
 
   Future<void> _startNewSell(
       BuildContext context, InvoiceListViewModel viewModel) async {
+    final canAdd = await QuotaService().canAddEntry(false);
+    if (!canAdd && context.mounted) {
+      showDialog(
+        context: context,
+        builder: (context) => const PaywallDialog(
+          message: 'You have reached your monthly limit for adding sells. Please upgrade your plan to continue adding unlimited entries.',
+        ),
+      );
+      return;
+    }
+
+    if (!context.mounted) return;
     final isCash = await showSellOptionsSheet(context);
     if (isCash == null || !context.mounted) return;
     final result = await Navigator.push(
@@ -682,71 +697,93 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
     }
   }
 
-  Future<void> _openPdf(InvoiceModel invoice) async {
-    final filePath = await _getPdfFilePath(invoice);
-    if (filePath == null) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not generate PDF for this invoice.')),
-        );
-      }
+  Future<void> _checkPdfQuotaAndExecute(BuildContext context, Future<void> Function() action) async {
+    final canPrint = await QuotaService().canPrintPdf();
+    if (!canPrint && context.mounted) {
+      showDialog(
+        context: context,
+        builder: (context) => const PaywallDialog(
+          message: 'You have reached your monthly limit for PDF generation. Please upgrade your plan for unlimited PDF prints and shares.',
+        ),
+      );
       return;
     }
 
-    try {
-      final file = File(filePath);
-      final bytes = await file.readAsBytes();
-      await Printing.layoutPdf(
-        onLayout: (format) async => bytes,
-        name: file.uri.pathSegments.last,
-      );
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not open PDF: $e')),
-        );
+    await action();
+    await QuotaService().incrementPdfUsage();
+  }
+
+  Future<void> _openPdf(InvoiceModel invoice) async {
+    await _checkPdfQuotaAndExecute(context, () async {
+      final filePath = await _getPdfFilePath(invoice);
+      if (filePath == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not generate PDF for this invoice.')),
+          );
+        }
+        return;
       }
-    }
+
+      try {
+        final file = File(filePath);
+        final bytes = await file.readAsBytes();
+        await Printing.layoutPdf(
+          onLayout: (format) async => bytes,
+          name: file.uri.pathSegments.last,
+        );
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Could not open PDF: $e')),
+          );
+        }
+      }
+    });
   }
 
   Future<void> _emailInvoice(BuildContext context, InvoiceModel invoice) async {
-    try {
-      await EmailService.shareInvoiceViaEmail(invoice);
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Opening email client...'),
-            backgroundColor: Colors.green,
-          ),
-        );
+    await _checkPdfQuotaAndExecute(context, () async {
+      try {
+        await EmailService.shareInvoiceViaEmail(invoice);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Opening email client...'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
+    });
   }
 
   Future<void> _sharePdf(InvoiceModel invoice) async {
-    final filePath = await _getPdfFilePath(invoice);
-    if (filePath == null) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not generate PDF for sharing.')),
-        );
+    await _checkPdfQuotaAndExecute(context, () async {
+      final filePath = await _getPdfFilePath(invoice);
+      if (filePath == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not generate PDF for sharing.')),
+          );
+        }
+        return;
       }
-      return;
-    }
 
-    await Share.shareXFiles(
-      [XFile(filePath)],
-      text: 'Invoice ${invoice.invoiceNo}',
-    );
+      await Share.shareXFiles(
+        [XFile(filePath)],
+        text: 'Invoice ${invoice.invoiceNo}',
+      );
+    });
   }
 
   /// AdMob native ads interleaved into the invoice list.

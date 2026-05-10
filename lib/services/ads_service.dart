@@ -3,34 +3,15 @@ import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'subscription_service.dart';
 
 /// Central AdMob service.
-///
-/// Responsibilities:
-///  * One-shot SDK initialization (idempotent — safe to call repeatedly).
-///  * Single source of truth for ad-unit IDs (test vs production, per platform).
-///  * Pre-loads and recycles a single interstitial / rewarded ad so the user
-///    never waits at the moment of display.
-///  * Enforces an interstitial frequency cap to stay AdMob-policy-compliant
-///    (no back-to-back full-screen ads, no ads on app launch).
-///
-/// Usage:
-///   await AdsService.instance.initialize();
-///   AdsService.instance.maybeShowInterstitial();
-///   AdsService.instance.showRewarded(onReward: () { ... });
 class AdsService {
   AdsService._();
   static final AdsService instance = AdsService._();
 
-  /// Flip to `false` once you have real AdMob ad-unit IDs and are ready to ship.
-  /// While `true` we always serve Google's official test ads — required by AdMob
-  /// policy during development; clicking your own real ads is a ban-able offense.
   static const bool useTestAds = true;
 
-  // ---------------------------------------------------------------------------
-  // Test ad-unit IDs (safe — published by Google for development).
-  // https://developers.google.com/admob/flutter/test-ads
-  // ---------------------------------------------------------------------------
   static const _testBannerAndroid       = 'ca-app-pub-3940256099942544/6300978111';
   static const _testBannerIos           = 'ca-app-pub-3940256099942544/2934735716';
   static const _testInterstitialAndroid = 'ca-app-pub-3940256099942544/1033173712';
@@ -40,11 +21,6 @@ class AdsService {
   static const _testNativeAndroid       = 'ca-app-pub-3940256099942544/2247696110';
   static const _testNativeIos           = 'ca-app-pub-3940256099942544/3986624511';
 
-  // ---------------------------------------------------------------------------
-  // TODO(production): replace these with your own ad units from
-  //   https://apps.admob.com/  →  Apps  →  Ad units
-  // Keep separate units per format per platform.
-  // ---------------------------------------------------------------------------
   static const _prodBannerAndroid       = 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX';
   static const _prodBannerIos           = 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX';
   static const _prodInterstitialAndroid = 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX';
@@ -57,24 +33,15 @@ class AdsService {
   bool _initialized = false;
   Future<void>? _initFuture;
 
-  // Interstitial state.
   InterstitialAd? _interstitialAd;
   bool _isLoadingInterstitial = false;
   DateTime? _lastInterstitialShownAt;
 
-  /// Minimum gap between interstitials. Keeps user experience tolerable AND
-  /// keeps us safely on the right side of AdMob's "ad density" policy.
   static const Duration _interstitialMinGap = Duration(seconds: 90);
 
-  // Rewarded state.
   RewardedAd? _rewardedAd;
   bool _isLoadingRewarded = false;
 
-  // ---------------------------------------------------------------------------
-  // Platform support.
-  // AdMob currently only supports Android & iOS. Everything is a no-op on
-  // web / desktop so the app keeps working there.
-  // ---------------------------------------------------------------------------
   bool get isSupported {
     if (kIsWeb) return false;
     try {
@@ -84,9 +51,14 @@ class AdsService {
     }
   }
 
-  // ---------------------------------------------------------------------------
-  // Ad unit accessors
-  // ---------------------------------------------------------------------------
+  bool get shouldShowAds {
+    final status = SubscriptionService().currentStatus;
+    // Pro and Business plans hide ads. Trial also hides ads for better experience if specified, 
+    // but usually, we show them in Trial unless we want to showcase the "No Ads" benefit.
+    // According to SUBSCRIPTION_PLAN.md: Pro/Business hide ads.
+    return !status.isProOrBusiness;
+  }
+
   String get bannerAdUnitId {
     if (!isSupported) return '';
     if (useTestAds) {
@@ -119,9 +91,6 @@ class AdsService {
     return Platform.isAndroid ? _prodNativeAndroid : _prodNativeIos;
   }
 
-  // ---------------------------------------------------------------------------
-  // Initialization
-  // ---------------------------------------------------------------------------
   Future<void> initialize() {
     if (!isSupported) return Future.value();
     if (_initialized) return Future.value();
@@ -132,8 +101,6 @@ class AdsService {
     try {
       await MobileAds.instance.initialize();
       _initialized = true;
-      // Eagerly preload the next interstitial / rewarded so the first call is
-      // instant. Both swallow their own errors.
       _loadInterstitial();
       _loadRewarded();
     } catch (e) {
@@ -141,9 +108,6 @@ class AdsService {
     }
   }
 
-  // ---------------------------------------------------------------------------
-  // Interstitial
-  // ---------------------------------------------------------------------------
   void _loadInterstitial() {
     if (!isSupported || _isLoadingInterstitial || _interstitialAd != null) return;
     _isLoadingInterstitial = true;
@@ -164,13 +128,8 @@ class AdsService {
     );
   }
 
-  /// Shows an interstitial only if the frequency cap allows.
-  /// Returns `true` if an ad was actually shown.
-  ///
-  /// Optional `onDismissed` fires when the user closes the ad (or immediately
-  /// when no ad was shown, so the caller can chain navigation safely).
   Future<bool> maybeShowInterstitial({VoidCallback? onDismissed}) async {
-    if (!isSupported) {
+    if (!isSupported || !shouldShowAds) {
       onDismissed?.call();
       return false;
     }
@@ -180,7 +139,6 @@ class AdsService {
         now.difference(_lastInterstitialShownAt!) >= _interstitialMinGap;
 
     if (!gateOpen || _interstitialAd == null) {
-      // Make sure one is on the way for next time.
       _loadInterstitial();
       onDismissed?.call();
       return false;
@@ -208,9 +166,6 @@ class AdsService {
     return true;
   }
 
-  // ---------------------------------------------------------------------------
-  // Rewarded
-  // ---------------------------------------------------------------------------
   void _loadRewarded() {
     if (!isSupported || _isLoadingRewarded || _rewardedAd != null) return;
     _isLoadingRewarded = true;
@@ -231,10 +186,6 @@ class AdsService {
     );
   }
 
-  /// Shows a rewarded ad. `onReward` fires only if the user actually earned
-  /// the reward (watched far enough). `onUnavailable` fires immediately if no
-  /// ad could be shown — caller can fall back to granting the reward for free
-  /// or showing an error.
   Future<void> showRewarded({
     required VoidCallback onReward,
     VoidCallback? onUnavailable,

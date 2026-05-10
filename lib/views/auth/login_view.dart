@@ -413,8 +413,13 @@ class _LoginViewContentState extends State<_LoginViewContent> {
     if (_formKey.currentState!.validate()) {
       final success = await viewModel.signIn();
       if (success && context.mounted) {
-        // Navigation will be handled by AuthWrapper automatically
-        Navigator.pop(context);
+        // Navigate to the root route and clear the entire back-stack (Onboarding,
+        // WelcomeView, LoginView). Using pushNamedAndRemoveUntil with no
+        // animation avoids revealing the loading dashboard skeleton.
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          '/home',
+          (route) => false,
+        );
       }
     }
   }

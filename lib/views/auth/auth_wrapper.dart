@@ -24,45 +24,43 @@ class _AuthWrapperState extends State<AuthWrapper> {
   }
 
   Future<void> _checkVersionOnStartup() async {
-    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-      // Both calls do network IO + plugin channel work; awaiting them on
-      // the platform thread keeps the UI thread free.
-      await VersionCheckService.initialize();
-      if (mounted) {
-        await VersionCheckManager.checkAndShowUpdateDialog(
-          context,
-          showOnlyIfForceUpdate: true,
-        );
-      }
-    }
+    // Run version check without blocking UI - show WelcomeView immediately
+    // and let the version check happen in the background
     if (mounted) {
       setState(() {
         _isCheckingVersion = false;
       });
     }
+
+    // Do version check in background after UI is ready
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+      try {
+        await VersionCheckService.initialize();
+        if (mounted) {
+          await VersionCheckManager.checkAndShowUpdateDialog(
+            context,
+            showOnlyIfForceUpdate: true,
+          );
+        }
+      } catch (e) {
+        // Ignore errors - version check is optional
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isCheckingVersion) {
-      // Render the dashboard layout as a shimmer placeholder so the
-      // post-splash transition lands on something that already looks
-      // like the destination, not a white screen with a spinner.
-      // Render the bottom-nav placeholder too — destination is MainShell
-      // (when logged in) which has a bottom nav, so showing it here keeps
-      // the navbar from popping in 2-3 seconds later.
-      return const DashboardSkeleton(showBottomNav: true);
-    }
-
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
-        // Still waiting for Firebase to restore session
+        // Show a minimal loading indicator only while waiting for auth state
+        // Don't use DashboardSkeleton here - let WelcomeView/UI transitions handle loading
         if (snapshot.connectionState == ConnectionState.waiting) {
-          // Render the bottom-nav placeholder too — destination is MainShell
-      // (when logged in) which has a bottom nav, so showing it here keeps
-      // the navbar from popping in 2-3 seconds later.
-      return const DashboardSkeleton(showBottomNav: true);
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
         }
 
         final isLoggedIn = snapshot.hasData && snapshot.data != null;

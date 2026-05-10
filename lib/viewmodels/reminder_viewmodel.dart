@@ -1,12 +1,15 @@
 import 'package:flutter/foundation.dart';
 import '../models/invoice_model.dart';
 import '../models/invoice_reminder_model.dart';
+import '../models/subscription_plan.dart';
 import '../services/notification_service.dart';
+import '../services/subscription_service.dart';
 
 class ReminderViewModel extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
   List<InvoiceReminder> _reminders = [];
+  final _subService = SubscriptionService();
 
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
@@ -32,7 +35,24 @@ class ReminderViewModel extends ChangeNotifier {
     }
   }
 
+  bool get canAddReminder {
+    final status = _subService.currentStatus;
+    if (status.plan == SubscriptionTier.pro || status.plan == SubscriptionTier.business) return true;
+    if (status.plan == SubscriptionTier.trial && status.isActive) return true;
+    
+    if (status.plan == SubscriptionTier.starter) {
+      return _reminders.length < 5;
+    }
+    return false;
+  }
+
   Future<bool> setReminder(InvoiceModel invoice, DateTime reminderDate) async {
+    if (!canAddReminder) {
+      _errorMessage = 'Reminder limit reached for your plan. Please upgrade.';
+      notifyListeners();
+      return false;
+    }
+
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -114,4 +134,3 @@ class ReminderViewModel extends ChangeNotifier {
     }
   }
 }
-
