@@ -13,6 +13,7 @@ import '../../widgets/custom_info_row.dart';
 import '../../widgets/app_bar_factory.dart';
 import '../../services/ads_service.dart';
 import '../../constants/app_translations.dart';
+import 'package:flutter/foundation.dart';
 
 
 import 'package:invoice_generator/constants/app_translations.dart';
@@ -539,34 +540,51 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
                 FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
               ],
               onChanged: (v) {
-                // UPDATE & CLAMP logic:
+                // Temporary web-only stock bypass
+                if (kIsWeb) {
+                  viewModel.updateItemCarat(index, v);
+                  _triggerTotalsUpdate();
+                  return;
+                }
+
                 double currentVal = double.tryParse(v) ?? 0;
                 double othersTotal = 0;
-                for(int i=0; i<viewModel.invoice.items.length; i++) {
-                  if(i != index) othersTotal += viewModel.invoice.items[i].carat;
+
+                for (int i = 0; i < viewModel.invoice.items.length; i++) {
+                  if (i != index) {
+                    othersTotal += viewModel.invoice.items[i].carat;
+                  }
                 }
 
                 if (currentVal + othersTotal > maxLimit + 0.001) {
                   final allowed = (maxLimit - othersTotal).clamp(0.0, maxLimit);
+
                   caratController.text = allowed.toStringAsFixed(2);
+
                   caratController.selection = TextSelection.fromPosition(
-                    TextPosition(offset: caratController.text.length)
+                    TextPosition(offset: caratController.text.length),
                   );
+
                   viewModel.updateItemCarat(index, caratController.text);
                 } else {
                   viewModel.updateItemCarat(index, v);
                 }
-                
+
                 _triggerTotalsUpdate();
               },
               validator: (v) {
                 if (v == null || v.isEmpty) return 'Required'.tr;
+
                 final val = double.tryParse(v) ?? 0;
+
                 if (val <= 0) return 'Must be > 0'.tr;
-                
-                if (viewModel.totalInvoiceCarat > (maxLimit + 0.001)) {
+
+                // Temporary web-only stock bypass
+                if (!kIsWeb &&
+                    viewModel.totalInvoiceCarat > (maxLimit + 0.001)) {
                   return 'Stock exceeded'.tr;
                 }
+
                 return null;
               },
             ),
