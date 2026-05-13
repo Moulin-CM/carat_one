@@ -1,13 +1,14 @@
 import 'package:flutter/foundation.dart';
+
 import '../models/invoice_model.dart';
 import '../models/purchase_model.dart';
-import '../services/invoice_storage_service.dart';
-import '../services/purchase_storage_service.dart';
-import '../services/user_service.dart';
 import '../services/auth_service.dart';
-import '../services/pdf_service.dart';
 import '../services/invoice_number_service.dart';
+import '../services/invoice_storage_service.dart';
+import '../services/pdf_service.dart';
+import '../services/purchase_storage_service.dart';
 import '../services/settings_service.dart';
+import '../services/user_service.dart';
 
 class InvoiceFormViewModel extends ChangeNotifier {
   final AuthService _authService = AuthService();
@@ -20,10 +21,10 @@ class InvoiceFormViewModel extends ChangeNotifier {
   bool _isGeneratingPdf = false;
   String? _errorMessage;
   bool _isLoadingInventory = false;
-  
+
   List<InvoiceModel> _allPastInvoices = [];
   List<InvoiceModel> _suggestedBuyers = [];
-  
+
   List<PurchaseModel> _availablePurchases = [];
 
   // Constructor parameters for compatibility
@@ -32,20 +33,16 @@ class InvoiceFormViewModel extends ChangeNotifier {
   final String? _paymentTypeFromPurchase;
 
   bool get isLoadingInventory => _isLoadingInventory;
+
   List<InvoiceModel> get suggestedBuyers => _suggestedBuyers;
+
   String? get purchaseId => _purchaseId;
 
-  InvoiceFormViewModel({
-    InvoiceModel? invoice,
-    String? purchaseId,
-    double? maxCaratFromPurchase,
-    String? paymentTypeFromPurchase,
-    double? initialCarat,
-    bool isCashSell = false,
-  })  : _invoice = invoice ?? InvoiceModel(),
-        _purchaseId = purchaseId,
-        _maxCaratFromPurchase = maxCaratFromPurchase,
-        _paymentTypeFromPurchase = paymentTypeFromPurchase {
+  InvoiceFormViewModel({InvoiceModel? invoice, String? purchaseId, double? maxCaratFromPurchase, String? paymentTypeFromPurchase, double? initialCarat, bool isCashSell = false})
+    : _invoice = invoice ?? InvoiceModel(),
+      _purchaseId = purchaseId,
+      _maxCaratFromPurchase = maxCaratFromPurchase,
+      _paymentTypeFromPurchase = paymentTypeFromPurchase {
     if (invoice == null) {
       _invoice.isCashSell = isCashSell;
       if (isCashSell) {
@@ -126,25 +123,19 @@ class InvoiceFormViewModel extends ChangeNotifier {
       // entries on disk (e.g. first install, counter reset, imported data),
       // fall back to actualCashCount + 1.
       final counterNext = await InvoiceNumberService.getNextCashEntryNumber();
-      final allInvoices = _allPastInvoices.isNotEmpty
-          ? _allPastInvoices
-          : await InvoiceStorageService.getAllInvoices();
-      final actualCashCount =
-          allInvoices.where((inv) => inv.isCashSell).length;
-      nextNumber =
-          counterNext > actualCashCount ? counterNext : actualCashCount + 1;
+      final allInvoices = _allPastInvoices.isNotEmpty ? _allPastInvoices : await InvoiceStorageService.getAllInvoices();
+      final actualCashCount = allInvoices.where((inv) => inv.isCashSell).length;
+      nextNumber = counterNext > actualCashCount ? counterNext : actualCashCount + 1;
       prefix = basePrefix.isNotEmpty ? '${basePrefix}CASH' : 'CASH';
     } else {
       final counterNext = await InvoiceNumberService.getNextInvoiceNumber();
-      final currentNumber =
-          await InvoiceNumberService.getCurrentInvoiceNumber();
+      final currentNumber = await InvoiceNumberService.getCurrentInvoiceNumber();
       final startNumber = settings.startingInvoiceNumber;
       nextNumber = startNumber > currentNumber ? startNumber : counterNext;
       prefix = basePrefix;
     }
 
-    _invoice.invoiceNo =
-        prefix.isNotEmpty ? '$prefix$nextNumber' : nextNumber.toString();
+    _invoice.invoiceNo = prefix.isNotEmpty ? '$prefix$nextNumber' : nextNumber.toString();
     notifyListeners();
   }
 
@@ -165,10 +156,15 @@ class InvoiceFormViewModel extends ChangeNotifier {
   }
 
   InvoiceModel get invoice => _invoice;
+
   bool get isLoadingProfile => _isLoadingProfile;
+
   bool get isSaving => _isSaving;
+
   bool get isGeneratingPdf => _isGeneratingPdf;
+
   String? get errorMessage => _errorMessage;
+
   bool get isEditing => _originalInvoice != null;
 
   Future<void> _loadUserProfile() async {
@@ -203,14 +199,15 @@ class InvoiceFormViewModel extends ChangeNotifier {
     if (value.length >= 2) {
       final query = value.toLowerCase();
       final seenNames = <String>{};
-      _suggestedBuyers = _allPastInvoices.where((inv) {
-        final name = inv.buyerName.toLowerCase();
-        if (name.contains(query) && !seenNames.contains(name)) {
-          seenNames.add(name);
-          return true;
-        }
-        return false;
-      }).toList();
+      _suggestedBuyers =
+          _allPastInvoices.where((inv) {
+            final name = inv.buyerName.toLowerCase();
+            if (name.contains(query) && !seenNames.contains(name)) {
+              seenNames.add(name);
+              return true;
+            }
+            return false;
+          }).toList();
     } else {
       _suggestedBuyers = [];
     }
@@ -234,7 +231,11 @@ class InvoiceFormViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateBuyerAddress(String value) { _invoice.buyerAddress = value; notifyListeners(); }
+  void updateBuyerAddress(String value) {
+    _invoice.buyerAddress = value;
+    notifyListeners();
+  }
+
   void updateBuyerContactPerson(String value) {
     _invoice.buyerContactPerson = value;
     // Contact Person doubles as the broker for this invoice, so the
@@ -243,19 +244,54 @@ class InvoiceFormViewModel extends ChangeNotifier {
     _invoice.brokerName = value;
     notifyListeners();
   }
-  void updateBuyerContactNo(String value) { _invoice.buyerContactNo = value; notifyListeners(); }
-  void updateBuyerEmail(String value) { _invoice.buyerEmail = value; notifyListeners(); }
-  void updateBuyerGstNo(String value) { _invoice.buyerGstNo = value; notifyListeners(); }
-  void updateBuyerPanNo(String value) { _invoice.buyerPanNo = value; notifyListeners(); }
-  void updateBuyerStateName(String value) { _invoice.buyerStateName = value; notifyListeners(); }
-  void updateBuyerStateCode(String value) { _invoice.buyerStateCode = value; notifyListeners(); }
-  void updatePlaceOfSupply(String value) { _invoice.placeOfSupply = value; notifyListeners(); }
-  void updateInvoiceNo(String value) { _invoice.invoiceNo = value; notifyListeners(); }
-  void updateIsIgst(bool value) { _invoice.isIgst = value; notifyListeners(); }
+
+  void updateBuyerContactNo(String value) {
+    _invoice.buyerContactNo = value;
+    notifyListeners();
+  }
+
+  void updateBuyerEmail(String value) {
+    _invoice.buyerEmail = value;
+    notifyListeners();
+  }
+
+  void updateBuyerGstNo(String value) {
+    _invoice.buyerGstNo = value;
+    notifyListeners();
+  }
+
+  void updateBuyerPanNo(String value) {
+    _invoice.buyerPanNo = value;
+    notifyListeners();
+  }
+
+  void updateBuyerStateName(String value) {
+    _invoice.buyerStateName = value;
+    notifyListeners();
+  }
+
+  void updateBuyerStateCode(String value) {
+    _invoice.buyerStateCode = value;
+    notifyListeners();
+  }
+
+  void updatePlaceOfSupply(String value) {
+    _invoice.placeOfSupply = value;
+    notifyListeners();
+  }
+
+  void updateInvoiceNo(String value) {
+    _invoice.invoiceNo = value;
+    notifyListeners();
+  }
+
+  void updateIsIgst(bool value) {
+    _invoice.isIgst = value;
+    notifyListeners();
+  }
 
   void updateBrokerChargeRate(String value) {
-    _invoice.brokerChargeRate =
-        double.tryParse(value.replaceAll(RegExp(r'[^\d.]'), '')) ?? 0.0;
+    _invoice.brokerChargeRate = double.tryParse(value.replaceAll(RegExp(r'[^\d.]'), '')) ?? 0.0;
     notifyListeners();
   }
 
@@ -265,8 +301,7 @@ class InvoiceFormViewModel extends ChangeNotifier {
   }
 
   void updateDiscountRate(String value) {
-    _invoice.discountRate =
-        double.tryParse(value.replaceAll(RegExp(r'[^\d.]'), '')) ?? 0.0;
+    _invoice.discountRate = double.tryParse(value.replaceAll(RegExp(r'[^\d.]'), '')) ?? 0.0;
     notifyListeners();
   }
 
@@ -290,28 +325,56 @@ class InvoiceFormViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateDueDate(DateTime value) { _invoice.dueDate = value; notifyListeners(); }
+  void updateDueDate(DateTime value) {
+    _invoice.dueDate = value;
+    notifyListeners();
+  }
 
-  void addItem() { _invoice.items.add(InvoiceItem()); notifyListeners(); }
+  void addItem() {
+    _invoice.items.add(InvoiceItem());
+    notifyListeners();
+  }
+
   void removeItem(int index) {
-    if (_invoice.items.length > 1) { _invoice.items.removeAt(index); notifyListeners(); }
+    if (_invoice.items.length > 1) {
+      _invoice.items.removeAt(index);
+      notifyListeners();
+    }
   }
 
   void updateItemHsnCode(int index, String value) {
-    if (index < _invoice.items.length) { _invoice.items[index].hsnCode = value; notifyListeners(); }
+    if (index < _invoice.items.length) {
+      _invoice.items[index].hsnCode = value;
+      notifyListeners();
+    }
   }
 
   void updateItemCarat(int index, String value) {
     if (index >= _invoice.items.length) return;
+
     final item = _invoice.items[index];
     final carat = double.tryParse(value) ?? 0.0;
-    
+
+    // Temporary web-only bypass.
+    // Mobile apps will continue using stock validation.
+    if (kIsWeb) {
+      item.carat = carat;
+      notifyListeners();
+      return;
+    }
+
     final limit = remainingTotalCarat;
+
     double others = 0;
-    for (int i = 0; i < _invoice.items.length; i++) if (i != index) others += _invoice.items[i].carat;
-    double allowed = (limit - others).clamp(0.0, limit);
+    for (int i = 0; i < _invoice.items.length; i++) {
+      if (i != index) {
+        others += _invoice.items[i].carat;
+      }
+    }
+
+    final allowed = (limit - others).clamp(0.0, limit);
     item.carat = carat > (allowed + 0.0001) ? allowed : carat;
-    
+
     notifyListeners();
   }
 
@@ -323,6 +386,7 @@ class InvoiceFormViewModel extends ChangeNotifier {
   }
 
   double get totalInvoiceCarat => _invoice.totalCarat;
+
   double get totalInvoiceAmount => _invoice.totalAmount;
 
   Future<bool> generateAndSaveInvoice() async {
@@ -333,8 +397,11 @@ class InvoiceFormViewModel extends ChangeNotifier {
     try {
       // "For Other" invoices are records-only: no stock check, no
       // distribution against purchases.
-      if (!_invoice.isForOther) {
+      // Temporary web-only bypass.
+      // Mobile apps still enforce stock validation.
+      if (!kIsWeb && !_invoice.isForOther) {
         final limit = remainingTotalCarat;
+
         if (totalInvoiceCarat > (limit + 0.01)) {
           throw 'Total carat (${totalInvoiceCarat.toStringAsFixed(2)}) exceeds stock balance (${limit.toStringAsFixed(2)}).';
         }
@@ -364,23 +431,13 @@ class InvoiceFormViewModel extends ChangeNotifier {
 
       // Reverse the previous allocation only if the original wasn't a
       // "For Other" record (which never distributed in the first place).
-      if (isEditing &&
-          _originalInvoice != null &&
-          !_originalInvoice!.isForOther) {
+      if (isEditing && _originalInvoice != null && !_originalInvoice!.isForOther) {
         final origIsCash = _originalInvoice!.isCashSell;
-        await PurchaseStorageService.distributeSale(
-          totalCarat: -_originalInvoice!.totalCarat,
-          totalAmount: -_originalInvoice!.totalAmount,
-          isCash: origIsCash,
-        );
+        await PurchaseStorageService.distributeSale(totalCarat: -_originalInvoice!.totalCarat, totalAmount: -_originalInvoice!.totalAmount, isCash: origIsCash);
       }
 
       if (!_invoice.isForOther) {
-        await PurchaseStorageService.distributeSale(
-          totalCarat: totalInvoiceCarat,
-          totalAmount: totalInvoiceAmount,
-          isCash: isCash,
-        );
+        await PurchaseStorageService.distributeSale(totalCarat: totalInvoiceCarat, totalAmount: totalInvoiceAmount, isCash: isCash);
       }
 
       if (!_invoice.isCashSell) {
@@ -406,11 +463,7 @@ class InvoiceFormViewModel extends ChangeNotifier {
     final invoice = await InvoiceStorageService.getInvoiceById(invoiceId);
     if (invoice != null && !invoice.isForOther) {
       final isCash = invoice.isCashSell;
-      await PurchaseStorageService.distributeSale(
-        totalCarat: -invoice.totalCarat,
-        totalAmount: -invoice.totalAmount,
-        isCash: isCash,
-      );
+      await PurchaseStorageService.distributeSale(totalCarat: -invoice.totalCarat, totalAmount: -invoice.totalAmount, isCash: isCash);
     }
   }
 }

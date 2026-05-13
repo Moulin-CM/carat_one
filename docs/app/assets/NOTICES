@@ -5385,6 +5385,7 @@ SUCH DAMAGE.
 --------------------------------------------------------------------------------
 cross_file
 flutter_plugin_android_lifecycle
+in_app_purchase_android
 path_provider_android
 
 Copyright 2013 The Flutter Authors
@@ -8385,6 +8386,9 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 flutter_lints
+in_app_purchase
+in_app_purchase_platform_interface
+in_app_purchase_storekit
 path_provider
 path_provider_foundation
 path_provider_linux
