@@ -1,30 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "mcp__ide__getDiagnostics",
-      "Bash(dart analyze *)",
-      "Bash(flutter analyze *)",
-      "Bash(command -v flutter)",
-      "Bash(flutter pub *)",
-      "Bash(xargs grep *)",
-      "PowerShell(python --version; python -c \"from PIL import Image; print\\(Image.__version__\\)\")",
-      "Bash(python *)",
-      "Bash(git mv *)",
-      "Bash(magick -version)",
-      "Bash(convert -version)",
-      "PowerShell(flutter clean *)",
-      "PowerShell(flutter pub *)",
-      "PowerShell(Get-ChildItem -Path \"E:\\\\Pappa\\\\carat_one_updated\\\\android\\\\app\\\\.cxx\" -ErrorAction SilentlyContinue | Select-Object Name; Get-ChildItem -Path \"E:\\\\Pappa\\\\carat_one_updated\\\\android\" -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -in @\\('.gradle','build'\\) } | Select-Object FullName)",
-      "PowerShell(Remove-Item *)",
-      "Bash(where magick *)",
-      "Bash(where inkscape *)",
-      "Bash(where rsvg-convert *)",
-      "Bash(where dart *)",
-      "Bash(where flutter *)",
-      "Bash(dart run *)",
-      "Bash(dir E:Pappacarat_one_updated *)",
-      "PowerShell(flutter *)",
-      "PowerShell(flutter analyze *)"
+      "Bash(dir E:\\\\Pappa\\\\carat_one_updated\\\\lib\\\\views\\\\subscription)"
     ]
   }
 }
