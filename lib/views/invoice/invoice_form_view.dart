@@ -845,7 +845,7 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
     if (!_formKey.currentState!.validate()) return;
     
     // Hard-block check
-    if (viewModel.totalInvoiceCarat > (viewModel.remainingTotalCarat + 0.001)) {
+    if (!kIsWeb && viewModel.totalInvoiceCarat > (viewModel.remainingTotalCarat + 0.001)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('${'Total carat exceeds global stock'.tr} (${viewModel.remainingTotalCarat.toStringAsFixed(2)})'),
