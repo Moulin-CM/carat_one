@@ -1,3 +1,5 @@
+import 'package:invoice_generator/constants/app_translations.dart';
+
 enum SubscriptionTier {
   trial,
   starter,
@@ -24,51 +26,51 @@ class SubscriptionPlan {
   });
 
   static List<SubscriptionPlan> get plans => [
-        const SubscriptionPlan(
+        SubscriptionPlan(
           tier: SubscriptionTier.starter,
           name: 'Starter',
           price: '₹499',
           priceValue: 499,
           isMostPopular: false,
           benefits: [
-            '30 Purchases / month',
-            '30 Sells / month',
-            'Monthly Buy/Sell Reports',
-            '10 PDF Prints / month',
-            '5 Active Reminders',
-            'JSON Export',
-            '1 Device Sync',
+            '30 Purchases / month'.tr,
+            '30 Sells / month'.tr,
+            'Monthly Buy/Sell Reports'.tr,
+            '10 PDF Prints / month'.tr,
+            '5 Active Reminders'.tr,
+            'JSON Export'.tr,
+            '1 Device Sync'.tr,
           ],
         ),
-        const SubscriptionPlan(
+        SubscriptionPlan(
           tier: SubscriptionTier.pro,
           name: 'Pro',
           price: '₹999',
           priceValue: 999,
           isMostPopular: true,
           benefits: [
-            'Unlimited Purchases',
-            'Unlimited Sells',
-            'Full Period Reports',
-            'Unlimited PDF Prints',
-            'Unlimited Reminders',
-            'Export & Import',
-            '2 Device Sync',
-            'No Ads',
+            'Unlimited Purchases'.tr,
+            'Unlimited Sells'.tr,
+            'Full Period Reports'.tr,
+            'Unlimited PDF Prints'.tr,
+            'Unlimited Reminders'.tr,
+            'Export & Import'.tr,
+            '2 Device Sync'.tr,
+            'No Ads'.tr,
           ],
         ),
-        const SubscriptionPlan(
+        SubscriptionPlan(
           tier: SubscriptionTier.business,
           name: 'Business',
           price: '₹1,499',
           priceValue: 1499,
           isMostPopular: false,
           benefits: [
-            'Everything in Pro',
-            'Unlimited Device Sync',
-            'Brokerage Reports',
-            'Priority Support',
-            'Multi-user Access (Coming Soon)',
+            'Everything in Pro'.tr,
+            'Unlimited Device Sync'.tr,
+            'Brokerage Reports'.tr,
+            'Priority Support'.tr,
+            'Multi-user Access (Coming Soon)'.tr,
           ],
         ),
       ];

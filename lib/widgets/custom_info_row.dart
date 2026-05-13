@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+
 class CustomInfoRow extends StatelessWidget {
   final String label;
   final String value;

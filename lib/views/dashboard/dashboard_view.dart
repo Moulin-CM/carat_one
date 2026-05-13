@@ -12,10 +12,15 @@ import '../finance/withdrawals_view.dart';
 import '../finance/buy_sell_report_view.dart';
 import '../finance/brokerage_report_view.dart';
 import '../subscription/subscription_plans_view.dart';
+import '../settings/language_selection_view.dart';
+import '../../constants/app_translations.dart';
 import '../../widgets/sell_options_sheet.dart';
 import '../../widgets/dashboard_skeleton.dart';
 import '../../widgets/trial_banner.dart';
 import '../../services/quota_service.dart';
+
+
+import 'package:invoice_generator/constants/app_translations.dart';
 
 class DashboardView extends StatefulWidget {
   const DashboardView({super.key});
@@ -24,7 +29,8 @@ class DashboardView extends StatefulWidget {
   State<DashboardView> createState() => _DashboardViewState();
 }
 
-class _DashboardViewState extends State<DashboardView> {
+class _DashboardViewState extends State<DashboardView>
+    with AutomaticKeepAliveClientMixin {
   // Keep the ViewModel alive for the entire lifetime of the widget so that
   // Flutter rebuilds triggered by async operations (showMenu, showBottomSheet,
   // Navigator.push/pop etc.) never recreate the VM or reset _hasLoadedOnce.
@@ -44,11 +50,15 @@ class _DashboardViewState extends State<DashboardView> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return ChangeNotifierProvider<DashboardViewModel>.value(
       value: _viewModel,
       child: const _DashboardViewContent(),
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }
 
 class _DashboardViewContent extends StatefulWidget {
@@ -83,7 +93,7 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
           padding: const EdgeInsets.only(left: 8),
           child: IconButton(
             icon: const Icon(Icons.menu_rounded),
-            tooltip: 'Open Menu',
+            tooltip: 'Open Menu'.tr,
             onPressed: () => _scaffoldKey.currentState?.openDrawer(),
           ),
         ),
@@ -100,7 +110,7 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
                 child: Icon(Icons.diamond_rounded, color: accent, size: 20),
               ),
               const SizedBox(width: 10),
-              const Text('Dashboard'),
+              Text('Dashboard'.tr),
             ],
           ),
         ),
@@ -140,7 +150,7 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _startNewSell(context),
         icon: const Icon(Icons.add_rounded, color: Colors.white),
-        label: const Text('Sell', style: TextStyle(color: Colors.white)),
+        label: Text('Sell'.tr, style: const TextStyle(color: Colors.white)),
         backgroundColor: accent,
       ),
     );
@@ -148,7 +158,7 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
 
   // ─────────────────────────────  DRAWER  ──────────────────────────────────
 
-  /// Generates initials from a full name (e.g. "Raj Patel" → "RP").
+  /// Generates initials from a full name (e.g. "Raj Patel".tr → "RP").
   String _initials(String name) {
     final parts = name.trim().split(RegExp(r'\s+'));
     if (parts.isEmpty || parts[0].isEmpty) return '?';
@@ -191,8 +201,8 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
                   _drawerTile(
                     context,
                     icon: Icons.person_outline_rounded,
-                    label: 'Profile',
-                    subtitle: 'View & edit your info',
+                    label: 'Profile'.tr,
+                    subtitle: 'View & edit your info'.tr,
                     iconBg: const Color(0xFF1A73E8),
                     onTap: () {
                       Navigator.pop(context);
@@ -203,8 +213,8 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
                   _drawerTile(
                     context,
                     icon: Icons.notifications_active_rounded,
-                    label: 'Reminders',
-                    subtitle: 'Manage your alerts',
+                    label: 'Reminders'.tr,
+                    subtitle: 'Manage your alerts'.tr,
                     iconBg: const Color(0xFF7B5CF0),
                     onTap: () {
                       Navigator.pop(context);
@@ -215,13 +225,25 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
                   _drawerTile(
                     context,
                     icon: Icons.workspace_premium_rounded,
-                    label: 'Subscription',
-                    subtitle: 'Upgrade your plan',
+                    label: 'Subscription'.tr,
+                    subtitle: 'Upgrade your plan'.tr,
                     iconBg: const Color(0xFFF59E0B),
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.push(context,
                           MaterialPageRoute(builder: (_) => const SubscriptionPlansView()));
+                    },
+                  ),
+                  _drawerTile(
+                    context,
+                    icon: Icons.language_rounded,
+                    label: 'Change Language'.tr,
+                    subtitle: 'App Language'.tr,
+                    iconBg: const Color(0xFF009688),
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (_) => const LanguageSelectionView(isFromDrawer: true)));
                     },
                   ),
                 ],
@@ -316,9 +338,8 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
                         Icon(Icons.diamond_rounded,
                             color: accent, size: 14),
                         const SizedBox(width: 6),
-                        const Text(
-                          'Carat One',
-                          style: TextStyle(
+                        Text('Carat One'.tr,
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -490,9 +511,9 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Logout',
-                            style: TextStyle(
+                          Text(
+                            'Logout'.tr,
+                            style: const TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w700,
                               color: Color(0xFFD32F2F),
@@ -501,7 +522,7 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            'Sign out of your account',
+                            'Sign out of your account'.tr,
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.red.shade300,
@@ -580,7 +601,7 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
           children: [
             Expanded(
               child: _buildStatCard(
-                'Total Sells',
+                'Total Sells'.tr,
                 viewModel.totalSells.toString(),
                 Icons.receipt_long_rounded,
                 accent,
@@ -590,7 +611,7 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
             const SizedBox(width: 12),
             Expanded(
               child: _buildStatCard(
-                'Total Purchases',
+                'Total Purchases'.tr,
                 viewModel.totalPurchases.toString(),
                 Icons.diamond_rounded,
                 Colors.teal,
@@ -604,7 +625,7 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
           children: [
             Expanded(
               child: _buildStatCard(
-                viewModel.netProfitOrLoss >= 0 ? 'Net Profit' : 'Net Loss',
+                viewModel.netProfitOrLoss >= 0 ? 'Net Profit'.tr : 'Net Loss'.tr,
                 (viewModel.netProfitOrLoss >= 0 ? '+' : '-') +
                     currencyFormat
                         .format(viewModel.netProfitOrLoss.abs()),
@@ -618,7 +639,7 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
             const SizedBox(width: 12),
             Expanded(
               child: _buildStatCard(
-                'Remaining Carat',
+                'Remaining Carat'.tr,
                 '${caratFormat.format(viewModel.totalRemainingCarat)} ct',
                 Icons.scale_rounded,
                 Colors.indigo,
@@ -632,7 +653,7 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
           children: [
             Expanded(
               child: _buildStatCard(
-                'Total Buy Amount',
+                'Total Buy Amount'.tr,
                 currencyFormat.format(viewModel.totalBuyAmount),
                 Icons.shopping_cart_rounded,
                 Colors.orange,
@@ -642,7 +663,7 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
             const SizedBox(width: 12),
             Expanded(
               child: _buildStatCard(
-                'Total Sell Amount',
+                'Total Sell Amount'.tr,
                 currencyFormat.format(viewModel.totalSellAmount),
                 Icons.point_of_sale_rounded,
                 Colors.purple,
@@ -686,9 +707,9 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
                 child: Icon(Icons.account_balance_rounded, color: accent),
               ),
               const SizedBox(width: 12),
-              const Text(
-                'Finance',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+              Text(
+                'Finance'.tr,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
               ),
             ],
           ),
@@ -699,8 +720,8 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
                 child: _buildFinanceTile(
                   context,
                   icon: Icons.receipt_long_rounded,
-                  title: 'Expenses',
-                  value: 'Manage',
+                  title: 'Expenses'.tr,
+                  value: 'Manage'.tr,
                   color: Colors.blueGrey,
                   onTap: () async {
                     await Navigator.push(
@@ -716,7 +737,7 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
                 child: _buildFinanceTile(
                   context,
                   icon: Icons.account_balance_wallet_rounded,
-                  title: 'Withdrawals',
+                  title: 'Withdrawals'.tr,
                   value:
                       '- ${currencyFormat.format(viewModel.outstandingWithdrawals)}',
                   color: Colors.orange,
@@ -747,8 +768,8 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
             context,
             color: accent,
             icon: Icons.assessment_rounded,
-            title: 'Buy / Sell',
-            subtitle: 'Monthly & yearly',
+            title: 'Buy / Sell'.tr,
+            subtitle: 'Monthly & yearly'.tr,
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const BuySellReportView()),
@@ -761,8 +782,8 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
             context,
             color: Colors.deepPurple,
             icon: Icons.handshake_rounded,
-            title: 'Brokerage',
-            subtitle: 'Per broker report',
+            title: 'Brokerage'.tr,
+            subtitle: 'Per broker report'.tr,
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const BrokerageReportView()),
@@ -933,7 +954,7 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
 
   Widget _buildRecentInvoices(BuildContext context, DashboardViewModel viewModel, Color accent, Color deepAccent) {
     final recent = viewModel.recentInvoices;
-    final dateFormat = DateFormat('dd MMM yyyy');
+    final dateFormat = DateFormat('dd MMM yyyy'.tr);
 
     return Container(
       padding: const EdgeInsets.all(18),
@@ -963,9 +984,9 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
                 child: Icon(Icons.history_rounded, color: accent),
               ),
               const SizedBox(width: 12),
-              const Text(
-                'Recent Sells',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+              Text(
+                'Recent Sells'.tr,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
               ),
             ],
           ),
@@ -975,7 +996,7 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
               padding: const EdgeInsets.all(20),
               child: Center(
                 child: Text(
-                  'No sells yet',
+                  'No sells yet'.tr,
                   style: TextStyle(color: Colors.grey[600]),
                 ),
               ),
@@ -1000,7 +1021,7 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
                       MaterialPageRoute(builder: (_) => const InvoiceListView()),
                     );
                   },
-                  child: const Text('View All Sells'),
+                  child: Text('View All Sells'.tr),
                 ),
               ),
             ),
@@ -1048,15 +1069,14 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    invoice.buyerName.isNotEmpty ? invoice.buyerName : 'Unnamed Buyer',
+                    invoice.buyerName.isNotEmpty ? invoice.buyerName : 'Unnamed Buyer'.tr,
                     style: const TextStyle(
                       fontWeight: FontWeight.w700,
                       fontSize: 14,
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    '${invoice.invoiceNo} • ${dateFormat.format(invoice.invoiceDate)}',
+                  Text('${invoice.invoiceNo} • ${dateFormat.format(invoice.invoiceDate)}'.tr,
                     style: TextStyle(
                       color: Colors.grey[600],
                       fontSize: 12,
@@ -1065,8 +1085,7 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
                 ],
               ),
             ),
-            Text(
-              '₹${invoice.grandTotal.toStringAsFixed(0)}',
+            Text('₹${invoice.grandTotal.toStringAsFixed(0)}'.tr,
               style: TextStyle(
                 fontWeight: FontWeight.w700,
                 color: deepAccent,
@@ -1108,9 +1127,9 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
                 child: Icon(Icons.flash_on_rounded, color: accent),
               ),
               const SizedBox(width: 12),
-              const Text(
-                'Quick Actions',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+              Text(
+                'Quick Actions'.tr,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
               ),
             ],
           ),
@@ -1120,7 +1139,7 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
               Expanded(
                 child: _buildQuickActionButton(
                   context,
-                  'Sell',
+                  'Sell'.tr,
                   Icons.add_rounded,
                   accent,
                   () => _startNewSell(context),
@@ -1130,7 +1149,7 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
               Expanded(
                 child: _buildQuickActionButton(
                   context,
-                  'All Sells',
+                  'All Sells'.tr,
                   Icons.list_rounded,
                   Colors.blue,
                   () {
@@ -1184,38 +1203,49 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
 
   Future<void> _startNewSell(BuildContext context) async {
     final viewModel = context.read<DashboardViewModel>();
+
     final canAdd = await QuotaService().canAddEntry(false);
+
     if (!canAdd && context.mounted) {
       _showPaywall(context);
       return;
     }
 
     if (!context.mounted) return;
+
     final isCash = await showSellOptionsSheet(context);
+
     if (isCash == null || !context.mounted) return;
-    await Navigator.push(
+
+    final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => InvoiceFormView(isCashSell: isCash),
+        builder: (_) => InvoiceFormView(
+          isCashSell: isCash,
+        ),
       ),
     );
-    // Silently refresh data after returning from InvoiceFormView so the
-    // new sell entry appears on the dashboard. Since _hasLoadedOnce is
-    // already true, loadInvoices() will NOT show the skeleton shimmer.
-    viewModel.loadInvoices();
+
+    if (result == true && mounted) {
+      Future.microtask(() async {
+        if (mounted) {
+          await viewModel.loadInvoices();
+        }
+      });
+    }
   }
 
   void _showPaywall(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Limit Reached'),
-        content: const Text(
-            'You have reached your monthly limit for adding sells. Please upgrade your plan to continue adding unlimited entries.'),
+        title: Text('Limit Reached'.tr),
+        content: Text(
+            'You have reached your monthly limit for adding sells. Please upgrade your plan to continue adding unlimited entries.'.tr),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text('Cancel'.tr),
           ),
           ElevatedButton(
             onPressed: () {
@@ -1225,7 +1255,7 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
                 MaterialPageRoute(builder: (_) => const SubscriptionPlansView()),
               );
             },
-            child: const Text('View Plans'),
+            child: Text('View Plans'.tr),
           ),
         ],
       ),
@@ -1237,12 +1267,12 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Logout'),
-        content: const Text('Are you sure you want to logout?'),
+        title: Text('Logout'.tr),
+        content: Text('Are you sure you want to logout?'.tr),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text('Cancel'.tr),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
@@ -1250,7 +1280,7 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Logout'),
+            child: Text('Logout'.tr),
           ),
         ],
       ),
@@ -1261,8 +1291,8 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
         await viewModel.logout();
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Logged out successfully'),
+            SnackBar(
+              content: Text('Logged out successfully'.tr),
               backgroundColor: Colors.green,
             ),
           );
@@ -1271,7 +1301,7 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error logging out: $e'),
+              content: Text('${'Error logging out: '.tr}$e'),
               backgroundColor: Colors.red,
             ),
           );

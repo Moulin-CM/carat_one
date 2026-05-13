@@ -2,10 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../viewmodels/inventory_viewmodel.dart';
-import '../../widgets/ads/banner_ad_widget.dart';
+
 import '../../widgets/list_skeleton.dart';
 import 'inventory_list_view.dart';
 import 'inventory_form_view.dart';
+import '../../constants/app_translations.dart';
+
+
+import 'package:invoice_generator/constants/app_translations.dart';
 
 class InventoryDashboardView extends StatelessWidget {
   const InventoryDashboardView({super.key});
@@ -51,7 +55,7 @@ class _InventoryDashboardViewContent extends StatelessWidget {
                 child: Icon(Icons.dashboard_rounded, color: accent),
               ),
               const SizedBox(width: 10),
-              const Text('Inventory Dashboard'),
+              Text('Inventory Dashboard'.tr),
             ],
           ),
         ),
@@ -59,7 +63,7 @@ class _InventoryDashboardViewContent extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
             onPressed: () => viewModel.loadItems(),
-            tooltip: 'Refresh',
+            tooltip: 'Refresh'.tr,
           ),
         ],
       ),
@@ -94,10 +98,10 @@ class _InventoryDashboardViewContent extends StatelessWidget {
           );
         },
         icon: const Icon(Icons.add_rounded),
-        label: const Text('Add Stock'),
+        label: Text('Add Stock'.tr),
         backgroundColor: accent,
       ),
-      bottomNavigationBar: const BottomBannerAd(),
+
     );
   }
 
@@ -151,7 +155,7 @@ class _InventoryDashboardViewContent extends StatelessWidget {
           children: [
             Expanded(
               child: _buildStatCard(
-                'Total Items',
+                'Total Items'.tr,
                 viewModel.totalItems.toString(),
                 Icons.inventory_2_rounded,
                 accent,
@@ -161,7 +165,7 @@ class _InventoryDashboardViewContent extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: _buildStatCard(
-                'Total Carat',
+                'Total Carat'.tr,
                 viewModel.totalCarat.toStringAsFixed(2),
                 Icons.scale_rounded,
                 Colors.orange,
@@ -175,7 +179,7 @@ class _InventoryDashboardViewContent extends StatelessWidget {
           children: [
             Expanded(
               child: _buildStatCard(
-                'Total Value',
+                'Total Value'.tr,
                 currencyFormat.format(viewModel.totalValue),
                 Icons.currency_rupee_rounded,
                 Colors.green,
@@ -185,7 +189,7 @@ class _InventoryDashboardViewContent extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: _buildStatCard(
-                'Avg Price/Carat',
+                'Avg Price/Carat'.tr,
                 currencyFormat.format(viewModel.averagePricePerCarat),
                 Icons.trending_up_rounded,
                 Colors.purple,
@@ -199,7 +203,7 @@ class _InventoryDashboardViewContent extends StatelessWidget {
           children: [
             Expanded(
               child: _buildStatCard(
-                'This Month',
+                'This Month'.tr,
                 viewModel.thisMonthItems.toString(),
                 Icons.calendar_month_rounded,
                 Colors.blue,
@@ -209,7 +213,7 @@ class _InventoryDashboardViewContent extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: _buildStatCard(
-                'Month Value',
+                'Month Value'.tr,
                 currencyFormat.format(viewModel.thisMonthValue),
                 Icons.account_balance_wallet_rounded,
                 Colors.teal,
@@ -284,7 +288,7 @@ class _InventoryDashboardViewContent extends StatelessWidget {
     NumberFormat currencyFormat,
   ) {
     final recent = viewModel.recentItems;
-    final dateFormat = DateFormat('dd MMM yyyy');
+    final dateFormat = DateFormat('dd MMM yyyy'.tr);
 
     return Container(
       padding: const EdgeInsets.all(18),
@@ -314,9 +318,9 @@ class _InventoryDashboardViewContent extends StatelessWidget {
                 child: Icon(Icons.history_rounded, color: accent),
               ),
               const SizedBox(width: 12),
-              const Text(
-                'Recent Items',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+              Text(
+                'Recent Items'.tr,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
               ),
             ],
           ),
@@ -326,7 +330,7 @@ class _InventoryDashboardViewContent extends StatelessWidget {
               padding: const EdgeInsets.all(20),
               child: Center(
                 child: Text(
-                  'No inventory items yet',
+                  'No inventory items yet'.tr,
                   style: TextStyle(color: Colors.grey[600]),
                 ),
               ),
@@ -352,7 +356,7 @@ class _InventoryDashboardViewContent extends StatelessWidget {
                       MaterialPageRoute(builder: (_) => const InventoryListView()),
                     );
                   },
-                  child: const Text('View All Items'),
+                  child: Text('View All Items'.tr),
                 ),
               ),
             ),
@@ -401,15 +405,14 @@ class _InventoryDashboardViewContent extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    item.invoiceNumber.isNotEmpty ? item.invoiceNumber : 'No Invoice Number',
+                    item.invoiceNumber.isNotEmpty ? item.invoiceNumber : 'No Invoice Number'.tr,
                     style: const TextStyle(
                       fontWeight: FontWeight.w700,
                       fontSize: 14,
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    '${dateFormat.format(item.invoiceDate)} • ${item.carat.toStringAsFixed(2)} ct',
+                  Text('${dateFormat.format(item.invoiceDate)} • ${item.carat.toStringAsFixed(2)} ct'.tr,
                     style: TextStyle(
                       color: Colors.grey[600],
                       fontSize: 12,
@@ -461,9 +464,9 @@ class _InventoryDashboardViewContent extends StatelessWidget {
                 child: Icon(Icons.flash_on_rounded, color: accent),
               ),
               const SizedBox(width: 12),
-              const Text(
-                'Quick Actions',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+              Text(
+                'Quick Actions'.tr,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
               ),
             ],
           ),
@@ -473,7 +476,7 @@ class _InventoryDashboardViewContent extends StatelessWidget {
               Expanded(
                 child: _buildQuickActionButton(
                   context,
-                  'Add Stock',
+                  'Add Stock'.tr,
                   Icons.add_rounded,
                   accent,
                   () {
@@ -488,7 +491,7 @@ class _InventoryDashboardViewContent extends StatelessWidget {
               Expanded(
                 child: _buildQuickActionButton(
                   context,
-                  'All Items',
+                  'All Items'.tr,
                   Icons.list_rounded,
                   Colors.blue,
                   () {

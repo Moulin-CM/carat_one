@@ -1,8 +1,10 @@
 import 'dart:io';
+import 'package:invoice_generator/constants/app_translations.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import '../models/invoice_model.dart';
 import 'pdf_service.dart';
+
 
 class EmailService {
   /// Generate PDF file for email attachment
@@ -20,11 +22,11 @@ class EmailService {
 
       // Create mailto URL
       final emailUri = Uri(
-        scheme: 'mailto',
+        scheme: 'mailto'.tr,
         path: recipient,
         queryParameters: {
-          'subject': subject,
-          'body': body,
+          'subject'.tr: subject,
+          'body'.tr: body,
         },
       );
 
@@ -60,7 +62,7 @@ class EmailService {
   /// Generate email body text
   static String _generateEmailBody(InvoiceModel invoice) {
     return '''
-Dear ${invoice.buyerName.isNotEmpty ? invoice.buyerName : 'Valued Customer'},
+Dear ${invoice.buyerName.isNotEmpty ? invoice.buyerName : 'Valued Customer'.tr},
 
 Please find attached Invoice ${invoice.invoiceNo} dated ${invoice.invoiceDate.toString().split(' ')[0]}.
 

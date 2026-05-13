@@ -3,7 +3,9 @@ import '../dashboard/dashboard_view.dart';
 import '../purchase/purchase_list_view.dart';
 import '../invoice/invoice_list_view.dart';
 import '../settings/settings_view.dart';
-import '../../widgets/ads/banner_ad_widget.dart';
+import '../../constants/app_translations.dart';
+
+
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -13,14 +15,15 @@ class MainShell extends StatefulWidget {
 }
 
 class _MainShellState extends State<MainShell> {
-  int _currentIndex = 0;
+  static int _currentIndex = 0;
   static const _accent = Color(0xFF4F8AF4);
 
-  final List<_NavItem> _items = const [
-    _NavItem(icon: Icons.dashboard_rounded, label: 'Dashboard'),
-    _NavItem(icon: Icons.diamond_rounded, label: 'Purchases'),
-    _NavItem(icon: Icons.receipt_long_rounded, label: 'Sells'),
-    _NavItem(icon: Icons.settings_rounded, label: 'Settings'),
+  // We cannot use const here because .tr is evaluated at runtime
+  List<_NavItem> get _items => [
+    _NavItem(icon: Icons.dashboard_rounded, label: 'Dashboard'.tr),
+    _NavItem(icon: Icons.diamond_rounded, label: 'Purchases'.tr),
+    _NavItem(icon: Icons.receipt_long_rounded, label: 'Sells'.tr),
+    _NavItem(icon: Icons.settings_rounded, label: 'Settings'.tr),
   ];
 
   @override
@@ -50,10 +53,7 @@ class _MainShellState extends State<MainShell> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Persistent banner ad sits just above the bottom nav so it's
-              // visible across Dashboard / Purchases / Sells / Settings tabs.
-              // Placed inside the nav container so it never overlaps content.
-              const BannerAdWidget(showDivider: false),
+
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                 child: Row(

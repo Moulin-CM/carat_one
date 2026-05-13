@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/app_settings_model.dart';
 
+
 class SettingsService {
   static const String _settingsKey = 'app_settings';
 

@@ -11,14 +11,43 @@ import '../../services/quota_service.dart';
 import '../finance/buy_sell_report_view.dart';
 import 'purchase_form_view.dart';
 import 'purchase_detail_view.dart';
+import '../../constants/app_translations.dart';
 
-class PurchaseListView extends StatelessWidget {
+
+import 'package:invoice_generator/constants/app_translations.dart';
+
+class PurchaseListView extends StatefulWidget {
   const PurchaseListView({super.key});
 
   @override
+  State<PurchaseListView> createState() => _PurchaseListViewState();
+}
+
+class _PurchaseListViewState extends State<PurchaseListView>
+    with AutomaticKeepAliveClientMixin {
+  late final PurchaseViewModel _viewModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _viewModel = PurchaseViewModel()..loadPurchases();
+  }
+
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => PurchaseViewModel()..loadPurchases(),
+    super.build(context);
+
+    return ChangeNotifierProvider<PurchaseViewModel>.value(
+      value: _viewModel,
       child: const _PurchaseListContent(),
     );
   }
@@ -78,19 +107,19 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
                       Row(
                         children: [
                           Expanded(
-                            child: _summaryTile('Opening Carats',
+                            child: _summaryTile('Opening Carats'.tr,
                                 '${caratFmt.format(vm.openingTotalCarat)} ct',
                                 Icons.diamond_rounded),
                           ),
                           Container(width: 1, height: 35, color: Colors.white24),
                           Expanded(
-                            child: _summaryTile('Opening Amount',
+                            child: _summaryTile('Opening Amount'.tr,
                                 fmt.format(vm.openingTotalAmount),
                                 Icons.currency_rupee_rounded),
                           ),
                           Container(width: 1, height: 35, color: Colors.white24),
                           Expanded(
-                            child: _summaryTile('Remaining',
+                            child: _summaryTile('Remaining'.tr,
                                 '${caratFmt.format(vm.totalRemainingCarat)} ct',
                                 Icons.balance_rounded),
                           ),
@@ -103,13 +132,13 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
                       Row(
                         children: [
                           Expanded(
-                            child: _summaryTile('Sold Carat',
+                            child: _summaryTile('Sold Carat'.tr,
                                 '${caratFmt.format(vm.totalSoldCarat)} ct',
                                 Icons.sell_rounded),
                           ),
                           Container(width: 1, height: 35, color: Colors.white24),
                           Expanded(
-                            child: _summaryTile('Sold Amount',
+                            child: _summaryTile('Sold Amount'.tr,
                                 fmt.format(vm.totalSellAmount),
                                 Icons.payments_rounded),
                           ),
@@ -119,7 +148,7 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
                               onTap: () => _manageStockValuation(context, vm),
                               borderRadius: BorderRadius.circular(12),
                               child: _summaryTile(
-                                  'Stock Valuation',
+                                  'Stock Valuation'.tr,
                                   fmt.format(vm.stockValuationTotal),
                                   Icons.savings_rounded,
                                   editable: true),
@@ -147,7 +176,7 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
                             }
                           },
                           icon: const Icon(Icons.assessment_rounded, size: 18),
-                          label: const Text('Buy / Sell Report'),
+                          label: Text('Buy / Sell Report'.tr),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: _accent,
                             side: const BorderSide(color: _accent),
@@ -167,7 +196,7 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
                                 child: CircularProgressIndicator(strokeWidth: 2),
                               )
                             : const Icon(Icons.sync_rounded, color: _accent),
-                        tooltip: 'Sync Inventory',
+                        tooltip: 'Sync Inventory'.tr,
                       ),
                     ],
                   ),
@@ -179,7 +208,7 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
                     controller: _searchController,
                     onChanged: (v) => context.read<PurchaseViewModel>().setSearchQuery(v),
                     decoration: InputDecoration(
-                      hintText: 'Search by seller, broker, size…',
+                      hintText: 'Search by seller, broker, size...'.tr,
                       prefixIcon: const Icon(Icons.search_rounded, color: _accent),
                       suffixIcon: _searchController.text.isNotEmpty
                           ? IconButton(
@@ -219,7 +248,7 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _startNewPurchase(context),
         icon: const Icon(Icons.add_rounded, color: Colors.white),
-        label: const Text('Add Purchase', style: TextStyle(color: Colors.white)),
+        label: Text('Add Purchase'.tr, style: const TextStyle(color: Colors.white)),
         backgroundColor: _accent,
       ),
     );
@@ -230,8 +259,8 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
     if (!canAdd && context.mounted) {
       showDialog(
         context: context,
-        builder: (context) => const PaywallDialog(
-          message: 'You have reached your monthly limit for adding purchases. Please upgrade your plan to continue adding unlimited entries.',
+        builder: (context) => PaywallDialog(
+          message: 'You have reached your monthly limit for adding purchases. Please upgrade your plan to continue adding unlimited entries.'.tr,
         ),
       );
       return;
@@ -280,8 +309,8 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
   Widget _yearEndBadge(BuildContext context, PurchaseViewModel vm) {
     final end = vm.yearEndDate;
     final label = end == null
-        ? 'Set Year End'
-        : 'FY End: ${DateFormat('dd MMM yyyy').format(end)}';
+        ? 'Set Year End'.tr
+        : '${'FY End: '.tr}${DateFormat('dd MMM yyyy'.tr).format(end)}';
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
@@ -346,7 +375,7 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
       initialDate: initial,
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
-      helpText: 'Select Financial Year End',
+      helpText: 'Select Financial Year End'.tr,
     );
     if (picked != null) {
       await vm.setYearEndDate(picked);
@@ -358,17 +387,17 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Clear Year End?'),
-        content: const Text(
-            'This removes the financial year filter. All-time totals will be shown.'),
+        title: Text('Clear Year End?'.tr),
+        content: Text(
+            'This removes the financial year filter. All-time totals will be shown.'.tr),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel')),
+              child: Text('Cancel'.tr)),
           TextButton(
               onPressed: () => Navigator.pop(ctx, true),
               style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: const Text('Clear')),
+              child: Text('Clear'.tr)),
         ],
       ),
     );
@@ -417,8 +446,8 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Stock Valuation',
-                              style: TextStyle(
+                          Text('Stock Valuation'.tr,
+                              style: const TextStyle(
                                   fontSize: 18, fontWeight: FontWeight.bold)),
                           IconButton(
                               onPressed: () => Navigator.pop(context),
@@ -429,14 +458,14 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
                       Row(
                         children: [
                           Expanded(
-                            child: _miniStat('Total Value', fmt.format(totalVal), _accent),
+                            child: _miniStat('Total Value'.tr, fmt.format(totalVal), _accent),
                           ),
                           Expanded(
-                            child: _miniStat('Total Carats',
+                            child: _miniStat('Total Carats'.tr,
                                 '${caratFmt.format(totalCarat)} ct', Colors.orange),
                           ),
                           Expanded(
-                            child: _miniStat('Actual Remaining',
+                            child: _miniStat('Actual Remaining'.tr,
                                 '${caratFmt.format(remainingActual)} ct', Colors.green),
                           ),
                         ],
@@ -445,7 +474,7 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
                         Padding(
                           padding: const EdgeInsets.only(top: 8),
                           child: Text(
-                            'Warning: Valuation carats do not match actual remaining carats.',
+                            'Warning: Valuation carats do not match actual remaining carats.'.tr,
                             style: TextStyle(color: Colors.red[700], fontSize: 11, fontWeight: FontWeight.w500),
                           ),
                         ),
@@ -461,7 +490,7 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
                               Icon(Icons.inventory_2_outlined,
                                   size: 48, color: Colors.grey[300]),
                               const SizedBox(height: 12),
-                              Text('No valuation items added',
+                              Text('No valuation items added'.tr,
                                   style: TextStyle(color: Colors.grey[500])),
                             ],
                           ),
@@ -487,14 +516,13 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text(item.itemName.isNotEmpty ? item.itemName : 'Unnamed Item',
+                                        Text(item.itemName.isNotEmpty ? item.itemName : 'Unnamed Item'.tr,
                                             style: const TextStyle(fontWeight: FontWeight.bold)),
-                                        Text(
-                                            '${caratFmt.format(item.carats)} ct @ ${fmt.format(item.ratePerCarat)}/ct',
+                                        Text('${caratFmt.format(item.carats)} ct @ ${fmt.format(item.ratePerCarat)}/ct'.tr,
                                             style: TextStyle(fontSize: 12, color: Colors.grey[600])),
                                         if (hasDeductions)
                                           Text(
-                                              'Disc ${item.discountPercent.toStringAsFixed(item.discountPercent.truncateToDouble() == item.discountPercent ? 0 : 2)}% • Brok ${item.brokeragePercent.toStringAsFixed(item.brokeragePercent.truncateToDouble() == item.brokeragePercent ? 0 : 2)}% → ${fmt.format(item.effectiveRatePerCarat)}/ct',
+                                              '${'Disc'.tr} ${item.discountPercent.toStringAsFixed(item.discountPercent.truncateToDouble() == item.discountPercent ? 0 : 2)}% • ${'Brok'.tr} ${item.brokeragePercent.toStringAsFixed(item.brokeragePercent.truncateToDouble() == item.brokeragePercent ? 0 : 2)}% → ${fmt.format(item.effectiveRatePerCarat)}/ct',
                                               style: TextStyle(
                                                   fontSize: 11,
                                                   color: Colors.orange[700],
@@ -546,7 +574,7 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
                             }
                           },
                           icon: const Icon(Icons.add_rounded),
-                          label: const Text('Add Item'),
+                          label: Text('Add Item'.tr),
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -567,7 +595,7 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             elevation: 0,
                           ),
-                          child: const Text('Save Valuation'),
+                          child: Text('Save Valuation'.tr),
                         ),
                       ),
                     ],
@@ -626,15 +654,15 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
           final totalVal = carats * effRate;
 
           return AlertDialog(
-            title: Text(existing == null ? 'Add Stock Item' : 'Edit Stock Item'),
+            title: Text(existing == null ? 'Add Stock Item'.tr : 'Edit Stock Item'.tr),
             content: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   TextField(
                     controller: nameCtrl,
-                    decoration: const InputDecoration(
-                        labelText: 'Item Name (e.g. Rough, Polished)'),
+                    decoration: InputDecoration(
+                        labelText: 'Item Name (e.g. Rough, Polished)'.tr),
                     textCapitalization: TextCapitalization.words,
                   ),
                   const SizedBox(height: 8),
@@ -645,8 +673,8 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
                           controller: caratCtrl,
                           keyboardType:
                               const TextInputType.numberWithOptions(decimal: true),
-                          decoration: const InputDecoration(
-                              labelText: 'Carats', suffixText: 'ct'),
+                          decoration: InputDecoration(
+                              labelText: 'Carats'.tr, suffixText: 'ct'),
                           onChanged: (_) => setDialogState(() {}),
                         ),
                       ),
@@ -656,8 +684,8 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
                           controller: rateCtrl,
                           keyboardType:
                               const TextInputType.numberWithOptions(decimal: true),
-                          decoration: const InputDecoration(
-                              labelText: 'Rate', prefixText: '₹'),
+                          decoration: InputDecoration(
+                              labelText: 'Rate'.tr, prefixText: '₹'),
                           onChanged: (_) => setDialogState(() {}),
                         ),
                       ),
@@ -671,8 +699,8 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
                           controller: discountCtrl,
                           keyboardType:
                               const TextInputType.numberWithOptions(decimal: true),
-                          decoration: const InputDecoration(
-                              labelText: 'Discount', suffixText: '%'),
+                          decoration: InputDecoration(
+                              labelText: 'Discount'.tr, suffixText: '%'),
                           onChanged: (_) => setDialogState(() {}),
                         ),
                       ),
@@ -682,8 +710,8 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
                           controller: brokerageCtrl,
                           keyboardType:
                               const TextInputType.numberWithOptions(decimal: true),
-                          decoration: const InputDecoration(
-                              labelText: 'Brokerage', suffixText: '%'),
+                          decoration: InputDecoration(
+                              labelText: 'Brokerage'.tr, suffixText: '%'),
                           onChanged: (_) => setDialogState(() {}),
                         ),
                       ),
@@ -701,9 +729,9 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('Effective Rate',
-                                style: TextStyle(fontSize: 12)),
-                            Text('${fmt.format(effRate)}/ct',
+                            Text('Effective Rate'.tr,
+                                style: const TextStyle(fontSize: 12)),
+                            Text('${fmt.format(effRate)}/ct'.tr,
                                 style: const TextStyle(
                                     fontSize: 12, fontWeight: FontWeight.w600)),
                           ],
@@ -712,8 +740,8 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('Total Value',
-                                style: TextStyle(
+                            Text('Total Value'.tr,
+                                style: const TextStyle(
                                     fontSize: 13, fontWeight: FontWeight.w600)),
                             Text(fmt.format(totalVal),
                                 style: const TextStyle(
@@ -731,7 +759,7 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
             actions: [
               TextButton(
                   onPressed: () => Navigator.pop(ctx),
-                  child: const Text('Cancel')),
+                  child: Text('Cancel'.tr)),
               ElevatedButton(
                 onPressed: () {
                   if (carats > 0 && rate > 0) {
@@ -746,7 +774,7 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
                         ));
                   }
                 },
-                child: const Text('OK'),
+                child: Text('OK'.tr),
               ),
             ],
           );
@@ -789,10 +817,10 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
 
   Widget _purchaseCard(BuildContext context, PurchaseModel p,
       PurchaseViewModel vm, NumberFormat fmt, NumberFormat caratFmt) {
-    final dateFormat = DateFormat('dd MMM yy');
+    final dateFormat = DateFormat('dd MMM yy'.tr);
     final paid = p.isFullyPaid;
     final partial = p.totalPaidCarat > 0 && !paid;
-    final statusLabel = paid ? 'Paid' : partial ? 'Partial' : 'Unpaid';
+    final statusLabel = paid ? 'Paid'.tr : partial ? 'Partial'.tr : 'Unpaid'.tr;
     final statusColor =
         paid ? Colors.green : partial ? Colors.orange : Colors.red;
 
@@ -813,14 +841,14 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
         return await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('Confirm Delete'),
-            content: const Text('Are you sure you want to delete this purchase? This will also remove its sale tracking data.'),
+            title: Text('Confirm Delete'.tr),
+            content: Text('Are you sure you want to delete this purchase? This will also remove its sale tracking data.'.tr),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+              TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('Cancel'.tr)),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
                 style: TextButton.styleFrom(foregroundColor: Colors.red),
-                child: const Text('Delete'),
+                child: Text('Delete'.tr),
               ),
             ],
           ),
@@ -829,7 +857,7 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
       onDismissed: (dir) {
         vm.deletePurchase(p.id);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Purchase from ${p.sellerName} deleted')),
+          SnackBar(content: Text('${'Purchase from'.tr} ${p.sellerName} ${'deleted'.tr}')),
         );
       },
       child: GestureDetector(
@@ -874,12 +902,12 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            p.sellerName.isNotEmpty ? p.sellerName : 'Unknown Seller',
+                            p.sellerName.isNotEmpty ? p.sellerName : 'Unknown Seller'.tr,
                             style: const TextStyle(
                                 fontWeight: FontWeight.w700, fontSize: 15),
                           ),
                           Text(
-                            'Broker: ${p.brokerName.isNotEmpty ? p.brokerName : "-"}  •  Size: ${p.size.isNotEmpty ? p.size : "-"}',
+                            '${'Broker'.tr}: ${p.brokerName.isNotEmpty ? p.brokerName : "-"}  •  ${'Size'.tr}: ${p.size.isNotEmpty ? p.size : "-"}',
                             style: TextStyle(color: Colors.grey[600], fontSize: 12),
                           ),
                         ],
@@ -916,9 +944,9 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
                               border:
                                   Border.all(color: _accent.withOpacity(0.4)),
                             ),
-                            child: const Text(
-                              'For Other',
-                              style: TextStyle(
+                            child: Text(
+                              'For Other'.tr,
+                              style: const TextStyle(
                                   color: _accent,
                                   fontWeight: FontWeight.w700,
                                   fontSize: 10),
@@ -939,8 +967,8 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _infoChip('Net Amt', fmt.format(p.netAmount), Colors.orange),
-                      _infoChip('Carat', '${caratFmt.format(p.totalCarat)} ct', _accent),
+                      _infoChip('Net Amt'.tr, fmt.format(p.netAmount), Colors.orange),
+                      _infoChip('Carat'.tr, '${caratFmt.format(p.totalCarat)} ct', _accent),
                     ],
                   ),
                 ),
@@ -949,17 +977,17 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
                   children: [
                     Icon(Icons.calendar_today_rounded, size: 13, color: Colors.grey[500]),
                     const SizedBox(width: 4),
-                    Text('Buy: ${dateFormat.format(p.buyDate)}',
+                    Text('${'Buy'.tr}: ${dateFormat.format(p.buyDate)}',
                         style: TextStyle(fontSize: 12, color: Colors.grey[600])),
                     const SizedBox(width: 12),
                     Icon(Icons.payment_rounded, size: 13, color: Colors.grey[500]),
                     const SizedBox(width: 4),
-                    Text('Pay: ${dateFormat.format(p.paymentDate)}',
+                    Text('${'Pay'.tr}: ${dateFormat.format(p.paymentDate)}',
                         style: TextStyle(fontSize: 12, color: Colors.grey[600])),
                     const Spacer(),
                     Icon(Icons.schedule_rounded, size: 13, color: Colors.grey[500]),
                     const SizedBox(width: 4),
-                    Text('${p.dueDays}d due',
+                    Text('${p.dueDays}${'d due'.tr}',
                         style: TextStyle(fontSize: 12, color: Colors.grey[600])),
                   ],
                 ),
@@ -990,13 +1018,13 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
         children: [
           Icon(Icons.diamond_outlined, size: 64, color: Colors.grey[300]),
           const SizedBox(height: 16),
-          Text('No purchases yet',
+          Text('No purchases yet'.tr,
               style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                   color: Colors.grey[500])),
           const SizedBox(height: 8),
-          Text('Tap + to add your first purchase',
+          Text('Tap + to add your first purchase'.tr,
               style: TextStyle(color: Colors.grey[400])),
         ],
       ),

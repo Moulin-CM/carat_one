@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:invoice_generator/constants/app_translations.dart';
 import 'package:shimmer/shimmer.dart';
+
 
 /// Skeleton placeholder shown in place of the Dashboard while data is
 /// loading. Mirrors the real Dashboard layout (gradient backdrop,
@@ -18,7 +20,7 @@ class DashboardSkeleton extends StatelessWidget {
   final bool showAppBar;
 
   /// When true, render a non-functional bottom-nav placeholder that
-  /// matches MainShell's layout so the navbar doesn't pop in 2-3 seconds
+  /// matches MainShell's layout so the navbar doesn'.trt pop in 2-3 seconds
   /// after the dashboard skeleton appears. Set this only when the
   /// destination *is* MainShell (i.e. AuthWrapper's bootstrap phase) —
   /// otherwise MainShell already provides the real bottom nav and a
@@ -53,11 +55,11 @@ class DashboardSkeleton extends StatelessWidget {
                         shape: BoxShape.circle,
                         color: Colors.white.withOpacity(0.8),
                       ),
-                      child: const Icon(Icons.dashboard_rounded,
-                          color: _accent),
+                      child:
+                          const Icon(Icons.dashboard_rounded, color: _accent),
                     ),
                     const SizedBox(width: 10),
-                    const Text('Dashboard'),
+                    Text('Dashboard'.tr),
                   ],
                 ),
               ),
@@ -368,11 +370,11 @@ class _BottomNavPlaceholder extends StatelessWidget {
 
   static const _accent = Color(0xFF4F8AF4);
 
-  static const _items = <_NavMockItem>[
-    _NavMockItem(icon: Icons.dashboard_rounded, label: 'Dashboard'),
-    _NavMockItem(icon: Icons.diamond_rounded, label: 'Purchases'),
-    _NavMockItem(icon: Icons.receipt_long_rounded, label: 'Sells'),
-    _NavMockItem(icon: Icons.settings_rounded, label: 'Settings'),
+  static final _items = <_NavMockItem>[
+    _NavMockItem(icon: Icons.dashboard_rounded, label: 'Dashboard'.tr),
+    _NavMockItem(icon: Icons.diamond_rounded, label: 'Purchases'.tr),
+    _NavMockItem(icon: Icons.receipt_long_rounded, label: 'Sells'.tr),
+    _NavMockItem(icon: Icons.settings_rounded, label: 'Settings'.tr),
   ];
 
   @override
@@ -399,12 +401,11 @@ class _BottomNavPlaceholder extends StatelessWidget {
               final selected = e.key == 0;
               return AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
-                  color: selected
-                      ? _accent.withOpacity(0.12)
-                      : Colors.transparent,
+                  color:
+                      selected ? _accent.withOpacity(0.12) : Colors.transparent,
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Column(

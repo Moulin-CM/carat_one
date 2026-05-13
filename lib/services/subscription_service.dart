@@ -3,10 +3,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:invoice_generator/constants/app_translations.dart';
 import '../constants/subscription_constants.dart';
 import '../models/subscription_plan.dart';
 import '../models/subscription_status.dart';
 import 'billing_service.dart';
+
 
 /// UI-facing purchase lifecycle states.
 enum SubPurchaseState {
@@ -72,7 +74,7 @@ class SubscriptionService {
     try {
       _storeAvailable = await _billing.isAvailable();
       if (!_storeAvailable) {
-        _errorCtrl.add('Google Play Store is unavailable on this device.');
+        _errorCtrl.add('Google Play Store is unavailable on this device.'.tr);
         _purchaseStateCtrl.add(SubPurchaseState.idle);
         return;
       }
@@ -181,7 +183,7 @@ class SubscriptionService {
       case PurchaseStatus.error:
         _purchaseStateCtrl.add(SubPurchaseState.error);
         _errorCtrl.add(
-            purchase.error?.message ?? 'An unknown error occurred.');
+            purchase.error?.message ?? 'An unknown error occurred.'.tr);
         await _billing.completePurchase(purchase);
         break;
     }
@@ -206,12 +208,12 @@ class SubscriptionService {
     await _db.child('users/$uid/subscription').update(newStatus.toMap());
 
     await _db.child('users/$uid/subscriptionHistory').push().set({
-      'event':         purchase.status == PurchaseStatus.restored
-                         ? 'restored' : 'subscribed',
-      'plan':          tier.toString().split('.').last,
-      'timestamp':     ServerValue.timestamp,
-      'productId':     purchase.productID,
-      'purchaseToken': purchase.purchaseID,
+      'event'.tr:         purchase.status == PurchaseStatus.restored
+                         ? 'restored'.tr : 'subscribed'.tr,
+      'plan'.tr:          tier.toString().split('.').last,
+      'timestamp'.tr:     ServerValue.timestamp,
+      'productId'.tr:     purchase.productID,
+      'purchaseToken'.tr: purchase.purchaseID,
     });
   }
 

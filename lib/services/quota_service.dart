@@ -2,10 +2,12 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:intl/intl.dart';
+import 'package:invoice_generator/constants/app_translations.dart';
 import '../models/usage_quota.dart';
 import '../models/subscription_status.dart';
 import '../models/subscription_plan.dart';
 import 'subscription_service.dart';
+
 
 class QuotaService {
   final _db = FirebaseDatabase.instance.ref();
@@ -16,7 +18,7 @@ class QuotaService {
   factory QuotaService() => _instance;
   QuotaService._internal();
 
-  String get _todayKey => DateFormat('yyyy-MM-dd').format(DateTime.now());
+  String get _todayKey => DateFormat('yyyy-MM-dd'.tr).format(DateTime.now());
 
   Future<UsageQuota> getTodayQuota() async {
     final uid = _auth.currentUser?.uid;
@@ -44,9 +46,9 @@ class QuotaService {
 
     if (status.plan == SubscriptionTier.starter) {
       if (isPurchase) {
-        return currentMonthUsage['purchases']! < 30;
+        return currentMonthUsage['purchases'.tr]! < 30;
       } else {
-        return currentMonthUsage['sells']! < 30;
+        return currentMonthUsage['sells'.tr]! < 30;
       }
     }
 
@@ -56,9 +58,9 @@ class QuotaService {
 
   Future<Map<String, int>> _getMonthUsage() async {
     final uid = _auth.currentUser?.uid;
-    if (uid == null) return {'purchases': 0, 'sells': 0};
+    if (uid == null) return {'purchases'.tr: 0, 'sells'.tr: 0};
 
-    final monthPrefix = DateFormat('yyyy-MM').format(DateTime.now());
+    final monthPrefix = DateFormat('yyyy-MM'.tr).format(DateTime.now());
     final snapshot = await _db.child('users/$uid/usage').get();
     
     int purchases = 0;
@@ -69,20 +71,20 @@ class QuotaService {
       data.forEach((key, value) {
         if (key.toString().startsWith(monthPrefix)) {
           final dayData = Map<dynamic, dynamic>.from(value as Map);
-          purchases += (dayData['purchasesAdded'] ?? 0) as int;
-          sells += (dayData['sellsAdded'] ?? 0) as int;
+          purchases += (dayData['purchasesAdded'.tr] ?? 0) as int;
+          sells += (dayData['sellsAdded'.tr] ?? 0) as int;
         }
       });
     }
 
-    return {'purchases': purchases, 'sells': sells};
+    return {'purchases'.tr: purchases, 'sells'.tr: sells};
   }
 
   Future<void> incrementUsage(bool isPurchase) async {
     final uid = _auth.currentUser?.uid;
     if (uid == null) return;
 
-    final field = isPurchase ? 'purchasesAdded' : 'sellsAdded';
+    final field = isPurchase ? 'purchasesAdded'.tr : 'sellsAdded'.tr;
     await _db.child('users/$uid/usage/$_todayKey/$field').set(ServerValue.increment(1));
   }
 
@@ -103,7 +105,7 @@ class QuotaService {
     final uid = _auth.currentUser?.uid;
     if (uid == null) return 0;
 
-    final monthPrefix = DateFormat('yyyy-MM').format(DateTime.now());
+    final monthPrefix = DateFormat('yyyy-MM'.tr).format(DateTime.now());
     final snapshot = await _db.child('users/$uid/usage').get();
     
     int pdfs = 0;

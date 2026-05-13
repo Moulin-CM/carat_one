@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
+import 'package:invoice_generator/constants/app_translations.dart';
 import 'package:flutter/foundation.dart'
     show debugPrint, kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:firebase_core/firebase_core.dart';
+import 'package:invoice_generator/viewmodels/sell_view_model.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'views/auth/auth_wrapper.dart';
@@ -11,6 +14,8 @@ import 'services/notification_service.dart';
 import 'services/ads_service.dart';
 import 'services/subscription_service.dart';
 import 'viewmodels/subscription_viewmodel.dart';
+import 'services/localization_service.dart';
+
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,6 +29,10 @@ Future<void> main() async {
   // Initialize Subscriptions
   final subService = SubscriptionService();
   await subService.initialize();
+
+  // Initialize Localization
+  final locService = LocalizationService();
+  await locService.initialize();
 
   // Set preferred orientations only on mobile platforms (not web). This
   // runs before runApp so the first frame is laid out correctly.
@@ -42,6 +51,10 @@ Future<void> main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => SubscriptionViewModel()),
+        ChangeNotifierProvider.value(value: locService),
+        ChangeNotifierProvider(
+          create: (_) => ShellViewModel(),
+        ),
       ],
       child: const InvoiceApp(),
     ),
@@ -71,35 +84,40 @@ class InvoiceApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'CaratOne',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF4F8AF4)),
-        useMaterial3: true,
-        scaffoldBackgroundColor: const Color(0xFFF5F7FB),
-        appBarTheme: const AppBarTheme(
-          centerTitle: false,
-          titleSpacing: 0,
-          iconTheme: IconThemeData(color: Colors.black87),
-          titleTextStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.black87),
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: const Color(0xFFF5F7FB),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+    return Consumer<LocalizationService>(
+      builder: (context, localization, child) {
+        return MaterialApp(
+          key: ValueKey(localization.currentLanguage),
+          title: 'CaratOne'.tr,
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF4F8AF4)),
+            useMaterial3: true,
+            scaffoldBackgroundColor: const Color(0xFFF5F7FB),
+            appBarTheme: const AppBarTheme(
+              centerTitle: false,
+              titleSpacing: 0,
+              iconTheme: IconThemeData(color: Colors.black87),
+              titleTextStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.black87),
+            ),
+            inputDecorationTheme: InputDecorationTheme(
+              filled: true,
+              fillColor: const Color(0xFFF5F7FB),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+              ),
+            ),
+            cardTheme: CardTheme(
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            ),
           ),
-        ),
-        cardTheme: CardTheme(
-          elevation: 0,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        ),
-      ),
-      home: const SplashView(),
-      routes: {
-        '/home': (context) => const AuthWrapper(),
+          home: const SplashView(),
+          routes: {
+            '/home': (context) => const AuthWrapper(),
+          },
+        );
       },
     );
   }

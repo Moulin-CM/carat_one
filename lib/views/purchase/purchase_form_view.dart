@@ -4,12 +4,14 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../models/purchase_model.dart';
 import '../../viewmodels/purchase_form_viewmodel.dart';
+import '../../widgets/app_bar_factory.dart';
 import '../../widgets/custom_section.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_card.dart';
-import '../../widgets/app_bar_factory.dart';
 import '../../services/ads_service.dart';
+import '../../constants/app_translations.dart';
+
 
 class PurchaseFormView extends StatelessWidget {
   final PurchaseModel? purchase;
@@ -79,7 +81,7 @@ class _PurchaseFormContentState extends State<_PurchaseFormContent> {
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<PurchaseFormViewModel>();
-    final dateFormat = DateFormat('dd MMM yyyy');
+    final dateFormat = DateFormat('dd MMM yyyy'.tr);
 
     // Update net amount controller when values change
     if (_netAmountCtrl.text != vm.item.totalAmount.toString()) {
@@ -89,8 +91,16 @@ class _PurchaseFormContentState extends State<_PurchaseFormContent> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBarFactory.build(
-        title: vm.isEditing ? 'Edit Purchase' : 'Add Purchase',
-        onBackPress: () => Navigator.pop(context),
+        title: vm.isEditing ? 'Edit Purchase'.tr : 'Add Purchase'.tr,
+          onBackPress: () {
+            FocusScope.of(context).unfocus();
+
+            Future.microtask(() {
+              if (mounted && Navigator.canPop(context)) {
+                Navigator.of(context).pop();
+              }
+            });
+          },
       ),
       body: Stack(
         children: [
@@ -104,39 +114,39 @@ class _PurchaseFormContentState extends State<_PurchaseFormContent> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     CustomSection(
-                      title: 'Financial Details',
+                      title: 'Financial Details'.tr,
                       icon: Icons.attach_money_rounded,
                       children: [
                         _row([
                           CustomTextField(
-                            label: 'Net Amount',
+                            label: 'Net Amount'.tr,
                             controller: _netAmountCtrl,
-                            hint: 'Auto-calculated',
+                            hint: 'Auto-calculated'.tr,
                             readOnly: true,
                             keyboardType: TextInputType.number,
                           ),
                           CustomTextField(
-                            label: 'Total Carat',
+                            label: 'Total Carat'.tr,
                             controller: _totalCaratCtrl,
-                            hint: 'Enter carats (e.g. 11)',
+                            hint: 'Enter carats (e.g. 10)'.tr,
                             onChanged: vm.updateTotalCarat,
                             keyboardType: TextInputType.number,
-                            validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
+                            validator: (v) => (v == null || v.isEmpty) ? 'Required'.tr : null,
                           ),
                         ]),
                         const SizedBox(height: 16),
                         _row([
                           CustomTextField(
-                            label: 'Amt per Carat',
+                            label: 'Amt per Carat'.tr,
                             controller: _amtPerCaratCtrl,
-                            hint: 'Price per carat (e.g. 1100)',
+                            hint: 'Price per carat (e.g. 5000)'.tr,
                             onChanged: vm.updateAmountPerCarat,
                             keyboardType: TextInputType.number,
                           ),
                           CustomTextField(
-                            label: 'Discount (%)',
+                            label: 'Discount (%)'.tr,
                             controller: _discountCtrl,
-                            hint: 'Enter % (e.g. 3)',
+                            hint: 'Enter % (e.g. 1)'.tr,
                             onChanged: vm.updateDiscount,
                             keyboardType: TextInputType.number,
                             suffixText: '%',
@@ -144,9 +154,9 @@ class _PurchaseFormContentState extends State<_PurchaseFormContent> {
                         ]),
                         const SizedBox(height: 16),
                         CustomTextField(
-                          label: 'Due Days',
+                          label: 'Due Days'.tr,
                           controller: _dueDaysCtrl,
-                          hint: 'Payment due in days (e.g. 10)',
+                          hint: 'Payment due in days (e.g. 10)'.tr,
                           onChanged: vm.updateDueDays,
                           keyboardType: TextInputType.number,
                         ),
@@ -154,28 +164,28 @@ class _PurchaseFormContentState extends State<_PurchaseFormContent> {
                     ),
                     const SizedBox(height: 16),
                     CustomSection(
-                      title: 'Party Details',
+                      title: 'Party Details'.tr,
                       icon: Icons.people_rounded,
                       children: [
                         CustomTextField(
-                          label: 'Seller Name',
+                          label: 'Seller Name'.tr,
                           controller: _sellerCtrl,
-                          hint: 'Enter seller name',
+                          hint: 'Enter seller name'.tr,
                           onChanged: vm.updateSellerName,
-                          validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
+                          validator: (v) => (v == null || v.isEmpty) ? 'Required'.tr : null,
                         ),
                         const SizedBox(height: 16),
                         CustomTextField(
-                          label: 'Broker Name',
+                          label: 'Broker Name'.tr,
                           controller: _brokerCtrl,
-                          hint: 'Enter broker name',
+                          hint: 'Enter broker name'.tr,
                           onChanged: vm.updateBrokerName,
                         ),
                         const SizedBox(height: 16),
                         CustomTextField(
-                          label: 'Broker Charge (%)',
+                          label: 'Broker Charge (%)'.tr,
                           controller: _brokerChargeCtrl,
-                          hint: 'Enter % (e.g. 1)',
+                          hint: 'Enter % (e.g. 1)'.tr,
                           onChanged: vm.updateBrokerChargeRate,
                           keyboardType: TextInputType.number,
                           suffixText: '%',
@@ -184,14 +194,14 @@ class _PurchaseFormContentState extends State<_PurchaseFormContent> {
                     ),
                     const SizedBox(height: 16),
                     CustomSection(
-                      title: 'Size & Dates',
+                      title: 'Size & Dates'.tr,
                       icon: Icons.straighten_rounded,
                       children: [
                         CustomTextField(
-                          label: 'Size',
+                          label: 'Size'.tr,
                           controller: _sizeCtrl,
                           onChanged: vm.updateSize,
-                          hint: 'e.g. C3, AB12',
+                          hint: 'e.g. C3, AB12'.tr,
                           inputFormatters: [
                             FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]')),
                             LengthLimitingTextInputFormatter(6),
@@ -199,8 +209,8 @@ class _PurchaseFormContentState extends State<_PurchaseFormContent> {
                         ),
                         const SizedBox(height: 16),
                         _row([
-                          _datePicker('Buy Date', vm.item.buyDate, dateFormat, vm.updateBuyDate, context),
-                          _datePicker('Payment Date', vm.item.paymentDate, dateFormat, vm.updatePaymentDate, context),
+                          _datePicker('Buy Date'.tr, vm.item.buyDate, dateFormat, vm.updateBuyDate, context),
+                          _datePicker('Payment Date'.tr, vm.item.paymentDate, dateFormat, vm.updatePaymentDate, context),
                         ]),
                       ],
                     ),
@@ -228,7 +238,7 @@ class _PurchaseFormContentState extends State<_PurchaseFormContent> {
           ],
         ),
         child: CustomButton(
-          label: vm.isEditing ? 'Update Purchase' : 'Save Purchase',
+          label: vm.isEditing ? 'Update Purchase'.tr : 'Save Purchase'.tr,
           isLoading: vm.isSaving,
           onPressed: () => _save(context, vm),
         ),
@@ -243,7 +253,7 @@ class _PurchaseFormContentState extends State<_PurchaseFormContent> {
       if (ok) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(vm.isEditing ? 'Purchase updated!' : 'Purchase saved!'),
+            content: Text(vm.isEditing ? 'Purchase updated!'.tr : 'Purchase saved!'.tr),
             backgroundColor: Colors.green,
           ),
         );
@@ -254,7 +264,7 @@ class _PurchaseFormContentState extends State<_PurchaseFormContent> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(vm.errorMessage ?? 'Error saving purchase'),
+            content: Text(vm.errorMessage ?? 'Error saving purchase'.tr),
             backgroundColor: Colors.red,
           ),
         );
@@ -340,19 +350,19 @@ class _PurchaseFormContentState extends State<_PurchaseFormContent> {
             child: const Icon(Icons.group_outlined, color: _accent, size: 18),
           ),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('For Other',
-                    style: TextStyle(
+                Text('For Other'.tr,
+                    style: const TextStyle(
                         fontWeight: FontWeight.w800,
                         color: _deep,
                         fontSize: 14)),
-                SizedBox(height: 2),
+                const SizedBox(height: 2),
                 Text(
-                    'Records only — excluded from Opening totals, Sales Profit and Net Profit.',
-                    style: TextStyle(fontSize: 11, color: Colors.black54)),
+                    'Records only — excluded from Opening totals, Sales Profit and Net Profit.'.tr,
+                    style: const TextStyle(fontSize: 11, color: Colors.black54)),
               ],
             ),
           ),
@@ -377,25 +387,25 @@ class _PurchaseFormContentState extends State<_PurchaseFormContent> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Live Summary',
-              style: TextStyle(
+          Text('Live Summary'.tr,
+              style: const TextStyle(
                   color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16)),
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _sumItem('Total Amount', fmt.format(vm.grossAmount)),
-              _sumItem('Discount Amt', fmt.format(vm.discountAmount)),
-              _sumItem('Net Amount', fmt.format(vm.netAmount)),
+              _sumItem('Total Amount'.tr, fmt.format(vm.grossAmount)),
+              _sumItem('Discount Amt'.tr, fmt.format(vm.discountAmount)),
+              _sumItem('Net Amount'.tr, fmt.format(vm.netAmount)),
             ],
           ),
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _sumItem('Total Carat', '${p.totalCarat.toStringAsFixed(2)} ct'),
-              _sumItem('Rate/Carat', fmt.format(p.amountPerCarat)),
-              _sumItem('Discount', '${p.discount}%'),
+              _sumItem('Total Carat'.tr, '${p.totalCarat.toStringAsFixed(2)} ct'),
+              _sumItem('Rate/Carat'.tr, fmt.format(p.amountPerCarat)),
+              _sumItem('Discount'.tr, '${p.discount}%'),
             ],
           ),
         ],

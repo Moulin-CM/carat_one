@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../viewmodels/export_import_viewmodel.dart';
+import '../../constants/app_translations.dart';
+
+
+import 'package:invoice_generator/constants/app_translations.dart';
 
 class ExportImportView extends StatelessWidget {
   const ExportImportView({super.key});
@@ -49,7 +53,7 @@ class _ExportImportViewContentState extends State<_ExportImportViewContent> {
                 child: Icon(Icons.import_export_rounded, color: _accent),
               ),
               const SizedBox(width: 10),
-              const Text('Export / Import'),
+              Text('Export / Import'.tr),
             ],
           ),
         ),
@@ -69,12 +73,12 @@ class _ExportImportViewContentState extends State<_ExportImportViewContent> {
                     _buildSuccessMessage(viewModel.successMessage!),
                   const SizedBox(height: 8),
                   _buildSection(
-                    title: 'Export Invoices',
+                    title: 'Export Invoices'.tr,
                     icon: Icons.upload_file_rounded,
-                    description: 'Export all your invoices to a JSON backup file',
+                    description: 'Export all your invoices to a JSON backup file'.tr,
                     children: [
                       _buildInfoCard(
-                        'This will create a backup file containing all your invoices. You can share this file or save it for later restoration.',
+                        'This will create a backup file containing all your invoices. You can share this file or save it for later restoration.'.tr,
                         Icons.info_outline_rounded,
                       ),
                       const SizedBox(height: 16),
@@ -92,7 +96,7 @@ class _ExportImportViewContentState extends State<_ExportImportViewContent> {
                                 )
                               : const Icon(Icons.file_download_rounded),
                           label: Text(
-                            viewModel.isExporting ? 'Exporting...' : 'Export All Invoices',
+                            viewModel.isExporting ? 'Exporting...'.tr : 'Export All Invoices'.tr,
                             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                           ),
                           style: ElevatedButton.styleFrom(
@@ -108,12 +112,12 @@ class _ExportImportViewContentState extends State<_ExportImportViewContent> {
                   ),
                   const SizedBox(height: 18),
                   _buildSection(
-                    title: 'Import Invoices',
+                    title: 'Import Invoices'.tr,
                     icon: Icons.file_upload_rounded,
-                    description: 'Import invoices from a backup file',
+                    description: 'Import invoices from a backup file'.tr,
                     children: [
                       _buildInfoCard(
-                        'Select a backup file (JSON format) to import invoices. Existing invoices will not be overwritten.',
+                        'Select a backup file (JSON format) to import invoices. Existing invoices will not be overwritten.'.tr,
                         Icons.info_outline_rounded,
                       ),
                       const SizedBox(height: 16),
@@ -131,7 +135,7 @@ class _ExportImportViewContentState extends State<_ExportImportViewContent> {
                                 )
                               : const Icon(Icons.file_upload_rounded),
                           label: Text(
-                            viewModel.isImporting ? 'Importing...' : 'Import from Backup',
+                            viewModel.isImporting ? 'Importing...'.tr : 'Import from Backup'.tr,
                             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                           ),
                           style: ElevatedButton.styleFrom(
@@ -147,14 +151,14 @@ class _ExportImportViewContentState extends State<_ExportImportViewContent> {
                   ),
                   const SizedBox(height: 18),
                   _buildSection(
-                    title: 'Backup Information',
+                    title: 'Backup Information'.tr,
                     icon: Icons.description_rounded,
                     children: [
                       _buildInfoCard(
                         '• Backup files are in JSON format\n'
                         '• All invoice data is included\n'
                         '• Files can be shared across devices\n'
-                        '• Imported invoices get new IDs to avoid conflicts',
+                        '• Imported invoices get new IDs to avoid conflicts'.tr,
                         Icons.help_outline_rounded,
                       ),
                     ],
@@ -344,8 +348,8 @@ class _ExportImportViewContentState extends State<_ExportImportViewContent> {
     if (context.mounted) {
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Invoices exported successfully! Check your share options.'),
+          SnackBar(
+            content: Text('Invoices exported successfully! Check your share options.'.tr),
             backgroundColor: Colors.green,
           ),
         );
@@ -355,7 +359,7 @@ class _ExportImportViewContentState extends State<_ExportImportViewContent> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(viewModel.errorMessage ?? 'Error exporting invoices'),
+            content: Text(viewModel.errorMessage ?? 'Error exporting invoices'.tr),
             backgroundColor: Colors.red,
           ),
         );
@@ -378,21 +382,21 @@ class _ExportImportViewContentState extends State<_ExportImportViewContent> {
         final confirm = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Import Invoices'),
+            title: Text('Import Invoices'.tr),
             content: Text(
-              'This will import invoices from the selected backup file.\n\n'
-              'File: ${result.files.single.name}\n\n'
-              'Existing invoices will not be overwritten. Continue?',
+              '${'This will import invoices from the selected backup file.'.tr}\n\n'
+              '${'File'.tr}: ${result.files.single.name}\n\n'
+              '${'Existing invoices will not be overwritten. Continue?'.tr}',
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancel'),
+                child: Text('Cancel'.tr),
               ),
               ElevatedButton(
                 onPressed: () => Navigator.pop(context, true),
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-                child: const Text('Import'),
+                child: Text('Import'.tr),
               ),
             ],
           ),
@@ -406,19 +410,19 @@ class _ExportImportViewContentState extends State<_ExportImportViewContent> {
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
-                  title: const Text('Import Complete'),
+                  title: Text('Import Complete'.tr),
                   content: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Total: ${importResult.totalCount} invoices'),
-                      Text('Success: ${importResult.successCount}'),
+                      Text('${'Total'.tr}: ${importResult.totalCount} ${'invoices'.tr}'),
+                      Text('${'Success'.tr}: ${importResult.successCount}'),
                       if (importResult.errorCount > 0)
-                        Text('Errors: ${importResult.errorCount}', style: const TextStyle(color: Colors.red)),
+                        Text('${'Errors'.tr}: ${importResult.errorCount}', style: const TextStyle(color: Colors.red)),
                       if (importResult.errors.isNotEmpty) ...[
                         const SizedBox(height: 8),
-                        const Text('Errors:', style: TextStyle(fontWeight: FontWeight.bold)),
-                        ...importResult.errors.take(3).map((e) => Text('• $e', style: const TextStyle(fontSize: 12))),
+                        Text('Errors:'.tr, style: const TextStyle(fontWeight: FontWeight.bold)),
+                        ...importResult.errors.take(3).map((e) => Text('• $e'.tr, style: const TextStyle(fontSize: 12))),
                       ],
                     ],
                   ),
@@ -428,7 +432,7 @@ class _ExportImportViewContentState extends State<_ExportImportViewContent> {
                         Navigator.pop(context); // Close dialog
                         Navigator.pop(context, true); // Return to previous screen with refresh flag
                       },
-                      child: const Text('OK'),
+                      child: Text('OK'.tr),
                     ),
                   ],
                 ),
@@ -436,7 +440,7 @@ class _ExportImportViewContentState extends State<_ExportImportViewContent> {
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(viewModel.errorMessage ?? 'Error importing invoices'),
+                  content: Text(viewModel.errorMessage ?? 'Error importing invoices'.tr),
                   backgroundColor: Colors.red,
                 ),
               );
@@ -448,7 +452,7 @@ class _ExportImportViewContentState extends State<_ExportImportViewContent> {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
+            content: Text('${'Error'.tr}: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -456,4 +460,3 @@ class _ExportImportViewContentState extends State<_ExportImportViewContent> {
     }
   }
 }
-

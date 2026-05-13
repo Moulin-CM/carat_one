@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../viewmodels/signup_viewmodel.dart';
 import '../../models/user_profile_model.dart';
+import '../../constants/app_translations.dart';
+
 
 class SignUpView extends StatelessWidget {
   const SignUpView({super.key});
@@ -97,13 +99,13 @@ class _SignUpViewContentState extends State<_SignUpViewContent> {
             child: Icon(Icons.person_add_rounded, color: accent, size: 28),
           ),
           const SizedBox(height: 16),
-          const Text(
-            'Create Account',
-            style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800),
+          Text(
+            'Create Account'.tr,
+            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 8),
           Text(
-            'Fill in your details to get started',
+            'Fill in your details to get started'.tr,
             style: TextStyle(color: Colors.grey[600], fontSize: 15),
           ),
         ],
@@ -163,10 +165,10 @@ class _SignUpViewContentState extends State<_SignUpViewContent> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle('Personal & Company Details', accent),
+        _buildSectionTitle('Personal & Company Details'.tr, accent),
         const SizedBox(height: 16),
         _buildTextField(
-          label: 'User Name *',
+          label: 'User Name *'.tr,
           value: viewModel.profile.userName,
           onChanged: (v) => viewModel.updateProfile(
             viewModel.profile.copyWith(userName: v),
@@ -176,17 +178,17 @@ class _SignUpViewContentState extends State<_SignUpViewContent> {
           isRequired: true,
           validator: (value) {
             if (value == null || value.trim().isEmpty) {
-              return 'User name is required';
+              return 'User name is required'.tr;
             }
             if (value.trim().length < 2) {
-              return 'User name must be at least 2 characters';
+              return 'User name must be at least 2 characters'.tr;
             }
             return null;
           },
         ),
         const SizedBox(height: 12),
         _buildTextField(
-          label: 'Company Name *',
+          label: 'Company Name *'.tr,
           value: viewModel.profile.companyName,
           onChanged: (v) => viewModel.updateProfile(
             viewModel.profile.copyWith(companyName: v),
@@ -196,14 +198,14 @@ class _SignUpViewContentState extends State<_SignUpViewContent> {
           isRequired: true,
           validator: (value) {
             if (value == null || value.trim().isEmpty) {
-              return 'Company name is required';
+              return 'Company name is required'.tr;
             }
             return null;
           },
         ),
         const SizedBox(height: 12),
         _buildTextField(
-          label: 'Company Address *',
+          label: 'Company Address *'.tr,
           value: viewModel.profile.companyAddress,
           onChanged: (v) => viewModel.updateProfile(
             viewModel.profile.copyWith(companyAddress: v),
@@ -214,17 +216,17 @@ class _SignUpViewContentState extends State<_SignUpViewContent> {
           isRequired: true,
           validator: (value) {
             if (value == null || value.trim().isEmpty) {
-              return 'Company address is required';
+              return 'Company address is required'.tr;
             }
             if (value.trim().length < 10) {
-              return 'Please enter a complete address';
+              return 'Please enter a complete address'.tr;
             }
             return null;
           },
         ),
         const SizedBox(height: 12),
         _buildTextField(
-          label: 'Mobile Number *',
+          label: 'Mobile Number *'.tr,
           value: viewModel.profile.mobileNumber,
           onChanged: (v) => viewModel.updateProfile(
             viewModel.profile.copyWith(mobileNumber: v),
@@ -235,18 +237,18 @@ class _SignUpViewContentState extends State<_SignUpViewContent> {
           isRequired: true,
           validator: (value) {
             if (value == null || value.trim().isEmpty) {
-              return 'Mobile number is required';
+              return 'Mobile number is required'.tr;
             }
             final phoneRegex = RegExp(r'^[0-9]{10}$');
             if (!phoneRegex.hasMatch(value.trim().replaceAll(RegExp(r'[\s-]'), ''))) {
-              return 'Please enter a valid 10-digit mobile number';
+              return 'Please enter a valid 10-digit mobile number'.tr;
             }
             return null;
           },
         ),
         const SizedBox(height: 12),
         _buildTextField(
-          label: 'Email *',
+          label: 'Email *'.tr,
           value: viewModel.profile.email,
           onChanged: (v) => viewModel.updateProfile(
             viewModel.profile.copyWith(email: v),
@@ -257,13 +259,13 @@ class _SignUpViewContentState extends State<_SignUpViewContent> {
           isRequired: true,
           validator: (value) {
             if (value == null || value.trim().isEmpty) {
-              return 'Email is required';
+              return 'Email is required'.tr;
             }
             final emailRegex = RegExp(
               r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
             );
             if (!emailRegex.hasMatch(value.trim())) {
-              return 'Please enter a valid email address';
+              return 'Please enter a valid email address'.tr;
             }
             return null;
           },
@@ -277,10 +279,10 @@ class _SignUpViewContentState extends State<_SignUpViewContent> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle('Tax & Registration Details', accent),
+        _buildSectionTitle('Tax & Registration Details'.tr, accent),
         const SizedBox(height: 16),
         _buildTextField(
-          label: 'GST No *',
+          label: 'GST No *'.tr,
           value: viewModel.profile.gstNo,
           onChanged: (v) => viewModel.updateProfile(
             viewModel.profile.copyWith(gstNo: v.toUpperCase()),
@@ -290,18 +292,18 @@ class _SignUpViewContentState extends State<_SignUpViewContent> {
           isRequired: true,
           validator: (value) {
             if (value == null || value.trim().isEmpty) {
-              return 'GST No is required';
+              return 'GST No is required'.tr;
             }
             final gstRegex = RegExp(r'^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$');
             if (!gstRegex.hasMatch(value.trim().toUpperCase())) {
-              return 'Please enter a valid GST number (15 characters)';
+              return 'Please enter a valid GST number (15 characters)'.tr;
             }
             return null;
           },
         ),
         const SizedBox(height: 12),
         _buildTextField(
-          label: 'PAN No *',
+          label: 'PAN No *'.tr,
           value: viewModel.profile.panNo,
           onChanged: (v) => viewModel.updateProfile(
             viewModel.profile.copyWith(panNo: v.toUpperCase()),
@@ -311,18 +313,18 @@ class _SignUpViewContentState extends State<_SignUpViewContent> {
           isRequired: true,
           validator: (value) {
             if (value == null || value.trim().isEmpty) {
-              return 'PAN No is required';
+              return 'PAN No is required'.tr;
             }
             final panRegex = RegExp(r'^[A-Z]{5}[0-9]{4}[A-Z]{1}$');
             if (!panRegex.hasMatch(value.trim().toUpperCase())) {
-              return 'Please enter a valid PAN number (e.g., ABCDE1234F)';
+              return 'Please enter a valid PAN number (e.g., ABCDE1234F)'.tr;
             }
             return null;
           },
         ),
         const SizedBox(height: 12),
         _buildTextField(
-          label: 'CST No',
+          label: 'CST No'.tr,
           value: viewModel.profile.cstNo ?? '',
           onChanged: (v) => viewModel.updateProfile(
             viewModel.profile.copyWith(cstNo: v.isEmpty ? null : v),
@@ -332,7 +334,7 @@ class _SignUpViewContentState extends State<_SignUpViewContent> {
         ),
         const SizedBox(height: 12),
         _buildTextField(
-          label: 'VAT No',
+          label: 'VAT No'.tr,
           value: viewModel.profile.vatNo ?? '',
           onChanged: (v) => viewModel.updateProfile(
             viewModel.profile.copyWith(vatNo: v.isEmpty ? null : v),
@@ -342,7 +344,7 @@ class _SignUpViewContentState extends State<_SignUpViewContent> {
         ),
         const SizedBox(height: 12),
         _buildTextField(
-          label: 'IEC No',
+          label: 'IEC No'.tr,
           value: viewModel.profile.iecNo ?? '',
           onChanged: (v) => viewModel.updateProfile(
             viewModel.profile.copyWith(iecNo: v.isEmpty ? null : v),
@@ -359,10 +361,10 @@ class _SignUpViewContentState extends State<_SignUpViewContent> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle('Bank Details', accent),
+        _buildSectionTitle('Bank Details'.tr, accent),
         const SizedBox(height: 16),
         _buildTextField(
-          label: 'Bank Name *',
+          label: 'Bank Name *'.tr,
           value: viewModel.profile.bankName,
           onChanged: (v) => viewModel.updateProfile(
             viewModel.profile.copyWith(bankName: v),
@@ -372,14 +374,14 @@ class _SignUpViewContentState extends State<_SignUpViewContent> {
           isRequired: true,
           validator: (value) {
             if (value == null || value.trim().isEmpty) {
-              return 'Bank name is required';
+              return 'Bank name is required'.tr;
             }
             return null;
           },
         ),
         const SizedBox(height: 12),
         _buildTextField(
-          label: 'Branch *',
+          label: 'Branch *'.tr,
           value: viewModel.profile.branch,
           onChanged: (v) => viewModel.updateProfile(
             viewModel.profile.copyWith(branch: v),
@@ -389,14 +391,14 @@ class _SignUpViewContentState extends State<_SignUpViewContent> {
           isRequired: true,
           validator: (value) {
             if (value == null || value.trim().isEmpty) {
-              return 'Branch is required';
+              return 'Branch is required'.tr;
             }
             return null;
           },
         ),
         const SizedBox(height: 12),
         _buildTextField(
-          label: 'Account No *',
+          label: 'Account No *'.tr,
           value: viewModel.profile.accountNo,
           onChanged: (v) => viewModel.updateProfile(
             viewModel.profile.copyWith(accountNo: v),
@@ -407,17 +409,17 @@ class _SignUpViewContentState extends State<_SignUpViewContent> {
           isRequired: true,
           validator: (value) {
             if (value == null || value.trim().isEmpty) {
-              return 'Account number is required';
+              return 'Account number is required'.tr;
             }
             if (value.trim().length < 9) {
-              return 'Account number must be at least 9 digits';
+              return 'Account number must be at least 9 digits'.tr;
             }
             return null;
           },
         ),
         const SizedBox(height: 12),
         _buildTextField(
-          label: 'IFSC Code *',
+          label: 'IFSC Code *'.tr,
           value: viewModel.profile.ifscCode,
           onChanged: (v) => viewModel.updateProfile(
             viewModel.profile.copyWith(ifscCode: v.toUpperCase()),
@@ -427,11 +429,11 @@ class _SignUpViewContentState extends State<_SignUpViewContent> {
           isRequired: true,
           validator: (value) {
             if (value == null || value.trim().isEmpty) {
-              return 'IFSC code is required';
+              return 'IFSC code is required'.tr;
             }
             final ifscRegex = RegExp(r'^[A-Z]{4}0[A-Z0-9]{6}$');
             if (!ifscRegex.hasMatch(value.trim().toUpperCase())) {
-              return 'Please enter a valid IFSC code (e.g., ABCD0123456)';
+              return 'Please enter a valid IFSC code (e.g., ABCD0123456)'.tr;
             }
             return null;
           },
@@ -445,37 +447,37 @@ class _SignUpViewContentState extends State<_SignUpViewContent> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle('Create Password', accent),
+        _buildSectionTitle('Create Password'.tr, accent),
         const SizedBox(height: 16),
         _buildPasswordField(
-          label: 'Password *',
+          label: 'Password *'.tr,
           value: viewModel.password,
           onChanged: viewModel.updatePassword,
           icon: Icons.lock_outline_rounded,
           fieldKey: 'step3_password',
           validator: (value) {
             if (value == null || value.isEmpty) {
-              return 'Password is required';
+              return 'Password is required'.tr;
             }
             if (value.length < 6) {
-              return 'Password must be at least 6 characters';
+              return 'Password must be at least 6 characters'.tr;
             }
             return null;
           },
         ),
         const SizedBox(height: 12),
         _buildPasswordField(
-          label: 'Confirm Password *',
+          label: 'Confirm Password *'.tr,
           value: viewModel.confirmPassword,
           onChanged: viewModel.updateConfirmPassword,
           icon: Icons.lock_outline_rounded,
           fieldKey: 'step3_confirmPassword',
           validator: (value) {
             if (value == null || value.isEmpty) {
-              return 'Please confirm your password';
+              return 'Please confirm your password'.tr;
             }
             if (value != viewModel.password) {
-              return 'Passwords do not match';
+              return 'Passwords do not match'.tr;
             }
             return null;
           },
@@ -495,7 +497,7 @@ class _SignUpViewContentState extends State<_SignUpViewContent> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Password must be at least 6 characters',
+                    'Password must be at least 6 characters'.tr,
                     style: TextStyle(color: Colors.orange.shade700, fontSize: 13),
                   ),
                 ),
@@ -519,7 +521,7 @@ class _SignUpViewContentState extends State<_SignUpViewContent> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Passwords do not match',
+                      'Passwords do not match'.tr,
                       style: TextStyle(color: Colors.red.shade700, fontSize: 13),
                     ),
                   ),
@@ -575,9 +577,8 @@ class _SignUpViewContentState extends State<_SignUpViewContent> {
           (isRequired
               ? (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'This field is required';
+                    return 'This field is required'.tr;
                   }
-                  return null;
                 }
               : null),
       decoration: InputDecoration(
@@ -716,7 +717,7 @@ class _SignUpViewContentState extends State<_SignUpViewContent> {
                         ),
                         side: BorderSide(color: accent),
                       ),
-                      child: const Text('Previous', style: TextStyle(fontWeight: FontWeight.w600)),
+                      child: Text('Previous'.tr, style: const TextStyle(fontWeight: FontWeight.w600)),
                     ),
                   ),
                 if (viewModel.currentStep > 0) const SizedBox(width: 12),
@@ -737,10 +738,10 @@ class _SignUpViewContentState extends State<_SignUpViewContent> {
                                 final success = await viewModel.signUp();
                                 if (success && context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Account created successfully!'),
+                                  SnackBar(
+                                    content: Text('Account created successfully!'.tr),
                                     backgroundColor: Colors.green,
-                                    duration: Duration(seconds: 2),
+                                    duration: const Duration(seconds: 2),
                                   ),
                                 );
                                 // Navigate to the root route and clear the entire
@@ -775,7 +776,7 @@ class _SignUpViewContentState extends State<_SignUpViewContent> {
                             ),
                           )
                         : Text(
-                            viewModel.currentStep < 3 ? 'Next' : 'Sign Up',
+                            viewModel.currentStep < 3 ? 'Next'.tr : 'Sign Up'.tr,
                             style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
                           ),
                   ),

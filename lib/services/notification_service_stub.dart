@@ -1,6 +1,7 @@
 // Web stub — notifications are not supported on web
 import '../models/invoice_reminder_model.dart';
 
+
 Future<void> initializeNotifications() async {
   // No-op on web
 }

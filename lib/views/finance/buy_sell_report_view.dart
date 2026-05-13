@@ -13,9 +13,13 @@ import '../../services/invoice_storage_service.dart';
 import '../../services/purchase_storage_service.dart';
 import '../../services/subscription_service.dart';
 import '../../widgets/app_bar_factory.dart';
-import '../../widgets/ads/banner_ad_widget.dart';
+
 import '../../widgets/list_skeleton.dart';
 import '../subscription/subscription_plans_view.dart';
+import '../../constants/app_translations.dart';
+
+
+import 'package:invoice_generator/constants/app_translations.dart';
 
 enum _PeriodMode { monthly, yearly, custom }
 
@@ -32,9 +36,9 @@ class _BuySellReportViewState extends State<BuySellReportView> {
 
   final _currencyFmt = NumberFormat.currency(symbol: '₹', decimalDigits: 0);
   final _caratFmt = NumberFormat('#,##0.00');
-  final _dateFmt = DateFormat('dd MMM yyyy');
-  final _monthFmt = DateFormat('MMMM yyyy');
-  final _yearFmt = DateFormat('yyyy');
+  final _dateFmt = DateFormat('dd MMM yyyy'.tr);
+  final _monthFmt = DateFormat('MMMM yyyy'.tr);
+  final _yearFmt = DateFormat('yyyy'.tr);
 
   _PeriodMode _mode = _PeriodMode.monthly;
   DateTime _monthAnchor = DateTime.now();
@@ -142,7 +146,7 @@ class _BuySellReportViewState extends State<BuySellReportView> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBarFactory.build(
-        title: 'Buy / Sell Report',
+        title: 'Buy / Sell Report'.tr,
         onBackPress: () => Navigator.pop(context),
       ),
       body: Stack(
@@ -165,23 +169,23 @@ class _BuySellReportViewState extends State<BuySellReportView> {
                               _summaryCard(),
                               const SizedBox(height: 16),
                               _sectionHeader(
-                                  'Buy Entries',
+                                  'Buy Entries'.tr,
                                   _buys.length,
                                   Colors.orange,
                                   Icons.shopping_bag_rounded),
                               const SizedBox(height: 8),
                               if (_buys.isEmpty)
-                                _emptyRow('No purchases in this period'),
+                                _emptyRow('No purchases in this period'.tr),
                               ..._buys.map(_buyRow),
                               const SizedBox(height: 16),
                               _sectionHeader(
-                                  'Sell Entries',
+                                  'Sell Entries'.tr,
                                   _sells.length,
                                   Colors.green,
                                   Icons.sell_rounded),
                               const SizedBox(height: 8),
                               if (_sells.isEmpty)
-                                _emptyRow('No sells in this period'),
+                                _emptyRow('No sells in this period'.tr),
                               ..._sells.map(_sellRow),
                             ],
                           ),
@@ -195,7 +199,7 @@ class _BuySellReportViewState extends State<BuySellReportView> {
       bottomNavigationBar: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const BannerAdWidget(),
+
           _actionBar(),
         ],
       ),
@@ -223,7 +227,7 @@ class _BuySellReportViewState extends State<BuySellReportView> {
               child: OutlinedButton.icon(
                 onPressed: _busy ? null : _viewReport,
                 icon: const Icon(Icons.remove_red_eye_rounded),
-                label: const Text('View Report'),
+                label: Text('View Report'.tr),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: _accent,
                   side: const BorderSide(color: _accent),
@@ -244,7 +248,7 @@ class _BuySellReportViewState extends State<BuySellReportView> {
                         child: CircularProgressIndicator(
                             strokeWidth: 2, color: Colors.white))
                     : const Icon(Icons.download_rounded),
-                label: Text(_busy ? 'Preparing…' : 'Download PDF'),
+                label: Text(_busy ? 'Preparing…'.tr : 'Download PDF'.tr),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _accent,
                   foregroundColor: Colors.white,
@@ -271,7 +275,7 @@ class _BuySellReportViewState extends State<BuySellReportView> {
         child: GestureDetector(
           onTap: () {
             if (isLocked) {
-              _showUpgradeDialog('Yearly and Custom reports are available in Pro and Business plans.');
+              _showUpgradeDialog('Yearly and Custom reports are available in Pro and Business plans.'.tr);
               return;
             }
             setState(() => _mode = mode);
@@ -321,9 +325,9 @@ class _BuySellReportViewState extends State<BuySellReportView> {
       ),
       child: Row(
         children: [
-          tab('Monthly', _PeriodMode.monthly),
-          tab('Yearly', _PeriodMode.yearly),
-          tab('Custom', _PeriodMode.custom),
+          tab('Monthly'.tr, _PeriodMode.monthly),
+          tab('Yearly'.tr, _PeriodMode.yearly),
+          tab('Custom'.tr, _PeriodMode.custom),
         ],
       ),
     );
@@ -333,12 +337,12 @@ class _BuySellReportViewState extends State<BuySellReportView> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Upgrade Plan'),
+        title: Text('Upgrade Plan'.tr),
         content: Text(message),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text('Cancel'.tr),
           ),
           ElevatedButton(
             onPressed: () {
@@ -348,7 +352,7 @@ class _BuySellReportViewState extends State<BuySellReportView> {
                 MaterialPageRoute(builder: (_) => const SubscriptionPlansView()),
               );
             },
-            child: const Text('View Plans'),
+            child: Text('View Plans'.tr),
           ),
         ],
       ),
@@ -501,14 +505,14 @@ class _BuySellReportViewState extends State<BuySellReportView> {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Row(
         children: [
-          field('From', _customStart, (d) {
+          field('From'.tr, _customStart, (d) {
             setState(() {
               _customStart = d;
               if (_customEnd.isBefore(_customStart)) _customEnd = _customStart;
             });
           }),
           const SizedBox(width: 10),
-          field('To', _customEnd, (d) => setState(() => _customEnd = d),
+          field('To'.tr, _customEnd, (d) => setState(() => _customEnd = d),
               firstDate: _customStart),
         ],
       ),
@@ -532,7 +536,7 @@ class _BuySellReportViewState extends State<BuySellReportView> {
             children: [
               Expanded(
                 child: _summaryBlock(
-                  label: 'BUY',
+                  label: 'BUY'.tr,
                   value: _currencyFmt.format(_totalBuyAmount),
                   sub: '${_buys.length} · ${_caratFmt.format(_totalBuyCarat)} ct',
                   color: Colors.orangeAccent,
@@ -541,7 +545,7 @@ class _BuySellReportViewState extends State<BuySellReportView> {
               Container(width: 1, height: 44, color: Colors.white24),
               Expanded(
                 child: _summaryBlock(
-                  label: 'SELL',
+                  label: 'SELL'.tr,
                   value: _currencyFmt.format(_totalSellAmount),
                   sub: '${_sells.length} · ${_caratFmt.format(_totalSellCarat)} ct',
                   color: Colors.greenAccent,
@@ -560,8 +564,8 @@ class _BuySellReportViewState extends State<BuySellReportView> {
                 size: 18,
               ),
               const SizedBox(width: 8),
-              const Text('Net (Sell − Buy):',
-                  style: TextStyle(color: Colors.white70, fontSize: 12)),
+              Text('Net (Sell − Buy):'.tr,
+                  style: const TextStyle(color: Colors.white70, fontSize: 12)),
               const Spacer(),
               Text(
                 '${_net >= 0 ? '+' : '-'} ${_currencyFmt.format(_net.abs())}',
@@ -634,8 +638,7 @@ class _BuySellReportViewState extends State<BuySellReportView> {
             color: color.withOpacity(0.12),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Text(
-            '$count',
+          child: Text('$count'.tr,
             style: TextStyle(
                 color: color,
                 fontSize: 11,
@@ -680,7 +683,7 @@ class _BuySellReportViewState extends State<BuySellReportView> {
                 Text(
                     p.sellerName.isNotEmpty
                         ? p.sellerName
-                        : 'Unknown Seller',
+                        : 'Unknown Seller'.tr,
                     style: const TextStyle(
                         color: _deep,
                         fontSize: 13,
@@ -745,7 +748,7 @@ class _BuySellReportViewState extends State<BuySellReportView> {
                       child: Text(
                           i.buyerName.isNotEmpty
                               ? i.buyerName
-                              : 'Unnamed Buyer',
+                              : 'Unnamed Buyer'.tr,
                           style: const TextStyle(
                               color: _deep,
                               fontSize: 13,
@@ -764,7 +767,7 @@ class _BuySellReportViewState extends State<BuySellReportView> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        i.isCashSell ? 'Cash' : 'Bill',
+                        i.isCashSell ? 'Cash'.tr : 'Bill'.tr,
                         style: TextStyle(
                             color: i.isCashSell
                                 ? const Color(0xFF2E7D32)
@@ -776,8 +779,7 @@ class _BuySellReportViewState extends State<BuySellReportView> {
                   ],
                 ),
                 const SizedBox(height: 2),
-                Text(
-                  '${_dateFmt.format(i.invoiceDate)} · ${i.invoiceNo} · ${_caratFmt.format(i.totalCarat)} ct',
+                Text('${_dateFmt.format(i.invoiceDate)} · ${i.invoiceNo} · ${_caratFmt.format(i.totalCarat)} ct'.tr,
                   style:
                       TextStyle(color: Colors.grey[600], fontSize: 11),
                 ),
@@ -830,8 +832,8 @@ class _BuySellReportViewState extends State<BuySellReportView> {
   Future<void> _viewReport() async {
     if (_busy) return;
     if (_buys.isEmpty && _sells.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Nothing to preview for this period')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Nothing to preview for this period'.tr)));
       return;
     }
     setState(() => _busy = true);
@@ -842,7 +844,7 @@ class _BuySellReportViewState extends State<BuySellReportView> {
       if (!mounted) return;
       setState(() => _busy = false);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('PDF failed: $e'), backgroundColor: Colors.red));
+          content: Text('${'PDF failed'.tr}: $e'), backgroundColor: Colors.red));
       return;
     }
     if (mounted) setState(() => _busy = false);
@@ -851,15 +853,15 @@ class _BuySellReportViewState extends State<BuySellReportView> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Preview failed: $e'), backgroundColor: Colors.red));
+          content: Text('${'Preview failed'.tr}: $e'), backgroundColor: Colors.red));
     }
   }
 
   Future<void> _downloadPdf() async {
     if (_busy) return;
     if (_buys.isEmpty && _sells.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Nothing to download for this period')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Nothing to download for this period'.tr)));
       return;
     }
     setState(() => _busy = true);
@@ -878,19 +880,19 @@ class _BuySellReportViewState extends State<BuySellReportView> {
       if (!mounted) return;
       setState(() => _busy = false);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('PDF failed: $e'), backgroundColor: Colors.red));
+          content: Text('${'PDF failed'.tr}: $e'), backgroundColor: Colors.red));
       return;
     }
     if (mounted) setState(() => _busy = false);
     try {
       await Share.shareXFiles(
         [XFile(file.path)],
-        text: 'Buy / Sell Report – $_periodLabel',
+        text: '${'Buy / Sell Report'.tr} – $_periodLabel',
       );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Share failed: $e'), backgroundColor: Colors.red));
+          content: Text('${'Share failed'.tr}: $e'), backgroundColor: Colors.red));
     }
   }
 }

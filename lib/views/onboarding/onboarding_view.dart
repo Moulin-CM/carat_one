@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../services/onboarding_service.dart';
 import '../auth/auth_wrapper.dart';
+import '../../constants/app_translations.dart';
+
+
+import 'package:invoice_generator/constants/app_translations.dart';
 
 /// First-launch tour of CaratOne's headline features.
 ///
@@ -20,42 +24,42 @@ class _OnboardingViewState extends State<OnboardingView> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  static const List<_OnboardingPageData> _pages = [
+  static final List<_OnboardingPageData> _pages = [
     _OnboardingPageData(
       icon: Icons.receipt_long_rounded,
       iconBg: Color(0xFFE7EEFF),
       iconColor: _accent,
-      title: 'Professional Invoices\nin Minutes',
+      title: 'Professional Invoices\nin Minutes'.tr,
       description:
           'Create GST-ready invoices with automatic CGST, SGST & IGST '
-          'calculations, amount-in-words, and unlimited line items.',
+          'calculations, amount-in-words, and unlimited line items.'.tr,
     ),
     _OnboardingPageData(
       icon: Icons.inventory_2_rounded,
       iconBg: Color(0xFFEAF7EE),
       iconColor: Color(0xFF2E9E5B),
-      title: 'Track Every Carat\nfrom Purchase to Sale',
+      title: 'Track Every Carat\nfrom Purchase to Sale'.tr,
       description:
           'Manage purchase lots, monitor remaining stock in real time, '
-          'and create invoices straight from a purchase entry.',
+          'and create invoices straight from a purchase entry.'.tr,
     ),
     _OnboardingPageData(
       icon: Icons.account_balance_wallet_rounded,
       iconBg: Color(0xFFFFF3E0),
       iconColor: Color(0xFFEF8B2C),
-      title: 'Master Your Books\nwith Smart Reports',
+      title: 'Master Your Books\nwith Smart Reports'.tr,
       description:
           'Record income, expenses and withdrawals. Get instant '
-          'profit/loss insights and shareable PDF reports.',
+          'profit/loss insights and shareable PDF reports.'.tr,
     ),
     _OnboardingPageData(
       icon: Icons.cloud_sync_rounded,
       iconBg: Color(0xFFE9E1FB),
       iconColor: Color(0xFF6E4FE0),
-      title: 'Securely Synced\nAcross Your Devices',
+      title: 'Securely Synced\nAcross Your Devices'.tr,
       description:
           'Powered by Firebase — your data is encrypted, backed up, and '
-          'available wherever you sign in.',
+          'available wherever you sign in.'.tr,
     ),
   ];
 
@@ -118,8 +122,8 @@ class _OnboardingViewState extends State<OnboardingView> {
                             vertical: 10,
                           ),
                         ),
-                        child: const Text(
-                          'Skip',
+                        child: Text(
+                          'Skip'.tr,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -188,7 +192,7 @@ class _OnboardingViewState extends State<OnboardingView> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              _isLastPage ? 'Get Started' : 'Next',
+                              _isLastPage ? 'Get Started'.tr : 'Next'.tr,
                               style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w700,
@@ -334,7 +338,7 @@ class _OnboardingPage extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           Text(
-            data.title,
+            data.title.tr,
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontSize: 26,
@@ -345,7 +349,7 @@ class _OnboardingPage extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            data.description,
+            data.description.tr,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 15,

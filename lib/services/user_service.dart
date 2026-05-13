@@ -1,9 +1,11 @@
 import 'package:firebase_database/firebase_database.dart';
+import 'package:invoice_generator/constants/app_translations.dart';
 import '../models/user_profile_model.dart';
+
 
 class UserService {
   final DatabaseReference _usersRef =
-      FirebaseDatabase.instance.ref('users');
+      FirebaseDatabase.instance.ref('users'.tr);
 
   Future<void> createUserProfile({
     required String uid,

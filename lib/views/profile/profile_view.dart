@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../viewmodels/profile_viewmodel.dart';
 import '../../models/user_profile_model.dart';
+import '../../constants/app_translations.dart';
+
 
 class ProfileView extends StatelessWidget {
   const ProfileView({super.key});
@@ -52,7 +54,7 @@ class _ProfileViewContentState extends State<_ProfileViewContent> {
               child: Icon(Icons.person_outline_rounded, color: accent),
             ),
             const SizedBox(width: 10),
-            const Text('Profile'),
+            Text('Profile'.tr),
           ],
         ),
         actions: [
@@ -60,7 +62,7 @@ class _ProfileViewContentState extends State<_ProfileViewContent> {
             IconButton(
               icon: const Icon(Icons.edit_rounded),
               onPressed: () => viewModel.startEditing(),
-              tooltip: 'Edit Profile',
+              tooltip: 'Edit Profile'.tr,
             ),
         ],
       ),
@@ -148,7 +150,7 @@ class _ProfileViewContentState extends State<_ProfileViewContent> {
             Icon(Icons.error_outline, size: 64, color: Colors.red.shade300),
             const SizedBox(height: 16),
             Text(
-              viewModel.errorMessage ?? 'Failed to load profile',
+              viewModel.errorMessage ?? 'Failed to load profile'.tr,
               style: TextStyle(color: Colors.grey[600]),
               textAlign: TextAlign.center,
             ),
@@ -156,7 +158,7 @@ class _ProfileViewContentState extends State<_ProfileViewContent> {
             ElevatedButton.icon(
               onPressed: () => viewModel.loadProfile(),
               icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Retry'),
+              label: Text('Retry'.tr),
               style: ElevatedButton.styleFrom(
                 backgroundColor: accent,
                 foregroundColor: Colors.white,
@@ -242,63 +244,63 @@ class _ProfileViewContentState extends State<_ProfileViewContent> {
     return Column(
       children: [
         _buildInfoSection(
-          'Personal Information',
+          'Personal Information'.tr,
           Icons.person_outline_rounded,
           [
-            _buildInfoRow('User Name', profile.userName),
-            _buildInfoRow('Mobile Number', profile.mobileNumber),
-            _buildInfoRow('Email', profile.email),
+            _buildInfoRow('User Name'.tr, profile.userName),
+            _buildInfoRow('Mobile Number'.tr, profile.mobileNumber),
+            _buildInfoRow('Email'.tr, profile.email),
           ],
         ),
         const SizedBox(height: 18),
         _buildInfoSection(
-          'Company Details',
+          'Company Details'.tr,
           Icons.business_outlined,
           [
-            _buildInfoRow('Company Name', profile.companyName),
-            _buildInfoRow('Company Address', profile.companyAddress),
+            _buildInfoRow('Company Name'.tr, profile.companyName),
+            _buildInfoRow('Company Address'.tr, profile.companyAddress),
           ],
         ),
         const SizedBox(height: 18),
         _buildInfoSection(
-          'Tax & Registration',
+          'Tax & Registration'.tr,
           Icons.receipt_long_outlined,
           [
-            _buildInfoRow('GST No', profile.gstNo),
-            _buildInfoRow('PAN No', profile.panNo),
+            _buildInfoRow('GST No'.tr, profile.gstNo),
+            _buildInfoRow('PAN No'.tr, profile.panNo),
             if (profile.cstNo != null && profile.cstNo!.isNotEmpty)
-              _buildInfoRow('CST No', profile.cstNo!),
+              _buildInfoRow('CST No'.tr, profile.cstNo!),
             if (profile.vatNo != null && profile.vatNo!.isNotEmpty)
-              _buildInfoRow('VAT No', profile.vatNo!),
+              _buildInfoRow('VAT No'.tr, profile.vatNo!),
             if (profile.iecNo != null && profile.iecNo!.isNotEmpty)
-              _buildInfoRow('IEC No', profile.iecNo!),
+              _buildInfoRow('IEC No'.tr, profile.iecNo!),
           ],
         ),
         const SizedBox(height: 18),
         _buildInfoSection(
-          'Bank Details',
+          'Bank Details'.tr,
           Icons.account_balance_outlined,
           [
-            _buildInfoRow('Bank Name', profile.bankName),
-            _buildInfoRow('Branch', profile.branch),
-            _buildInfoRow('Account No', profile.accountNo),
-            _buildInfoRow('IFSC Code', profile.ifscCode),
+            _buildInfoRow('Bank Name'.tr, profile.bankName),
+            _buildInfoRow('Branch'.tr, profile.branch),
+            _buildInfoRow('Account No'.tr, profile.accountNo),
+            _buildInfoRow('IFSC Code'.tr, profile.ifscCode),
           ],
         ),
         if (profile.createdAt != null) ...[
           const SizedBox(height: 18),
           _buildInfoSection(
-            'Account Information',
+            'Account Information'.tr,
             Icons.info_outline_rounded,
             [
               _buildInfoRow(
-                'Member Since',
-                DateFormat('dd MMM yyyy').format(profile.createdAt!),
+                'Member Since'.tr,
+                DateFormat('dd MMM yyyy'.tr).format(profile.createdAt!),
               ),
               if (profile.updatedAt != null)
                 _buildInfoRow(
-                  'Last Updated',
-                  DateFormat('dd MMM yyyy').format(profile.updatedAt!),
+                  'Last Updated'.tr,
+                  DateFormat('dd MMM yyyy'.tr).format(profile.updatedAt!),
                 ),
             ],
           ),
@@ -426,21 +428,21 @@ class _ProfileViewContentState extends State<_ProfileViewContent> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSectionTitle('Personal Information', accent),
+              _buildSectionTitle('Personal Information'.tr, accent),
               const SizedBox(height: 16),
               _buildTextField(
-                label: 'User Name *',
+                label: '${'User Name'.tr} *',
                 value: profile.userName,
                 onChanged: (v) => viewModel.updateProfile(
                   profile.copyWith(userName: v),
                 ),
                 icon: Icons.person_outline_rounded,
                 surfaceTint: surfaceTint,
-                validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                validator: (v) => v == null || v.isEmpty ? 'Required'.tr : null,
               ),
               const SizedBox(height: 12),
               _buildTextField(
-                label: 'Mobile Number *',
+                label: '${'Mobile Number'.tr} *',
                 value: profile.mobileNumber,
                 onChanged: (v) => viewModel.updateProfile(
                   profile.copyWith(mobileNumber: v),
@@ -448,7 +450,7 @@ class _ProfileViewContentState extends State<_ProfileViewContent> {
                 icon: Icons.phone_outlined,
                 surfaceTint: surfaceTint,
                 keyboardType: TextInputType.phone,
-                validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                validator: (v) => v == null || v.isEmpty ? 'Required'.tr : null,
               ),
             ],
           ),
@@ -470,21 +472,21 @@ class _ProfileViewContentState extends State<_ProfileViewContent> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSectionTitle('Company Details', accent),
+              _buildSectionTitle('Company Details'.tr, accent),
               const SizedBox(height: 16),
               _buildTextField(
-                label: 'Company Name *',
+                label: '${'Company Name'.tr} *',
                 value: profile.companyName,
                 onChanged: (v) => viewModel.updateProfile(
                   profile.copyWith(companyName: v),
                 ),
                 icon: Icons.business_outlined,
                 surfaceTint: surfaceTint,
-                validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                validator: (v) => v == null || v.isEmpty ? 'Required'.tr : null,
               ),
               const SizedBox(height: 12),
               _buildTextField(
-                label: 'Company Address *',
+                label: '${'Company Address'.tr} *',
                 value: profile.companyAddress,
                 onChanged: (v) => viewModel.updateProfile(
                   profile.copyWith(companyAddress: v),
@@ -492,7 +494,7 @@ class _ProfileViewContentState extends State<_ProfileViewContent> {
                 icon: Icons.location_on_outlined,
                 surfaceTint: surfaceTint,
                 maxLines: 3,
-                validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                validator: (v) => v == null || v.isEmpty ? 'Required'.tr : null,
               ),
             ],
           ),
@@ -514,32 +516,32 @@ class _ProfileViewContentState extends State<_ProfileViewContent> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSectionTitle('Tax & Registration', accent),
+              _buildSectionTitle('Tax & Registration'.tr, accent),
               const SizedBox(height: 16),
               _buildTextField(
-                label: 'GST No *',
+                label: '${'GST No'.tr} *',
                 value: profile.gstNo,
                 onChanged: (v) => viewModel.updateProfile(
                   profile.copyWith(gstNo: v.toUpperCase()),
                 ),
                 icon: Icons.receipt_long_outlined,
                 surfaceTint: surfaceTint,
-                validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                validator: (v) => v == null || v.isEmpty ? 'Required'.tr : null,
               ),
               const SizedBox(height: 12),
               _buildTextField(
-                label: 'PAN No *',
+                label: '${'PAN No'.tr} *',
                 value: profile.panNo,
                 onChanged: (v) => viewModel.updateProfile(
                   profile.copyWith(panNo: v.toUpperCase()),
                 ),
                 icon: Icons.badge_outlined,
                 surfaceTint: surfaceTint,
-                validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                validator: (v) => v == null || v.isEmpty ? 'Required'.tr : null,
               ),
               const SizedBox(height: 12),
               _buildTextField(
-                label: 'CST No',
+                label: 'CST No'.tr,
                 value: profile.cstNo ?? '',
                 onChanged: (v) => viewModel.updateProfile(
                   profile.copyWith(cstNo: v.isEmpty ? null : v),
@@ -549,7 +551,7 @@ class _ProfileViewContentState extends State<_ProfileViewContent> {
               ),
               const SizedBox(height: 12),
               _buildTextField(
-                label: 'VAT No',
+                label: 'VAT No'.tr,
                 value: profile.vatNo ?? '',
                 onChanged: (v) => viewModel.updateProfile(
                   profile.copyWith(vatNo: v.isEmpty ? null : v),
@@ -559,7 +561,7 @@ class _ProfileViewContentState extends State<_ProfileViewContent> {
               ),
               const SizedBox(height: 12),
               _buildTextField(
-                label: 'IEC No',
+                label: 'IEC No'.tr,
                 value: profile.iecNo ?? '',
                 onChanged: (v) => viewModel.updateProfile(
                   profile.copyWith(iecNo: v.isEmpty ? null : v),
@@ -587,32 +589,32 @@ class _ProfileViewContentState extends State<_ProfileViewContent> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSectionTitle('Bank Details', accent),
+              _buildSectionTitle('Bank Details'.tr, accent),
               const SizedBox(height: 16),
               _buildTextField(
-                label: 'Bank Name *',
+                label: '${'Bank Name'.tr} *',
                 value: profile.bankName,
                 onChanged: (v) => viewModel.updateProfile(
                   profile.copyWith(bankName: v),
                 ),
                 icon: Icons.account_balance_outlined,
                 surfaceTint: surfaceTint,
-                validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                validator: (v) => v == null || v.isEmpty ? 'Required'.tr : null,
               ),
               const SizedBox(height: 12),
               _buildTextField(
-                label: 'Branch *',
+                label: '${'Branch'.tr} *',
                 value: profile.branch,
                 onChanged: (v) => viewModel.updateProfile(
                   profile.copyWith(branch: v),
                 ),
                 icon: Icons.location_city_outlined,
                 surfaceTint: surfaceTint,
-                validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                validator: (v) => v == null || v.isEmpty ? 'Required'.tr : null,
               ),
               const SizedBox(height: 12),
               _buildTextField(
-                label: 'Account No *',
+                label: '${'Account No'.tr} *',
                 value: profile.accountNo,
                 onChanged: (v) => viewModel.updateProfile(
                   profile.copyWith(accountNo: v),
@@ -620,18 +622,18 @@ class _ProfileViewContentState extends State<_ProfileViewContent> {
                 icon: Icons.account_box_outlined,
                 surfaceTint: surfaceTint,
                 keyboardType: TextInputType.number,
-                validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                validator: (v) => v == null || v.isEmpty ? 'Required'.tr : null,
               ),
               const SizedBox(height: 12),
               _buildTextField(
-                label: 'IFSC Code *',
+                label: '${'IFSC Code'.tr} *',
                 value: profile.ifscCode,
                 onChanged: (v) => viewModel.updateProfile(
                   profile.copyWith(ifscCode: v.toUpperCase()),
                 ),
                 icon: Icons.qr_code_outlined,
                 surfaceTint: surfaceTint,
-                validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                validator: (v) => v == null || v.isEmpty ? 'Required'.tr : null,
               ),
             ],
           ),
@@ -651,8 +653,8 @@ class _ProfileViewContentState extends State<_ProfileViewContent> {
                   ),
                   side: BorderSide(color: accent),
                 ),
-                child: const Text(
-                  'Cancel',
+                child: Text(
+                  'Cancel'.tr,
                   style: TextStyle(fontWeight: FontWeight.w600),
                 ),
               ),
@@ -667,8 +669,8 @@ class _ProfileViewContentState extends State<_ProfileViewContent> {
                           final success = await viewModel.saveProfile();
                           if (success && context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Profile updated successfully!'),
+                              SnackBar(
+                                content: Text('Profile updated successfully!'.tr),
                                 backgroundColor: Colors.green,
                               ),
                             );
@@ -694,8 +696,8 @@ class _ProfileViewContentState extends State<_ProfileViewContent> {
                           valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                         ),
                       )
-                    : const Text(
-                        'Save Changes',
+                    : Text(
+                        'Save Changes'.tr,
                         style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
                       ),
               ),

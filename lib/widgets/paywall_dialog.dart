@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:invoice_generator/constants/app_translations.dart';
 import '../views/subscription/subscription_plans_view.dart';
+
 
 class PaywallDialog extends StatelessWidget {
   final String message;
@@ -9,18 +11,18 @@ class PaywallDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      title: const Row(
+      title: Row(
         children: [
-          Icon(Icons.lock_outline_rounded, color: Colors.orange),
-          SizedBox(width: 8),
-          Text('Limit Reached'),
+          const Icon(Icons.lock_outline_rounded, color: Colors.orange),
+          const SizedBox(width: 8),
+          Text('Limit Reached'.tr),
         ],
       ),
       content: Text(message),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Maybe Later'),
+          child: Text('Maybe Later'.tr),
         ),
         ElevatedButton(
           onPressed: () {
@@ -34,7 +36,7 @@ class PaywallDialog extends StatelessWidget {
             backgroundColor: Colors.blue,
             foregroundColor: Colors.white,
           ),
-          child: const Text('Upgrade Now'),
+          child: Text('Upgrade Now'.tr),
         ),
       ],
     );

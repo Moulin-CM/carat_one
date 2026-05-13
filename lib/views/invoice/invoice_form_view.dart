@@ -12,6 +12,10 @@ import '../../widgets/custom_card.dart';
 import '../../widgets/custom_info_row.dart';
 import '../../widgets/app_bar_factory.dart';
 import '../../services/ads_service.dart';
+import '../../constants/app_translations.dart';
+
+
+import 'package:invoice_generator/constants/app_translations.dart';
 
 class InvoiceFormView extends StatelessWidget {
   final InvoiceModel? invoice;
@@ -159,7 +163,7 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
 
     // Pick up the auto-generated Entry/Invoice No once the viewmodel resolves
     // it. Only sync when the field hasn't been touched, so we never overwrite
-    // the user's manual edits.
+    // the user'.trs manual edits.
     if (_invoiceNoController.text.isEmpty && invoice.invoiceNo.isNotEmpty) {
       _invoiceNoController.text = invoice.invoiceNo;
     }
@@ -185,15 +189,25 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
       extendBodyBehindAppBar: true,
       appBar: AppBarFactory.build(
         title: isCashSell
-            ? (isEditing ? 'Edit Cash Sell' : 'New Cash Sell')
-            : (isEditing ? 'Edit Invoice' : 'Invoice Generator'),
-        onBackPress: () => Navigator.pop(context, isEditing ? true : null),
+            ? (isEditing ? 'Edit Cash Sell'.tr : 'New Cash Sell'.tr)
+            : (isEditing ? 'Edit Invoice'.tr : 'Invoice Generator'.tr),
+        onBackPress: () {
+          FocusScope.of(context).unfocus();
+
+          Future.microtask(() {
+            if (mounted && Navigator.canPop(context)) {
+              Navigator.of(context).pop(
+                isEditing ? true : null,
+              );
+            }
+          });
+        },
         actions: [
           if (isEditing && !isCashSell) ...[
             IconButton(
               icon: const Icon(Icons.email_rounded),
               onPressed: () => _emailInvoice(context, viewModel.invoice),
-              tooltip: 'Email Invoice',
+              tooltip: 'Email Invoice'.tr,
             ),
           ],
         ],
@@ -213,60 +227,60 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
                     _heroCard(invoice, viewModel),
                     const SizedBox(height: 16),
                     CustomSection(
-                      title: 'Buyer Details',
+                      title: 'Buyer Details'.tr,
                       icon: Icons.person_outline_rounded,
                       children: [
                         _buyerNameField(viewModel),
                         const SizedBox(height: 16),
                         _row([
-                          CustomTextField(label: 'Contact Person', controller: _buyerContactPersonController, hint: 'Contact / broker name', onChanged: viewModel.updateBuyerContactPerson),
-                          CustomTextField(label: 'Contact No', controller: _buyerContactNoController, hint: 'Mobile number', onChanged: viewModel.updateBuyerContactNo, keyboardType: TextInputType.phone),
+                          CustomTextField(label: 'Contact Person'.tr, controller: _buyerContactPersonController, hint: 'Contact / broker name'.tr, onChanged: viewModel.updateBuyerContactPerson),
+                          CustomTextField(label: 'Contact No'.tr, controller: _buyerContactNoController, hint: 'Mobile number'.tr, onChanged: viewModel.updateBuyerContactNo, keyboardType: TextInputType.phone),
                         ]),
                         const SizedBox(height: 16),
-                        CustomTextField(label: 'Email', controller: _buyerEmailController, hint: 'example@mail.com', onChanged: viewModel.updateBuyerEmail, keyboardType: TextInputType.emailAddress),
+                        CustomTextField(label: 'Email'.tr, controller: _buyerEmailController, hint: 'example@mail.com'.tr, onChanged: viewModel.updateBuyerEmail, keyboardType: TextInputType.emailAddress),
                         const SizedBox(height: 16),
-                        CustomTextField(label: 'Buyer Address', controller: _buyerAddressController, onChanged: viewModel.updateBuyerAddress, hint: 'Full office/home address...'),
+                        CustomTextField(label: 'Buyer Address'.tr, controller: _buyerAddressController, onChanged: viewModel.updateBuyerAddress, hint: 'Full office/home address...'.tr),
                         if (!isCashSell) ...[
                           const SizedBox(height: 16),
                           _row([
-                            CustomTextField(label: 'GST NO', controller: _buyerGstNoController, hint: '24XXXXX...', onChanged: viewModel.updateBuyerGstNo),
-                            CustomTextField(label: 'PAN NO', controller: _buyerPanNoController, hint: 'ABCDE1234F', onChanged: viewModel.updateBuyerPanNo),
+                            CustomTextField(label: 'GST NO'.tr, controller: _buyerGstNoController, hint: '24XXXXX...'.tr, onChanged: viewModel.updateBuyerGstNo),
+                            CustomTextField(label: 'PAN NO'.tr, controller: _buyerPanNoController, hint: 'ABCDE1234F'.tr, onChanged: viewModel.updateBuyerPanNo),
                           ]),
                           const SizedBox(height: 16),
                           _row([
-                            CustomTextField(label: 'State Name', controller: _buyerStateNameController, hint: 'Gujarat', onChanged: viewModel.updateBuyerStateName),
-                            CustomTextField(label: 'State Code', controller: _buyerStateCodeController, hint: '24', onChanged: viewModel.updateBuyerStateCode, keyboardType: TextInputType.number),
+                            CustomTextField(label: 'State Name'.tr, controller: _buyerStateNameController, hint: 'Gujarat'.tr, onChanged: viewModel.updateBuyerStateName),
+                            CustomTextField(label: 'State Code'.tr, controller: _buyerStateCodeController, hint: '24', onChanged: viewModel.updateBuyerStateCode, keyboardType: TextInputType.number),
                           ]),
                           const SizedBox(height: 16),
-                          CustomTextField(label: 'Place of Supply', controller: _placeOfSupplyController, hint: 'City name', onChanged: viewModel.updatePlaceOfSupply),
+                          CustomTextField(label: 'Place of Supply'.tr, controller: _placeOfSupplyController, hint: 'City name'.tr, onChanged: viewModel.updatePlaceOfSupply),
                         ],
                       ],
                     ),
                     const SizedBox(height: 16),
                     CustomSection(
-                      title: isCashSell ? 'Cash Sell Details' : 'Invoice Details',
+                      title: isCashSell ? 'Cash Sell Details'.tr : 'Invoice Details'.tr,
                       icon: Icons.event_note_rounded,
                       children: [
                         _row([
                           CustomTextField(
-                            label: isCashSell ? 'Entry No' : 'Invoice No',
+                            label: isCashSell ? 'Entry No'.tr : 'Invoice No'.tr,
                             controller: _invoiceNoController,
-                            hint: isCashSell ? 'CASH-001' : 'INV-001',
+                            hint: isCashSell ? 'CASH-001'.tr : 'INV-001'.tr,
                             onChanged: viewModel.updateInvoiceNo,
                           ),
-                          _datePicker(isCashSell ? 'Sell Date' : 'Invoice Date', invoice.invoiceDate, (d) => viewModel.updateInvoiceDate(d), context),
+                          _datePicker(isCashSell ? 'Sell Date'.tr : 'Invoice Date'.tr, invoice.invoiceDate, (d) => viewModel.updateInvoiceDate(d), context),
                         ]),
                         const SizedBox(height: 16),
                         _row([
-                          CustomTextField(label: 'Terms', controller: _termsController, hint: 'Net 30', onChanged: viewModel.updateTerms),
-                          _datePicker('Due Date', invoice.dueDate, (d) => viewModel.updateDueDate(d), context, firstDate: invoice.invoiceDate),
+                          CustomTextField(label: 'Terms'.tr, controller: _termsController, hint: 'Net 30'.tr, onChanged: viewModel.updateTerms),
+                          _datePicker('Due Date'.tr, invoice.dueDate, (d) => viewModel.updateDueDate(d), context, firstDate: invoice.invoiceDate),
                         ]),
                         if (!isCashSell) ...[
                           const SizedBox(height: 16),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Tax Type', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: _deep)),
+                              Text('Tax Type'.tr, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: _deep)),
                               const SizedBox(height: 10),
                               Container(
                                 padding: const EdgeInsets.all(4),
@@ -292,8 +306,8 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
                                           ),
                                           child: Column(
                                             children: [
-                                              Text('SGST (Intra-State)', style: TextStyle(fontWeight: !invoice.isIgst ? FontWeight.bold : FontWeight.normal, color: !invoice.isIgst ? _deep : Colors.grey[600], fontSize: 13)),
-                                              Text('CGST 0.75% + SGST 0.75%', style: TextStyle(fontSize: 10, color: !invoice.isIgst ? _accent : Colors.grey[500])),
+                                              Text('SGST (Intra-State)'.tr, style: TextStyle(fontWeight: !invoice.isIgst ? FontWeight.bold : FontWeight.normal, color: !invoice.isIgst ? _deep : Colors.grey[600], fontSize: 13)),
+                                              Text('CGST 0.75% + SGST 0.75%'.tr, style: TextStyle(fontSize: 10, color: !invoice.isIgst ? _accent : Colors.grey[500])),
                                             ],
                                           ),
                                         ),
@@ -314,8 +328,8 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
                                           ),
                                           child: Column(
                                             children: [
-                                              Text('IGST (Inter-State)', style: TextStyle(fontWeight: invoice.isIgst ? FontWeight.bold : FontWeight.normal, color: invoice.isIgst ? _deep : Colors.grey[600], fontSize: 13)),
-                                              Text('IGST 1.5%', style: TextStyle(fontSize: 10, color: invoice.isIgst ? _accent : Colors.grey[500])),
+                                              Text('IGST (Inter-State)'.tr, style: TextStyle(fontWeight: invoice.isIgst ? FontWeight.bold : FontWeight.normal, color: invoice.isIgst ? _deep : Colors.grey[600], fontSize: 13)),
+                                              Text('IGST 1.5%'.tr, style: TextStyle(fontSize: 10, color: invoice.isIgst ? _accent : Colors.grey[500])),
                                             ],
                                           ),
                                         ),
@@ -331,7 +345,7 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
                     ),
                     const SizedBox(height: 16),
                     CustomSection(
-                      title: 'Items',
+                      title: 'Items'.tr,
                       icon: Icons.diamond_outlined,
                       trailing: _addItemButton(viewModel),
                       children: [
@@ -359,8 +373,8 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
         ),
         child: CustomButton(
           label: isCashSell
-              ? (viewModel.isEditing ? 'Update Cash Sell' : 'Save Cash Sell')
-              : (viewModel.isEditing ? 'Update & Generate' : 'Generate Invoice'),
+              ? (viewModel.isEditing ? 'Update Cash Sell'.tr : 'Save Cash Sell'.tr)
+              : (viewModel.isEditing ? 'Update & Generate'.tr : 'Generate Invoice'.tr),
           isLoading: viewModel.isGeneratingPdf || viewModel.isSaving,
           icon: isCashSell ? Icons.save_rounded : Icons.picture_as_pdf_rounded,
           onPressed: () => _generatePDF(context, viewModel),
@@ -384,15 +398,15 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
               Expanded(
                 child: Text(
                   viewModel.isCashSell
-                      ? (viewModel.isEditing ? 'Update Cash Sell' : 'Create Cash Sell')
-                      : (viewModel.isEditing ? 'Update Invoice' : 'Create New Invoice'),
+                      ? (viewModel.isEditing ? 'Update Cash Sell'.tr : 'Create Cash Sell'.tr)
+                      : (viewModel.isEditing ? 'Update Invoice'.tr : 'Create New Invoice'.tr),
                   style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700),
                 ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
-                child: Text(invoice.invoiceNo.isNotEmpty ? invoice.invoiceNo : 'Draft', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12)),
+                child: Text(invoice.invoiceNo.isNotEmpty ? invoice.invoiceNo : 'Draft'.tr, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12)),
               ),
             ],
           ),
@@ -400,9 +414,9 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _heroInfo('Stock Available', '${limit.toStringAsFixed(2)} ct'),
-              _heroInfo('Items', '${invoice.items.length}'),
-              _heroInfo('Current Carat', '${invoice.totalCarat.toStringAsFixed(2)} ct'),
+              _heroInfo('Stock Available'.tr, '${limit.toStringAsFixed(2)} ct'),
+              _heroInfo('Items'.tr, '${invoice.items.length}'),
+              _heroInfo('Current Carat'.tr, '${invoice.totalCarat.toStringAsFixed(2)} ct'),
             ],
           ),
         ],
@@ -424,11 +438,11 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         CustomTextField(
-          label: 'Buyer Name',
+          label: 'Buyer Name'.tr,
           controller: _buyerNameController,
-          hint: 'Search or enter buyer name',
+          hint: 'Search or enter buyer name'.tr,
           onChanged: viewModel.updateBuyerName,
-          validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
+          validator: (v) => (v == null || v.isEmpty) ? 'Required'.tr : null,
         ),
         if (viewModel.suggestedBuyers.isNotEmpty)
           Container(
@@ -474,7 +488,7 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
         children: [
           Row(
             children: [
-              Text('Item ${index + 1}', style: const TextStyle(fontWeight: FontWeight.w700, color: _deep)),
+              Text('${'Item'.tr} ${index + 1}', style: const TextStyle(fontWeight: FontWeight.w700, color: _deep)),
               const SizedBox(width: 8),
               Flexible(
                 child: Container(
@@ -484,7 +498,7 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    'Stock: ${maxLimit.toStringAsFixed(2)} ct',
+                    '${'Stock'.tr}: ${maxLimit.toStringAsFixed(2)} ct',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -507,7 +521,7 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
           ),
           const SizedBox(height: 12),
           CustomTextField(
-            label: 'HSN Code', 
+            label: 'HSN Code'.tr, 
             controller: hsnController, 
             hint: '71049120', 
             fillColor: Colors.white,
@@ -516,7 +530,7 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
           const SizedBox(height: 16),
           _row([
             CustomTextField(
-              label: 'Carat',
+              label: 'Carat'.tr,
               controller: caratController,
               hint: '0.00',
               fillColor: Colors.white,
@@ -546,18 +560,18 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
                 _triggerTotalsUpdate();
               },
               validator: (v) {
-                if (v == null || v.isEmpty) return 'Required';
+                if (v == null || v.isEmpty) return 'Required'.tr;
                 final val = double.tryParse(v) ?? 0;
-                if (val <= 0) return 'Must be > 0';
+                if (val <= 0) return 'Must be > 0'.tr;
                 
                 if (viewModel.totalInvoiceCarat > (maxLimit + 0.001)) {
-                  return 'Stock exceeded';
+                  return 'Stock exceeded'.tr;
                 }
                 return null;
               },
             ),
             CustomTextField(
-              label: 'Rate',
+              label: 'Rate'.tr,
               controller: rateController,
               hint: '0.00',
               fillColor: Colors.white,
@@ -566,7 +580,7 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
                 viewModel.updateItemRate(index, v);
                 _triggerTotalsUpdate();
               },
-              validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
+              validator: (v) => (v == null || v.isEmpty) ? 'Required'.tr : null,
             ),
           ]),
           const SizedBox(height: 16),
@@ -576,8 +590,8 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Amount', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-                Text('₹${(item.carat * item.rate).toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.w800, color: _accent)),
+                Text('Amount'.tr, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                Text('₹${(item.carat * item.rate).toStringAsFixed(2)}'.tr, style: const TextStyle(fontWeight: FontWeight.w800, color: _accent)),
               ],
             ),
           ),
@@ -607,19 +621,19 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
             child: const Icon(Icons.group_outlined, color: _accent, size: 18),
           ),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('For Other',
-                    style: TextStyle(
+                Text('For Other'.tr,
+                    style: const TextStyle(
                         fontWeight: FontWeight.w800,
                         color: _deep,
                         fontSize: 14)),
-                SizedBox(height: 2),
+                const SizedBox(height: 2),
                 Text(
-                    'Records only — no stock impact, excluded from Opening totals, Sales Profit and Net Profit.',
-                    style: TextStyle(fontSize: 11, color: Colors.black54)),
+                    'Records only — no stock impact, excluded from Opening totals, Sales Profit and Net Profit.'.tr,
+                    style: const TextStyle(fontSize: 11, color: Colors.black54)),
               ],
             ),
           ),
@@ -640,12 +654,12 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
         final totals = _calculateTotalsFromControllers(invoice);
         final isCashSell = viewModel.isCashSell;
         return CustomSection(
-          title: 'Summary',
+          title: 'Summary'.tr,
           icon: Icons.summarize_rounded,
           children: [
             _row([
               CustomTextField(
-                label: 'Discount (%)',
+                label: 'Discount (%)'.tr,
                 controller: _discountController,
                 hint: '0',
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -658,7 +672,7 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
                 },
               ),
               CustomTextField(
-                label: 'Broker Charge (%)',
+                label: 'Broker Charge (%)'.tr,
                 controller: _brokerChargeController,
                 hint: '0',
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -672,32 +686,32 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
               ),
             ]),
             const SizedBox(height: 12),
-            CustomInfoRow(label: 'Sub Total', value: '₹${totals['totalAmount']!.toStringAsFixed(2)}'),
+            CustomInfoRow(label: 'Sub Total'.tr, value: '₹${totals['totalAmount'.tr]!.toStringAsFixed(2)}'),
             if (invoice.discountRate > 0)
               CustomInfoRow(
-                label: 'Discount (${invoice.discountRate}%)',
-                value: '- ₹${totals['discountAmount']!.toStringAsFixed(2)}',
+                label: '${'Discount'.tr} (${invoice.discountRate}%)',
+                value: '- ₹${totals['discountAmount'.tr]!.toStringAsFixed(2)}',
               ),
             if (invoice.discountRate > 0)
               CustomInfoRow(
-                label: 'Taxable Amount',
-                value: '₹${totals['taxableAmount']!.toStringAsFixed(2)}',
+                label: 'Taxable Amount'.tr,
+                value: '₹${totals['taxableAmount'.tr]!.toStringAsFixed(2)}',
               ),
             if (!isCashSell) ...[
               if (!invoice.isIgst) ...[
-                CustomInfoRow(label: 'CGST (${invoice.cgstRate}%)', value: '₹${totals['cgstAmount']!.toStringAsFixed(2)}'),
-                CustomInfoRow(label: 'SGST (${invoice.sgstRate}%)', value: '₹${totals['sgstAmount']!.toStringAsFixed(2)}'),
+                CustomInfoRow(label: 'CGST (${invoice.cgstRate}%)', value: '₹${totals['cgstAmount'.tr]!.toStringAsFixed(2)}'),
+                CustomInfoRow(label: 'SGST (${invoice.sgstRate}%)', value: '₹${totals['sgstAmount'.tr]!.toStringAsFixed(2)}'),
               ] else ...[
-                CustomInfoRow(label: 'IGST (${invoice.igstRate}%)', value: '₹${totals['igstAmount']!.toStringAsFixed(2)}'),
+                CustomInfoRow(label: 'IGST (${invoice.igstRate}%)', value: '₹${totals['igstAmount'.tr]!.toStringAsFixed(2)}'),
               ],
             ],
             if (invoice.brokerChargeRate > 0)
               CustomInfoRow(
-                label: 'Broker Charge (${invoice.brokerChargeRate}%)',
-                value: '- ₹${totals['brokerChargeAmount']!.toStringAsFixed(2)}',
+                label: '${'Broker Charge'.tr} (${invoice.brokerChargeRate}%)',
+                value: '- ₹${totals['brokerChargeAmount'.tr]!.toStringAsFixed(2)}',
               ),
             const Divider(height: 24),
-            CustomInfoRow(label: 'Grand Total', value: '₹${totals['grandTotal']!.toStringAsFixed(2)}', isBold: true, fontSize: 16, valueColor: _deep),
+            CustomInfoRow(label: 'Grand Total'.tr, value: '₹${totals['grandTotal'.tr]!.toStringAsFixed(2)}', isBold: true, fontSize: 16, valueColor: _deep),
           ],
         );
       },
@@ -738,7 +752,7 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    DateFormat('dd MMM yyyy').format(value), 
+                    DateFormat('dd MMM yyyy'.tr).format(value), 
                     style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -755,7 +769,7 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
     return TextButton.icon(
       onPressed: viewModel.addItem,
       icon: const Icon(Icons.add_circle_outline, size: 20),
-      label: const Text('Add Item', style: TextStyle(fontWeight: FontWeight.w700)),
+      label: Text('Add Item'.tr, style: const TextStyle(fontWeight: FontWeight.w700)),
     );
   }
 
@@ -776,15 +790,15 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
     final sgst = invoice.isIgst ? 0.0 : taxable * (invoice.sgstRate / 100);
     final igst = invoice.isIgst ? taxable * (invoice.igstRate / 100) : 0.0;
     return {
-      'totalCarat': totalCarat,
-      'totalAmount': totalAmount,
-      'discountAmount': discount,
-      'taxableAmount': taxable,
-      'brokerChargeAmount': brokerCharge,
-      'cgstAmount': cgst,
-      'sgstAmount': sgst,
-      'igstAmount': igst,
-      'grandTotal': taxable + cgst + sgst + igst - brokerCharge,
+      'totalCarat'.tr: totalCarat,
+      'totalAmount'.tr: totalAmount,
+      'discountAmount'.tr: discount,
+      'taxableAmount'.tr: taxable,
+      'brokerChargeAmount'.tr: brokerCharge,
+      'cgstAmount'.tr: cgst,
+      'sgstAmount'.tr: sgst,
+      'igstAmount'.tr: igst,
+      'grandTotal'.tr: taxable + cgst + sgst + igst - brokerCharge,
     };
   }
 
@@ -816,7 +830,7 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
     if (viewModel.totalInvoiceCarat > (viewModel.remainingTotalCarat + 0.001)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Total carat exceeds global stock (${viewModel.remainingTotalCarat.toStringAsFixed(2)})'),
+          content: Text('${'Total carat exceeds global stock'.tr} (${viewModel.remainingTotalCarat.toStringAsFixed(2)})'),
           backgroundColor: Colors.red
         )
       );
@@ -828,12 +842,12 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(viewModel.isCashSell
-              ? 'Cash sell entry saved!'
-              : 'Invoice generated successfully!'),
+              ? 'Cash sell entry saved!'.tr
+              : 'Invoice generated successfully!'.tr),
           backgroundColor: Colors.green,
         ));
         // Save complete = natural transition. Show an interstitial (subject
-        // to the AdsService frequency cap) THEN pop. We don't await the ad's
+        // to the AdsService frequency cap) THEN pop. We don't await the ad'.trs
         // dismissal — pop immediately so the user sees the updated list, and
         // the ad surfaces over it. This is the AdMob-recommended pattern for
         // post-action interstitials.

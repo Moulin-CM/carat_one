@@ -4,8 +4,12 @@ import 'package:intl/intl.dart';
 import '../../models/withdrawal_model.dart';
 import '../../services/withdrawal_storage_service.dart';
 import '../../widgets/app_bar_factory.dart';
-import '../../widgets/ads/banner_ad_widget.dart';
+
 import '../../widgets/list_skeleton.dart';
+import '../../constants/app_translations.dart';
+
+
+import 'package:invoice_generator/constants/app_translations.dart';
 
 class WithdrawalsView extends StatefulWidget {
   const WithdrawalsView({super.key});
@@ -21,7 +25,7 @@ class _WithdrawalsViewState extends State<WithdrawalsView> {
   List<WithdrawalModel> _items = [];
   bool _loading = true;
 
-  final _dateFmt = DateFormat('dd MMM yyyy');
+  final _dateFmt = DateFormat('dd MMM yyyy'.tr);
   final _currencyFmt = NumberFormat.currency(symbol: '₹', decimalDigits: 0);
 
   @override
@@ -53,7 +57,7 @@ class _WithdrawalsViewState extends State<WithdrawalsView> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBarFactory.build(
-        title: 'Pre-mature Withdrawals',
+        title: 'Pre-mature Withdrawals'.tr,
         onBackPress: () => Navigator.pop(context),
       ),
       body: Stack(
@@ -75,12 +79,12 @@ class _WithdrawalsViewState extends State<WithdrawalsView> {
                                     16, 8, 16, 100),
                                 children: [
                                   if (_active.isNotEmpty) ...[
-                                    _sectionTitle('Outstanding'),
+                                    _sectionTitle('Outstanding'.tr),
                                     ..._active.map(_row),
                                   ],
                                   if (_returned.isNotEmpty) ...[
                                     const SizedBox(height: 12),
-                                    _sectionTitle('Returned'),
+                                    _sectionTitle('Returned'.tr),
                                     ..._returned.map(_row),
                                   ],
                                 ],
@@ -95,10 +99,10 @@ class _WithdrawalsViewState extends State<WithdrawalsView> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _openAddSheet,
         icon: const Icon(Icons.add_rounded),
-        label: const Text('Add Withdrawal'),
+        label: Text('Add Withdrawal'.tr),
         backgroundColor: _accent,
       ),
-      bottomNavigationBar: const BottomBannerAd(),
+
     );
   }
 
@@ -122,19 +126,18 @@ class _WithdrawalsViewState extends State<WithdrawalsView> {
                 color: Colors.white, size: 20),
           ),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Outstanding',
-                    style: TextStyle(color: Colors.white70, fontSize: 12)),
-                Text('Out until marked returned',
-                    style: TextStyle(color: Colors.white54, fontSize: 10)),
+                Text('Outstanding'.tr,
+                    style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                Text('Out until marked returned'.tr,
+                    style: const TextStyle(color: Colors.white54, fontSize: 10)),
               ],
             ),
           ),
-          Text(
-            '- ${_currencyFmt.format(_outstanding)}',
+          Text('- ${_currencyFmt.format(_outstanding)}'.tr,
             style: const TextStyle(
                 color: Colors.white, fontWeight: FontWeight.w800, fontSize: 18),
           ),
@@ -175,16 +178,16 @@ class _WithdrawalsViewState extends State<WithdrawalsView> {
         return await showDialog<bool>(
               context: context,
               builder: (ctx) => AlertDialog(
-                title: const Text('Delete Withdrawal'),
-                content: const Text('Remove this withdrawal entry?'),
+                title: Text('Delete Withdrawal'.tr),
+                content: Text('Remove this withdrawal entry?'.tr),
                 actions: [
                   TextButton(
                       onPressed: () => Navigator.pop(ctx, false),
-                      child: const Text('Cancel')),
+                      child: Text('Cancel'.tr)),
                   TextButton(
                     onPressed: () => Navigator.pop(ctx, true),
                     style: TextButton.styleFrom(foregroundColor: Colors.red),
-                    child: const Text('Delete'),
+                    child: Text('Delete'.tr),
                   ),
                 ],
               ),
@@ -235,21 +238,21 @@ class _WithdrawalsViewState extends State<WithdrawalsView> {
                       Text(
                           w.personName.isNotEmpty
                               ? w.personName
-                              : 'Unknown',
+                              : 'Unknown'.tr,
                           style: const TextStyle(
                               fontWeight: FontWeight.w700,
                               fontSize: 15,
                               color: _deep)),
                       const SizedBox(height: 2),
                       Text(
-                        'Taken ${_dateFmt.format(w.takenDate)} · Return ${_dateFmt.format(w.returnDate)}',
+                        '${'Taken'.tr} ${_dateFmt.format(w.takenDate)} · ${'Return'.tr} ${_dateFmt.format(w.returnDate)}',
                         style: TextStyle(
                             color: Colors.grey[600], fontSize: 11),
                       ),
                     ],
                   ),
                 ),
-                Text('- ${_currencyFmt.format(w.amount)}',
+                Text('- ${_currencyFmt.format(w.amount)}'.tr,
                     style: const TextStyle(
                         color: Colors.red,
                         fontWeight: FontWeight.w800,
@@ -267,7 +270,7 @@ class _WithdrawalsViewState extends State<WithdrawalsView> {
                   },
                   icon: const Icon(Icons.check_circle_outline_rounded,
                       size: 18),
-                  label: const Text('Mark Returned'),
+                  label: Text('Mark Returned'.tr),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.green,
                     side: const BorderSide(color: Colors.green),
@@ -287,8 +290,8 @@ class _WithdrawalsViewState extends State<WithdrawalsView> {
                 ),
                 child: Text(
                   w.returnedAt != null
-                      ? 'Returned on ${_dateFmt.format(w.returnedAt!)}'
-                      : 'Returned',
+                      ? '${'Returned on'.tr} ${_dateFmt.format(w.returnedAt!)}'
+                      : 'Returned'.tr,
                   style: const TextStyle(
                       color: Colors.green,
                       fontWeight: FontWeight.w700,
@@ -309,16 +312,16 @@ class _WithdrawalsViewState extends State<WithdrawalsView> {
         Icon(Icons.account_balance_wallet_outlined,
             size: 64, color: Colors.grey[300]),
         const SizedBox(height: 16),
-        const Center(
-          child: Text('No withdrawals yet',
-              style: TextStyle(
+        Center(
+          child: Text('No withdrawals yet'.tr,
+              style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                   color: Colors.grey)),
         ),
         const SizedBox(height: 8),
         Center(
-          child: Text('Tap Add Withdrawal to record a pre-mature payout',
+          child: Text('Tap Add Withdrawal to record a pre-mature payout'.tr,
               style: TextStyle(color: Colors.grey[500])),
         ),
       ],
@@ -368,7 +371,7 @@ class _AddWithdrawalSheetState extends State<_AddWithdrawalSheet> {
   DateTime _return = DateTime.now().add(const Duration(days: 30));
   bool _saving = false;
 
-  final _dateFmt = DateFormat('dd MMM yyyy');
+  final _dateFmt = DateFormat('dd MMM yyyy'.tr);
 
   @override
   void dispose() {
@@ -392,7 +395,7 @@ class _AddWithdrawalSheetState extends State<_AddWithdrawalSheet> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text('Failed to save: $e'),
+            content: Text('${'Failed to save'.tr}: $e'),
             backgroundColor: Colors.red),
       );
     } finally {
@@ -431,27 +434,27 @@ class _AddWithdrawalSheetState extends State<_AddWithdrawalSheet> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text('Pre-mature Withdrawal',
-                    style: TextStyle(
+                Text('Pre-mature Withdrawal'.tr,
+                    style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
                         color: _deep)),
                 const SizedBox(height: 4),
                 Text(
-                    'Deducted from Net Profit until you mark it returned.',
+                    'Deducted from Net Profit until you mark it returned.'.tr,
                     style:
                         TextStyle(color: Colors.grey[600], fontSize: 13)),
                 const SizedBox(height: 16),
-                _label('Person Name'),
+                _label('Person Name'.tr),
                 TextFormField(
                   controller: _personCtrl,
                   textCapitalization: TextCapitalization.words,
-                  decoration: _decoration('e.g. Rohan'),
+                  decoration: _decoration('e.g. Rohan'.tr),
                   validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Required' : null,
+                      (v == null || v.trim().isEmpty) ? 'Required'.tr : null,
                 ),
                 const SizedBox(height: 12),
-                _label('Amount'),
+                _label('Amount'.tr),
                 TextFormField(
                   controller: _amountCtrl,
                   keyboardType:
@@ -463,7 +466,7 @@ class _AddWithdrawalSheetState extends State<_AddWithdrawalSheet> {
                   decoration: _decoration('0', prefix: '₹ '),
                   validator: (v) {
                     final n = double.tryParse(v?.trim() ?? '');
-                    if (n == null || n <= 0) return 'Enter valid amount';
+                    if (n == null || n <= 0) return 'Enter valid amount'.tr;
                     return null;
                   },
                 ),
@@ -474,7 +477,7 @@ class _AddWithdrawalSheetState extends State<_AddWithdrawalSheet> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _label('Taken Date'),
+                          _label('Taken Date'.tr),
                           _datePicker(_taken, (d) => setState(() {
                                 _taken = d;
                                 if (_return.isBefore(_taken)) _return = _taken;
@@ -487,7 +490,7 @@ class _AddWithdrawalSheetState extends State<_AddWithdrawalSheet> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _label('Return Date'),
+                          _label('Return Date'.tr),
                           _datePicker(_return, (d) => setState(() => _return = d),
                               firstDate: _taken),
                         ],
@@ -507,7 +510,7 @@ class _AddWithdrawalSheetState extends State<_AddWithdrawalSheet> {
                             child: CircularProgressIndicator(
                                 strokeWidth: 2, color: Colors.white))
                         : const Icon(Icons.save_rounded),
-                    label: Text(_saving ? 'Saving…' : 'Save'),
+                    label: Text(_saving ? 'Saving…'.tr : 'Save'.tr),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _accent,
                       foregroundColor: Colors.white,

@@ -1,8 +1,11 @@
 import 'package:intl/intl.dart';
+import 'package:invoice_generator/constants/app_translations.dart';
 import 'package:pdf/pdf.dart';
+
 import 'package:pdf/widgets.dart' as pw;
 import '../viewmodels/brokerage_report_data.dart';
 import 'pdf_service.dart';
+
 
 class BrokerageReportPdfService {
   static Future<pw.Document> build({
@@ -13,7 +16,7 @@ class BrokerageReportPdfService {
   }) async {
     final theme = await PdfService.buildUnicodeTheme();
     final doc = theme != null ? pw.Document(theme: theme) : pw.Document();
-    final dateFmt = DateFormat('dd MMM yyyy');
+    final dateFmt = DateFormat('dd MMM yyyy'.tr);
     final amountFmt = NumberFormat.currency(symbol: 'Rs ', decimalDigits: 2);
     final caratFmt = NumberFormat('#,##0.00');
 
@@ -35,7 +38,7 @@ class BrokerageReportPdfService {
             pw.Container(
               padding: const pw.EdgeInsets.all(16),
               alignment: pw.Alignment.center,
-              child: pw.Text('No brokerage entries in this period',
+              child: pw.Text('No brokerage entries in this period'.tr,
                   style: const pw.TextStyle(color: PdfColors.grey700)),
             )
           else
@@ -65,7 +68,7 @@ class BrokerageReportPdfService {
           pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              pw.Text('Brokerage Report',
+              pw.Text('Brokerage Report'.tr,
                   style: pw.TextStyle(
                       color: PdfColors.white,
                       fontSize: 18,
@@ -79,15 +82,15 @@ class BrokerageReportPdfService {
           pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.end,
             children: [
-              pw.Text('From ${dateFmt.format(start)}',
+              pw.Text('From ${dateFmt.format(start)}'.tr,
                   style: const pw.TextStyle(
                       color: PdfColors.white, fontSize: 10)),
-              pw.Text('To ${dateFmt.format(end)}',
+              pw.Text('To ${dateFmt.format(end)}'.tr,
                   style: const pw.TextStyle(
                       color: PdfColors.white, fontSize: 10)),
               pw.SizedBox(height: 4),
               pw.Text(
-                'Generated ${DateFormat('dd MMM yyyy').format(DateTime.now())}',
+                'Generated ${DateFormat('dd MMM yyyy'.tr).format(DateTime.now())}',
                 style: const pw.TextStyle(
                     color: PdfColors.white, fontSize: 9),
               ),
@@ -128,11 +131,11 @@ class BrokerageReportPdfService {
 
     return pw.Row(
       children: [
-        box('Brokers', brokerCount.toString()),
+        box('Brokers'.tr, brokerCount.toString()),
         pw.SizedBox(width: 8),
-        box('Entries', entryCount.toString()),
+        box('Entries'.tr, entryCount.toString()),
         pw.SizedBox(width: 8),
-        box('Total Brokerage', amountFmt.format(totalCharge),
+        box('Total Brokerage'.tr, amountFmt.format(totalCharge),
             color: PdfColors.blue900),
       ],
     );
@@ -164,7 +167,7 @@ class BrokerageReportPdfService {
                         color: PdfColors.blue900),
                   ),
                 ),
-                pw.Text('${b.entries.length} entries',
+                pw.Text('${b.entries.length} entries'.tr,
                     style: const pw.TextStyle(
                         color: PdfColors.grey700, fontSize: 9)),
                 pw.SizedBox(width: 10),
@@ -182,12 +185,12 @@ class BrokerageReportPdfService {
             color: PdfColors.grey200,
             child: pw.Row(
               children: [
-                _col('Side', 1),
-                _col('Date', 2),
-                _col('Person', 3),
-                _col('Item', 2),
-                _col('Carat', 2, right: true),
-                _col('Charge', 2, right: true),
+                _col('Side'.tr, 1),
+                _col('Date'.tr, 2),
+                _col('Person'.tr, 3),
+                _col('Item'.tr, 2),
+                _col('Carat'.tr, 2, right: true),
+                _col('Charge'.tr, 2, right: true),
               ],
             ),
           ),
@@ -201,7 +204,7 @@ class BrokerageReportPdfService {
                 ),
                 child: pw.Row(
                   children: [
-                    _cell(e.side == BrokerSide.buy ? 'Buy' : 'Sell', 1,
+                    _cell(e.side == BrokerSide.buy ? 'Buy'.tr : 'Sell'.tr, 1,
                         color: e.side == BrokerSide.buy
                             ? PdfColors.orange800
                             : PdfColors.green800),
@@ -256,7 +259,7 @@ class BrokerageReportPdfService {
       child: pw.Row(
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
-          pw.Text('TOTAL BROKERAGE',
+          pw.Text('TOTAL BROKERAGE'.tr,
               style: pw.TextStyle(
                   color: PdfColors.white,
                   fontWeight: pw.FontWeight.bold,

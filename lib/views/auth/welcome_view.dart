@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'signup_view.dart';
 import 'login_view.dart';
+import '../../constants/app_translations.dart';
+
 
 class WelcomeView extends StatelessWidget {
   const WelcomeView({super.key});
@@ -41,8 +43,8 @@ class WelcomeView extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 32),
-                      const Text(
-                        'CaratOne',
+                      Text(
+                        'Carat One'.tr,
                         style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.w800,
@@ -50,7 +52,7 @@ class WelcomeView extends StatelessWidget {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'Create professional invoices\nin minutes',
+                        'Create professional invoices\nin minutes'.tr,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 16,
@@ -85,8 +87,8 @@ class WelcomeView extends StatelessWidget {
                             elevation: 6,
                             shadowColor: accent.withOpacity(0.4),
                           ),
-                          child: const Text(
-                            'Get Started',
+                          child: Text(
+                            'Get Started'.tr,
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w700,
@@ -104,8 +106,8 @@ class WelcomeView extends StatelessWidget {
                             ),
                           );
                         },
-                        child: const Text(
-                          'Already have an account? Sign In',
+                        child: Text(
+                          'Already have an account? Sign In'.tr,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,

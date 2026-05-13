@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'subscription_service.dart';
 
+
 /// Central AdMob service.
 class AdsService {
   AdsService._();
@@ -12,8 +13,7 @@ class AdsService {
 
   static const bool useTestAds = true;
 
-  static const _testBannerAndroid       = 'ca-app-pub-3940256099942544/6300978111';
-  static const _testBannerIos           = 'ca-app-pub-3940256099942544/2934735716';
+
   static const _testInterstitialAndroid = 'ca-app-pub-3940256099942544/1033173712';
   static const _testInterstitialIos     = 'ca-app-pub-3940256099942544/4411468910';
   static const _testRewardedAndroid     = 'ca-app-pub-3940256099942544/5224354917';
@@ -21,8 +21,7 @@ class AdsService {
   static const _testNativeAndroid       = 'ca-app-pub-3940256099942544/2247696110';
   static const _testNativeIos           = 'ca-app-pub-3940256099942544/3986624511';
 
-  static const _prodBannerAndroid       = 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX';
-  static const _prodBannerIos           = 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX';
+
   static const _prodInterstitialAndroid = 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX';
   static const _prodInterstitialIos     = 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX';
   static const _prodRewardedAndroid     = 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX';
@@ -54,18 +53,12 @@ class AdsService {
   bool get shouldShowAds {
     final status = SubscriptionService().currentStatus;
     // Pro and Business plans hide ads. Trial also hides ads for better experience if specified, 
-    // but usually, we show them in Trial unless we want to showcase the "No Ads" benefit.
+    // but usually, we show them in Trial unless we want to showcase the "No Ads".tr benefit.
     // According to SUBSCRIPTION_PLAN.md: Pro/Business hide ads.
     return !status.isProOrBusiness;
   }
 
-  String get bannerAdUnitId {
-    if (!isSupported) return '';
-    if (useTestAds) {
-      return Platform.isAndroid ? _testBannerAndroid : _testBannerIos;
-    }
-    return Platform.isAndroid ? _prodBannerAndroid : _prodBannerIos;
-  }
+
 
   String get interstitialAdUnitId {
     if (!isSupported) return '';

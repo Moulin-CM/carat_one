@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:invoice_generator/constants/app_translations.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 
 class ForceUpdateDialog extends StatelessWidget {
   final String updateMessage;
@@ -16,7 +18,8 @@ class ForceUpdateDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: () async => !isForceUpdate, // Prevent back button if force update
+      onWillPop: () async =>
+          !isForceUpdate, // Prevent back button if force update
       child: AlertDialog(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
@@ -29,10 +32,10 @@ class ForceUpdateDialog extends StatelessWidget {
               size: 28,
             ),
             const SizedBox(width: 12),
-            const Expanded(
+            Expanded(
               child: Text(
-                'Update Required',
-                style: TextStyle(
+                'Update Required'.tr,
+                style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                   color: Colors.black87,
@@ -47,7 +50,7 @@ class ForceUpdateDialog extends StatelessWidget {
           children: [
             Text(
               updateMessage.isEmpty
-                  ? 'A new version of the app is available. Please update to continue using the app.'
+                  ? 'A new version of the app is available. Please update to continue using the app.'.tr
                   : updateMessage,
               style: const TextStyle(
                 fontSize: 16,
@@ -73,8 +76,8 @@ class ForceUpdateDialog extends StatelessWidget {
                   Expanded(
                     child: Text(
                       isForceUpdate
-                          ? 'This update is mandatory to continue using the app.'
-                          : 'We recommend updating to the latest version for the best experience.',
+                          ? 'This update is mandatory to continue using the app.'.tr
+                          : 'We recommend updating to the latest version for the best experience.'.tr,
                       style: TextStyle(
                         fontSize: 13,
                         color: Theme.of(context).colorScheme.primary,
@@ -91,7 +94,7 @@ class ForceUpdateDialog extends StatelessWidget {
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
               child: Text(
-                'Later',
+                'Later'.tr,
                 style: TextStyle(
                   color: Colors.grey[600],
                   fontWeight: FontWeight.w500,
@@ -108,14 +111,14 @@ class ForceUpdateDialog extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: const Row(
+            child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.download, size: 20),
+                const Icon(Icons.download, size: 20),
                 SizedBox(width: 8),
                 Text(
-                  'Update Now',
-                  style: TextStyle(
+                  'Update Now'.tr,
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                   ),
@@ -132,8 +135,9 @@ class ForceUpdateDialog extends StatelessWidget {
     if (updateUrl.isEmpty) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Update URL is not available. Please contact support.'),
+          SnackBar(
+            content:
+                Text('Update URL is not available. Please contact support.'.tr),
             backgroundColor: Colors.red,
           ),
         );
@@ -144,12 +148,13 @@ class ForceUpdateDialog extends StatelessWidget {
     try {
       // Ensure URL has proper scheme (http/https)
       String urlToLaunch = updateUrl.trim();
-      
+
       // Debug: Print the original URL
       print('Force Update - Original URL: $urlToLaunch');
-      
+
       // Add https:// if no scheme is present
-      if (!urlToLaunch.startsWith('http://') && !urlToLaunch.startsWith('https://')) {
+      if (!urlToLaunch.startsWith('http://') &&
+          !urlToLaunch.startsWith('https://')) {
         urlToLaunch = 'https://$urlToLaunch';
         print('Force Update - Added https:// prefix: $urlToLaunch');
       }
@@ -160,27 +165,29 @@ class ForceUpdateDialog extends StatelessWidget {
       } catch (e) {
         throw Exception('Invalid URL format: $e. URL: $urlToLaunch');
       }
-      
+
       // Validate URI is valid
       if (!uri.hasScheme || uri.scheme.isEmpty) {
         throw Exception('Invalid URL: Missing scheme (http:// or https://)');
       }
 
       if (uri.scheme != 'http' && uri.scheme != 'https') {
-        throw Exception('Invalid URL scheme: ${uri.scheme}. Only http:// and https:// are supported.');
+        throw Exception(
+            'Invalid URL scheme: ${uri.scheme}. Only http:// and https:// are supported.');
       }
 
       // Debug: Print the parsed URI
       print('Force Update - Parsed URI: ${uri.toString()}');
       print('Force Update - Scheme: ${uri.scheme}, Host: ${uri.host}');
 
-      // Try to launch the URL directly - don't use canLaunchUrl as it's unreliable
+      // Try to launch the URL directly - don't use canLaunchUrl as it'.trs unreliable
       // Start with externalApplication which opens in browser
       bool launched = false;
       String? errorDetails;
-      
+
       try {
-        print('Force Update - Attempting to launch with externalApplication mode...');
+        print(
+            'Force Update - Attempting to launch with externalApplication mode...'.tr);
         launched = await launchUrl(
           uri,
           mode: LaunchMode.externalApplication,
@@ -189,10 +196,11 @@ class ForceUpdateDialog extends StatelessWidget {
       } catch (e) {
         errorDetails = e.toString();
         print('Force Update - externalApplication failed: $errorDetails');
-        
+
         // If externalApplication fails, try platformDefault
         try {
-          print('Force Update - Attempting to launch with platformDefault mode...');
+          print(
+              'Force Update - Attempting to launch with platformDefault mode...'.tr);
           launched = await launchUrl(
             uri,
             mode: LaunchMode.platformDefault,
@@ -205,41 +213,51 @@ class ForceUpdateDialog extends StatelessWidget {
       }
 
       if (launched) {
-        print('Force Update - URL launched successfully');
+        print('Force Update - URL launched successfully'.tr);
         // Small delay to ensure the URL opens
         await Future.delayed(const Duration(milliseconds: 300));
-        
+
         // If it's not a force update, close the dialog after launching
         if (!isForceUpdate && context.mounted) {
           Navigator.of(context).pop(true);
         }
       } else {
-        throw Exception(errorDetails ?? 'Failed to launch URL. The system returned false.');
+        throw Exception(
+            errorDetails ?? 'Failed to launch URL. The system returned false.'.tr);
       }
     } catch (e) {
       print('Force Update - Error: $e');
-      
+
       if (context.mounted) {
         // Show user-friendly error message with URL for debugging
-        String errorMessage = 'Unable to open update URL.';
-        
+        String errorMessage = 'Unable to open update URL.'.tr;
+
         final errorString = e.toString().toLowerCase();
-        if (errorString.contains('no activity found') || 
-            errorString.contains('no application found') ||
-            errorString.contains('resolveactivity')) {
-          errorMessage = 'No browser found to open the URL. Please install a web browser (Chrome, Firefox, etc.) and try again.\n\nURL: $updateUrl';
-        } else if (errorString.contains('network') || 
-                   errorString.contains('socket') ||
-                   errorString.contains('connection')) {
-          errorMessage = 'Network error. Please check your internet connection and try again.';
-        } else if (errorString.contains('invalid url') || 
-                   errorString.contains('malformed') ||
-                   errorString.contains('invalid format')) {
-          errorMessage = 'Invalid URL format. Please contact support.\n\nURL: $updateUrl\nError: ${e.toString()}';
+        if (errorString.contains('no activity found'.tr) ||
+            errorString.contains('no application found'.tr) ||
+            errorString.contains('resolveactivity'.tr)) {
+          errorMessage =
+              'No browser found to open the URL. Please install a web browser (Chrome, Firefox, etc.) and try again.'.tr
+                      .tr +
+                  '\n\nURL: $updateUrl';
+        } else if (errorString.contains('network'.tr) ||
+            errorString.contains('socket'.tr) ||
+            errorString.contains('connection'.tr)) {
+          errorMessage =
+              'Network error. Please check your internet connection and try again.'.tr
+                  .tr;
+        } else if (errorString.contains('invalid url'.tr) ||
+            errorString.contains('malformed'.tr) ||
+            errorString.contains('invalid format'.tr)) {
+          errorMessage = 'Invalid URL format. Please contact support.'.tr +
+              '\n\nURL: $updateUrl\nError: ${e.toString()}';
         } else {
-          errorMessage = 'Unable to open update URL.\n\nPlease try opening this URL manually in your browser:\n$updateUrl\n\nError: ${e.toString()}';
+          errorMessage = 'Unable to open update URL.'.tr +
+              '\n\n' +
+              'Please try opening this URL manually in your browser:'.tr +
+              '\n$updateUrl\n\nError: ${e.toString()}';
         }
-        
+
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -253,4 +271,3 @@ class ForceUpdateDialog extends StatelessWidget {
     }
   }
 }
-

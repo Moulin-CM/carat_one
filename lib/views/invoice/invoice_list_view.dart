@@ -16,14 +16,42 @@ import '../../widgets/paywall_dialog.dart';
 import '../subscription/subscription_plans_view.dart';
 import 'invoice_form_view.dart';
 import 'invoice_details_view.dart';
+import '../../constants/app_translations.dart';
 
-class InvoiceListView extends StatelessWidget {
+
+class InvoiceListView extends StatefulWidget {
   const InvoiceListView({super.key});
 
   @override
+  State<InvoiceListView> createState() => _InvoiceListViewState();
+}
+
+class _InvoiceListViewState extends State<InvoiceListView>
+    with AutomaticKeepAliveClientMixin {
+
+  late final InvoiceListViewModel _viewModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _viewModel = InvoiceListViewModel()..loadInvoices();
+  }
+
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => InvoiceListViewModel()..loadInvoices(),
+    super.build(context);
+
+    return ChangeNotifierProvider<InvoiceListViewModel>.value(
+      value: _viewModel,
       child: const _InvoiceListViewContent(),
     );
   }
@@ -74,7 +102,7 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
                 child: Icon(Icons.receipt_long_rounded, color: _accent),
               ),
               const SizedBox(width: 10),
-              const Text('Generated Invoices'),
+              Text('Generated Invoices'.tr),
             ],
           ),
         ),
@@ -82,7 +110,7 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
             onPressed: () => viewModel.loadInvoices(),
-            tooltip: 'Refresh',
+            tooltip: 'Refresh'.tr,
           ),
         ],
       ),
@@ -118,7 +146,7 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
           child: ElevatedButton.icon(
             onPressed: () => _startNewSell(context, viewModel),
             icon: const Icon(Icons.add_rounded),
-            label: const Text('Sell', style: TextStyle(fontWeight: FontWeight.w700)),
+            label: Text('Sell'.tr, style: const TextStyle(fontWeight: FontWeight.w700)),
             style: ElevatedButton.styleFrom(
               backgroundColor: _accent,
               foregroundColor: Colors.white,
@@ -196,7 +224,7 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
             children: [
               Expanded(
                 child: _summaryTile(
-                  'Opening Carats',
+                  'Opening Carats'.tr,
                   '${caratFmt.format(viewModel.openingSellCarat)} ct',
                   Icons.diamond_rounded,
                 ),
@@ -204,7 +232,7 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
               Container(width: 1, height: 30, color: Colors.white24),
               Expanded(
                 child: _summaryTile(
-                  'Opening Amount',
+                  'Opening Amount'.tr,
                   fmt.format(viewModel.openingSellAmount),
                   Icons.currency_rupee_rounded,
                 ),
@@ -212,7 +240,7 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
               Container(width: 1, height: 30, color: Colors.white24),
               Expanded(
                 child: _summaryTile(
-                  'Outstanding',
+                  'Outstanding'.tr,
                   '${caratFmt.format(viewModel.outstandingSellCarat)} ct',
                   Icons.balance_rounded,
                 ),
@@ -253,8 +281,8 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
   Widget _yearEndBadge(BuildContext context, InvoiceListViewModel vm) {
     final end = vm.yearEndDate;
     final label = end == null
-        ? 'Set Year End'
-        : 'FY End: ${DateFormat('dd MMM yyyy').format(end)}';
+        ? 'Set Year End'.tr
+        : '${'FY End: '.tr}${DateFormat('dd MMM yyyy'.tr).format(end)}';
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
@@ -295,18 +323,18 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
                 final confirm = await showDialog<bool>(
                   context: context,
                   builder: (ctx) => AlertDialog(
-                    title: const Text('Clear Year End?'),
-                    content: const Text(
-                        'This removes the financial year filter. All-time totals will be shown.'),
+                    title: Text('Clear Year End?'.tr),
+                    content: Text(
+                        'This removes the financial year filter. All-time totals will be shown.'.tr),
                     actions: [
                       TextButton(
                           onPressed: () => Navigator.pop(ctx, false),
-                          child: const Text('Cancel')),
+                          child: Text('Cancel'.tr)),
                       TextButton(
                           onPressed: () => Navigator.pop(ctx, true),
                           style: TextButton.styleFrom(
                               foregroundColor: Colors.red),
-                          child: const Text('Clear')),
+                          child: Text('Clear'.tr)),
                     ],
                   ),
                 );
@@ -341,7 +369,7 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
       initialDate: initial,
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
-      helpText: 'Select Financial Year End',
+      helpText: 'Select Financial Year End'.tr,
     );
     if (picked != null) {
       await vm.setYearEndDate(picked);
@@ -394,7 +422,7 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
                       color: Color(0xFF1E3C72),
                     ),
                     decoration: InputDecoration(
-                      hintText: 'Search invoices...',
+                      hintText: 'Search invoices...'.tr,
                       hintStyle: TextStyle(
                         color: Colors.grey[500],
                         fontSize: 15,
@@ -508,11 +536,11 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
                         avatar: Icon(Icons.calendar_today_rounded, size: 16, color: _accent),
                         label: Text(
                           viewModel.startDate != null && viewModel.endDate != null
-                              ? '${DateFormat('dd MMM').format(viewModel.startDate!)} - ${DateFormat('dd MMM').format(viewModel.endDate!)}'
+                              ? '${DateFormat('dd MMM'.tr).format(viewModel.startDate!)} - ${DateFormat('dd MMM'.tr).format(viewModel.endDate!)}'
                               : viewModel.startDate != null
-                                  ? 'From ${DateFormat('dd MMM').format(viewModel.startDate!)}'
+                                  ? '${'From'.tr} ${DateFormat('dd MMM'.tr).format(viewModel.startDate!)}'
                                   : viewModel.endDate != null
-                                      ? 'Until ${DateFormat('dd MMM').format(viewModel.endDate!)}'
+                                      ? '${'Until'.tr} ${DateFormat('dd MMM'.tr).format(viewModel.endDate!)}'
                                       : '',
                           style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
                         ),
@@ -528,7 +556,7 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
                       viewModel.clearFilters();
                     },
                     icon: const Icon(Icons.clear_all_rounded, size: 16),
-                    label: const Text('Clear all', style: TextStyle(fontSize: 12)),
+                    label: Text('Clear all'.tr, style: const TextStyle(fontSize: 12)),
                     style: TextButton.styleFrom(
                       foregroundColor: Colors.grey[700],
                     ),
@@ -548,13 +576,13 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
     final result = await showDialog<Map<String, DateTime?>>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Filter by Date Range'),
+        title: Text('Filter by Date Range'.tr),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              title: const Text('Start Date'),
-              subtitle: Text(startDate != null ? DateFormat('dd MMM yyyy').format(startDate!) : 'Not set'),
+              title: Text('Start Date'.tr),
+              subtitle: Text(startDate != null ? DateFormat('dd MMM yyyy'.tr).format(startDate!) : 'Not set'.tr),
               trailing: IconButton(
                 icon: const Icon(Icons.calendar_today_rounded),
                 onPressed: () async {
@@ -575,8 +603,8 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
               ),
             ),
             ListTile(
-              title: const Text('End Date'),
-              subtitle: Text(endDate != null ? DateFormat('dd MMM yyyy').format(endDate!) : 'Not set'),
+              title: Text('End Date'.tr),
+              subtitle: Text(endDate != null ? DateFormat('dd MMM yyyy'.tr).format(endDate!) : 'Not set'.tr),
               trailing: IconButton(
                 icon: const Icon(Icons.calendar_today_rounded),
                 onPressed: () async {
@@ -600,19 +628,19 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, {'start': null, 'end': null}),
-            child: const Text('Clear'),
+            onPressed: () => Navigator.pop(context, {'start'.tr: null, 'end'.tr: null}),
+            child: Text('Clear'.tr),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(context, {'start': startDate, 'end': endDate}),
-            child: const Text('Apply'),
+            onPressed: () => Navigator.pop(context, {'start'.tr: startDate, 'end'.tr: endDate}),
+            child: Text('Apply'.tr),
           ),
         ],
       ),
     );
 
     if (result != null) {
-      viewModel.setDateRange(result['start'], result['end']);
+      viewModel.setDateRange(result['start'.tr], result['end'.tr]);
     }
   }
 
@@ -637,9 +665,9 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
             child: Icon(Icons.description_outlined, size: 54, color: _accent),
           ),
           const SizedBox(height: 16),
-          Text('No sell entries yet', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: _deepAccent)),
+          Text('No sell entries yet'.tr, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: _deepAccent)),
           const SizedBox(height: 6),
-          Text('Tap Sell to record a cash sell or generate an invoice', style: TextStyle(color: Colors.grey[600])),
+          Text('Tap Sell to record a cash sell or generate an invoice'.tr, style: TextStyle(color: Colors.grey[600])),
         ],
       ),
     );
@@ -663,8 +691,8 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
     if (!canAdd && context.mounted) {
       showDialog(
         context: context,
-        builder: (context) => const PaywallDialog(
-          message: 'You have reached your monthly limit for adding sells. Please upgrade your plan to continue adding unlimited entries.',
+        builder: (context) => PaywallDialog(
+          message: 'You have reached your monthly limit for adding sells. Please upgrade your plan to continue adding unlimited entries.'.tr,
         ),
       );
       return;
@@ -702,8 +730,8 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
     if (!canPrint && context.mounted) {
       showDialog(
         context: context,
-        builder: (context) => const PaywallDialog(
-          message: 'You have reached your monthly limit for PDF generation. Please upgrade your plan for unlimited PDF prints and shares.',
+        builder: (context) => PaywallDialog(
+          message: 'You have reached your monthly limit for PDF generation. Please upgrade your plan for unlimited PDF prints and shares.'.tr,
         ),
       );
       return;
@@ -719,7 +747,7 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
       if (filePath == null) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Could not generate PDF for this invoice.')),
+            SnackBar(content: Text('Could not generate PDF for this invoice.'.tr)),
           );
         }
         return;
@@ -735,7 +763,7 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Could not open PDF: $e')),
+            SnackBar(content: Text('${'Could not open PDF'.tr}: $e')),
           );
         }
       }
@@ -748,8 +776,8 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
         await EmailService.shareInvoiceViaEmail(invoice);
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Opening email client...'),
+            SnackBar(
+              content: Text('Opening email client...'.tr),
               backgroundColor: Colors.green,
             ),
           );
@@ -758,7 +786,7 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error: $e'),
+              content: Text('${'Error'.tr}: $e'),
               backgroundColor: Colors.red,
             ),
           );
@@ -773,7 +801,7 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
       if (filePath == null) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Could not generate PDF for sharing.')),
+            SnackBar(content: Text('Could not generate PDF for sharing.'.tr)),
           );
         }
         return;
@@ -781,7 +809,7 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
 
       await Share.shareXFiles(
         [XFile(filePath)],
-        text: 'Invoice ${invoice.invoiceNo}',
+        text: '${'Invoice'.tr} ${invoice.invoiceNo}',
       );
     });
   }
@@ -824,15 +852,15 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
   }
 
   Widget _buildInvoiceCard(BuildContext context, InvoiceModel invoice, InvoiceListViewModel viewModel) {
-    final dateFormat = DateFormat('dd MMM yyyy');
+    final dateFormat = DateFormat('dd MMM yyyy'.tr);
     final paid = invoice.isFullyPaid;
     final partial = invoice.totalPaidCarat > 0 && !paid;
-    final statusLabel = paid ? 'Paid' : partial ? 'Partial' : 'Unpaid';
+    final statusLabel = paid ? 'Paid'.tr : partial ? 'Partial'.tr : 'Unpaid'.tr;
     final statusColor =
         paid ? Colors.green : partial ? Colors.orange : Colors.red;
     final isCashSell = invoice.isCashSell;
     final modeColor = isCashSell ? const Color(0xFF2E7D32) : _accent;
-    final modeLabel = isCashSell ? 'Cash' : 'Invoice';
+    final modeLabel = isCashSell ? 'Cash'.tr : 'Invoice'.tr;
     final modeIcon =
         isCashSell ? Icons.payments_rounded : Icons.receipt_long_rounded;
     return Container(
@@ -866,13 +894,13 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    invoice.buyerName.isNotEmpty ? invoice.buyerName : 'Unnamed Buyer',
+                    invoice.buyerName.isNotEmpty ? invoice.buyerName : 'Unnamed Buyer'.tr,
                     style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
                   ),
                   const SizedBox(height: 6),
-                  Text('${isCashSell ? 'Entry No' : 'Invoice No'}: ${invoice.invoiceNo}', style: TextStyle(color: Colors.grey[700])),
-                  Text('Date: ${dateFormat.format(invoice.invoiceDate)}', style: TextStyle(color: Colors.grey[700])),
-                  Text('Total: ₹${invoice.grandTotal.toStringAsFixed(2)}', style: TextStyle(color: _deepAccent, fontWeight: FontWeight.w700)),
+                  Text('${isCashSell ? 'Entry No'.tr : 'Invoice No'.tr}: ${invoice.invoiceNo}', style: TextStyle(color: Colors.grey[700])),
+                  Text('${'Date'.tr}: ${dateFormat.format(invoice.invoiceDate)}', style: TextStyle(color: Colors.grey[700])),
+                  Text('${'Total'.tr}: ₹${invoice.grandTotal.toStringAsFixed(2)}', style: TextStyle(color: _deepAccent, fontWeight: FontWeight.w700)),
                 ],
               ),
             ),
@@ -921,7 +949,7 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
                       border: Border.all(color: _accent.withOpacity(0.4)),
                     ),
                     child: Text(
-                      'For Other',
+                      'For Other'.tr,
                       style: TextStyle(
                           color: _accent,
                           fontWeight: FontWeight.w700,
@@ -932,46 +960,46 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
                 PopupMenuButton(
                   itemBuilder: (context) => [
                     if (!isCashSell) ...[
-                      const PopupMenuItem(
-                        value: 'view',
+                      PopupMenuItem(
+                        value: 'view'.tr,
                         child: Row(
-                          children: [Icon(Icons.picture_as_pdf_rounded, size: 20), SizedBox(width: 8), Text('View Invoice')],
+                          children: [const Icon(Icons.picture_as_pdf_rounded, size: 20), const SizedBox(width: 8), Text('View Invoice'.tr)],
                         ),
                       ),
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'email',
                         child: Row(
-                          children: [Icon(Icons.email_rounded, size: 20), SizedBox(width: 8), Text('Email Invoice')],
+                          children: [const Icon(Icons.email_rounded, size: 20), const SizedBox(width: 8), Text('Email Invoice'.tr)],
                         ),
                       ),
-                      const PopupMenuItem(
-                        value: 'share',
+                      PopupMenuItem(
+                        value: 'share'.tr,
                         child: Row(
-                          children: [Icon(Icons.share, size: 20), SizedBox(width: 8), Text('Share')],
+                          children: [const Icon(Icons.share, size: 20), const SizedBox(width: 8), Text('Share'.tr)],
                         ),
                       ),
                     ],
-                    const PopupMenuItem(
-                      value: 'edit',
+                    PopupMenuItem(
+                      value: 'edit'.tr,
                       child: Row(
-                        children: [Icon(Icons.edit, size: 20), SizedBox(width: 8), Text('Edit')],
+                        children: [const Icon(Icons.edit, size: 20), const SizedBox(width: 8), Text('Edit'.tr)],
                       ),
                     ),
-                    const PopupMenuItem(
-                      value: 'delete',
+                    PopupMenuItem(
+                      value: 'delete'.tr,
                       child: Row(
-                        children: [Icon(Icons.delete, size: 20, color: Colors.red), SizedBox(width: 8), Text('Delete', style: TextStyle(color: Colors.red))],
+                        children: [const Icon(Icons.delete, size: 20, color: Colors.red), const SizedBox(width: 8), Text('Delete'.tr, style: const TextStyle(color: Colors.red))],
                       ),
                     ),
                   ],
                   onSelected: (value) async {
-                    if (value == 'view') {
+                    if (value == 'view'.tr) {
                       await _openPdf(invoice);
                     } else if (value == 'email') {
                       await _emailInvoice(context, invoice);
-                    } else if (value == 'share') {
+                    } else if (value == 'share'.tr) {
                       await _sharePdf(invoice);
-                    } else if (value == 'edit') {
+                    } else if (value == 'edit'.tr) {
                       final result = await Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -981,7 +1009,7 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
                       if (result == true && context.mounted) {
                         viewModel.loadInvoices();
                       }
-                    } else if (value == 'delete') {
+                    } else if (value == 'delete'.tr) {
                       await _handleDeleteInvoice(context, invoice, viewModel);
                     }
                   },
@@ -998,17 +1026,17 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Invoice'),
-        content: const Text('Are you sure you want to delete this invoice?'),
+        title: Text('Delete Invoice'.tr),
+        content: Text('Are you sure you want to delete this invoice?'.tr),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text('Cancel'.tr),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: Text('Delete'.tr),
           ),
         ],
       ),
@@ -1018,12 +1046,12 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
       final success = await viewModel.deleteInvoice(invoice.id);
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invoice deleted')),
+          SnackBar(content: Text('Invoice deleted'.tr)),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(viewModel.errorMessage ?? 'Error deleting invoice'),
+            content: Text(viewModel.errorMessage ?? 'Error deleting invoice'.tr),
             backgroundColor: Colors.red,
           ),
         );

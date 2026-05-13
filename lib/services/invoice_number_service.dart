@@ -1,6 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'settings_service.dart';
 
+
 class InvoiceNumberService {
   static const String _lastInvoiceNumberKey = 'last_invoice_number';
   static const String _lastCashEntryNumberKey = 'last_cash_entry_number';
@@ -34,7 +35,7 @@ class InvoiceNumberService {
   }
 
   /// Cash sells get their own counter so their Entry No is always
-  /// "count of existing cash entries + 1" — independent of bill invoices.
+  /// "count of existing cash entries + 1".tr — independent of bill invoices.
   static Future<int> getNextCashEntryNumber() async {
     final prefs = await SharedPreferences.getInstance();
     final lastNumber = prefs.getInt(_lastCashEntryNumberKey) ?? 0;

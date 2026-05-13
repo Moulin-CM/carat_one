@@ -1,10 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:invoice_generator/constants/app_translations.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:cross_file/cross_file.dart';
 import '../models/invoice_model.dart';
 import 'invoice_storage_service.dart';
+
 
 class ExportImportService {
   /// Export all invoices to JSON file
@@ -12,10 +14,10 @@ class ExportImportService {
     try {
       final invoices = await InvoiceStorageService.getAllInvoices();
       final exportData = {
-        'version': '1.0',
-        'exportDate': DateTime.now().toIso8601String(),
-        'invoiceCount': invoices.length,
-        'invoices': invoices.map((inv) => inv.toJson()).toList(),
+        'version'.tr: '1.0',
+        'exportDate'.tr: DateTime.now().toIso8601String(),
+        'invoiceCount'.tr: invoices.length,
+        'invoices'.tr: invoices.map((inv) => inv.toJson()).toList(),
       };
 
       final jsonString = const JsonEncoder.withIndent('  ').convert(exportData);
@@ -64,11 +66,11 @@ class ExportImportService {
       final data = jsonDecode(jsonString) as Map<String, dynamic>;
       
       // Validate format
-      if (data['invoices'] == null || data['invoices'] is! List) {
-        throw Exception('Invalid backup file format');
+      if (data['invoices'.tr] == null || data['invoices'.tr] is! List) {
+        throw Exception('Invalid backup file format'.tr);
       }
 
-      final invoicesJson = data['invoices'] as List;
+      final invoicesJson = data['invoices'.tr] as List;
       final List<InvoiceModel> importedInvoices = [];
       int successCount = 0;
       int errorCount = 0;
@@ -121,9 +123,9 @@ class ExportImportService {
     try {
       final data = jsonDecode(jsonString) as Map<String, dynamic>;
       return {
-        'version': data['version'],
-        'exportDate': data['exportDate'],
-        'invoiceCount': data['invoiceCount'],
+        'version'.tr: data['version'.tr],
+        'exportDate'.tr: data['exportDate'.tr],
+        'invoiceCount'.tr: data['invoiceCount'.tr],
       };
     } catch (_) {
       return null;

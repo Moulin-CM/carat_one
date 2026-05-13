@@ -3,6 +3,10 @@ import 'package:provider/provider.dart';
 import '../../services/ads_service.dart';
 import '../../viewmodels/settings_viewmodel.dart';
 import '../export_import/export_import_view.dart';
+import '../../constants/app_translations.dart';
+
+
+import 'package:invoice_generator/constants/app_translations.dart';
 
 class SettingsView extends StatelessWidget {
   const SettingsView({super.key});
@@ -80,7 +84,7 @@ class _SettingsViewContentState extends State<_SettingsViewContent> {
                 child: Icon(Icons.settings_rounded, color: _accent),
               ),
               const SizedBox(width: 10),
-              const Text('Settings'),
+              Text('Settings'.tr),
             ],
           ),
         ),
@@ -100,11 +104,11 @@ class _SettingsViewContentState extends State<_SettingsViewContent> {
                     _buildSuccessMessage(viewModel.successMessage!),
                   const SizedBox(height: 8),
                   _buildSection(
-                    title: 'Tax Rates',
+                    title: 'Tax Rates'.tr,
                     icon: Icons.calculate_rounded,
                     children: [
                       _buildSliderField(
-                        'CGST Rate (%)',
+                        'CGST Rate (%)'.tr,
                         viewModel.settings.cgstRate,
                         (value) => viewModel.updateCgstRate(value),
                         min: 0.0,
@@ -112,7 +116,7 @@ class _SettingsViewContentState extends State<_SettingsViewContent> {
                       ),
                       const SizedBox(height: 16),
                       _buildSliderField(
-                        'SGST Rate (%)',
+                        'SGST Rate (%)'.tr,
                         viewModel.settings.sgstRate,
                         (value) => viewModel.updateSgstRate(value),
                         min: 0.0,
@@ -120,7 +124,7 @@ class _SettingsViewContentState extends State<_SettingsViewContent> {
                       ),
                       const SizedBox(height: 16),
                       _buildSliderField(
-                        'IGST Rate (%)',
+                        'IGST Rate (%)'.tr,
                         viewModel.settings.igstRate,
                         (value) => viewModel.updateIgstRate(value),
                         min: 0.0,
@@ -130,40 +134,40 @@ class _SettingsViewContentState extends State<_SettingsViewContent> {
                   ),
                   const SizedBox(height: 18),
                   _buildSection(
-                    title: 'Invoice Numbering',
+                    title: 'Invoice Numbering'.tr,
                     icon: Icons.numbers_rounded,
                     children: [
                       _buildTextField(
-                        'Invoice Number Prefix',
+                        'Invoice Number Prefix'.tr,
                         _invoicePrefixController,
                         (value) => viewModel.updateInvoiceNumberPrefix(value),
-                        hint: 'e.g., INV, INVOICE',
+                        hint: 'e.g., INV, INVOICE'.tr,
                         icon: Icons.tag_rounded,
                       ),
                       const SizedBox(height: 16),
                       _buildNumberField(
-                        'Starting Invoice Number',
+                        'Starting Invoice Number'.tr,
                         _startingNumberController,
                         (value) => viewModel.updateStartingInvoiceNumber(value),
                         icon: Icons.start_rounded,
                       ),
                       const SizedBox(height: 16),
                       _buildInfoCard(
-                        'Note: Changing the starting number will affect new invoices only. Use "Reset Invoice Numbering" to reset the current counter.',
+                        'Note: Changing the starting number will affect new invoices only. Use "Reset Invoice Numbering".tr to reset the current counter.'.tr,
                         Icons.info_outline_rounded,
                       ),
                     ],
                   ),
                   const SizedBox(height: 18),
                   _buildSection(
-                    title: 'Default Invoice Terms',
+                    title: 'Default Invoice Terms'.tr,
                     icon: Icons.description_rounded,
                     children: [
                       _buildTextField(
-                        'Default Terms',
+                        'Default Terms'.tr,
                         _defaultTermsController,
                         (value) => viewModel.updateDefaultTerms(value),
-                        hint: 'Enter default terms and conditions',
+                        hint: 'Enter default terms and conditions'.tr,
                         icon: Icons.text_fields_rounded,
                         maxLines: 3,
                       ),
@@ -171,18 +175,18 @@ class _SettingsViewContentState extends State<_SettingsViewContent> {
                   ),
                   const SizedBox(height: 18),
                   _buildSection(
-                    title: 'App Preferences',
+                    title: 'App Preferences'.tr,
                     icon: Icons.tune_rounded,
                     children: [
                       _buildSwitchTile(
-                        'Enable Notifications',
+                        'Enable Notifications'.tr,
                         viewModel.settings.enableNotifications,
                         (value) => viewModel.updateEnableNotifications(value),
                         Icons.notifications_outlined,
                       ),
                       const SizedBox(height: 8),
                       _buildSwitchTile(
-                        'Auto Save Draft',
+                        'Auto Save Draft'.tr,
                         viewModel.settings.autoSaveDraft,
                         (value) => viewModel.updateAutoSaveDraft(value),
                         Icons.save_outlined,
@@ -191,12 +195,12 @@ class _SettingsViewContentState extends State<_SettingsViewContent> {
                   ),
                   const SizedBox(height: 18),
                   _buildSection(
-                    title: 'Data Management',
+                    title: 'Data Management'.tr,
                     icon: Icons.storage_rounded,
                     children: [
                       _buildActionButton(
-                        'Export / Import',
-                        'Backup and restore your invoices',
+                        'Export / Import'.tr,
+                        'Backup and restore your invoices'.tr,
                         Icons.import_export_rounded,
                         Colors.blue,
                         () async {
@@ -214,16 +218,16 @@ class _SettingsViewContentState extends State<_SettingsViewContent> {
                       ),
                       const SizedBox(height: 12),
                       _buildActionButton(
-                        'Reset Invoice Numbering',
-                        'Reset the invoice number counter to start from beginning',
+                        'Reset Invoice Numbering'.tr,
+                        'Reset the invoice number counter to start from beginning'.tr,
                         Icons.refresh_rounded,
                         Colors.orange,
                         () => _handleResetInvoiceNumbering(context, viewModel),
                       ),
                       const SizedBox(height: 12),
                       _buildActionButton(
-                        'Reset All Settings',
-                        'Reset all settings to default values',
+                        'Reset All Settings'.tr,
+                        'Reset all settings to default values'.tr,
                         Icons.restore_rounded,
                         Colors.red,
                         () => _handleResetSettings(context, viewModel),
@@ -237,12 +241,12 @@ class _SettingsViewContentState extends State<_SettingsViewContent> {
                   if (AdsService.instance.isSupported) ...[
                     const SizedBox(height: 18),
                     _buildSection(
-                      title: 'Support CaratOne',
+                      title: 'Support CaratOne'.tr,
                       icon: Icons.favorite_rounded,
                       children: [
                         _buildActionButton(
-                          'Watch a Short Ad',
-                          'Help keep CaratOne free — watch a 30-second ad to support development',
+                          'Watch a Short Ad'.tr,
+                          'Help keep CaratOne free — watch a 30-second ad to support development'.tr,
                           Icons.play_circle_fill_rounded,
                           Colors.pinkAccent,
                           () => _handleSupportRewarded(context),
@@ -273,7 +277,7 @@ class _SettingsViewContentState extends State<_SettingsViewContent> {
                     )
                   : const Icon(Icons.save_rounded),
               label: Text(
-                viewModel.isSaving ? 'Saving...' : 'Save Settings',
+                viewModel.isSaving ? 'Saving...'.tr : 'Save Settings'.tr,
                 style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
               ),
               style: ElevatedButton.styleFrom(
@@ -446,8 +450,7 @@ class _SettingsViewContentState extends State<_SettingsViewContent> {
                 color: _accent.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Text(
-                '${value.toStringAsFixed(2)}%',
+              child: Text('${value.toStringAsFixed(2)}%'.tr,
                 style: TextStyle(
                   fontWeight: FontWeight.w700,
                   color: _accent,
@@ -672,8 +675,8 @@ class _SettingsViewContentState extends State<_SettingsViewContent> {
     if (context.mounted) {
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Settings saved successfully!'),
+          SnackBar(
+            content: Text('Settings saved successfully!'.tr),
             backgroundColor: Colors.green,
           ),
         );
@@ -684,7 +687,7 @@ class _SettingsViewContentState extends State<_SettingsViewContent> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(viewModel.errorMessage ?? 'Error saving settings'),
+            content: Text(viewModel.errorMessage ?? 'Error saving settings'.tr),
             backgroundColor: Colors.red,
           ),
         );
@@ -696,17 +699,17 @@ class _SettingsViewContentState extends State<_SettingsViewContent> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Reset Invoice Numbering'),
-        content: const Text('Are you sure you want to reset the invoice numbering? This will reset the counter to start from the beginning.'),
+        title: Text('Reset Invoice Numbering'.tr),
+        content: Text('Are you sure you want to reset the invoice numbering? This will reset the counter to start from the beginning.'.tr),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text('Cancel'.tr),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: Colors.orange),
-            child: const Text('Reset'),
+            child: Text('Reset'.tr),
           ),
         ],
       ),
@@ -717,15 +720,15 @@ class _SettingsViewContentState extends State<_SettingsViewContent> {
       if (context.mounted) {
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Invoice numbering reset successfully!'),
+            SnackBar(
+              content: Text('Invoice numbering reset successfully!'.tr),
               backgroundColor: Colors.green,
             ),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(viewModel.errorMessage ?? 'Error resetting invoice numbering'),
+              content: Text(viewModel.errorMessage ?? 'Error resetting invoice numbering'.tr),
               backgroundColor: Colors.red,
             ),
           );
@@ -738,17 +741,17 @@ class _SettingsViewContentState extends State<_SettingsViewContent> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Reset All Settings'),
-        content: const Text('Are you sure you want to reset all settings to default values? This action cannot be undone.'),
+        title: Text('Reset All Settings'.tr),
+        content: Text('Are you sure you want to reset all settings to default values? This action cannot be undone.'.tr),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text('Cancel'.tr),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Reset'),
+            child: Text('Reset'.tr),
           ),
         ],
       ),
@@ -759,15 +762,15 @@ class _SettingsViewContentState extends State<_SettingsViewContent> {
       if (context.mounted) {
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Settings reset to default!'),
+            SnackBar(
+              content: Text('Settings reset to default!'.tr),
               backgroundColor: Colors.green,
             ),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(viewModel.errorMessage ?? 'Error resetting settings'),
+              content: Text(viewModel.errorMessage ?? 'Error resetting settings'.tr),
               backgroundColor: Colors.red,
             ),
           );
@@ -790,23 +793,22 @@ class _SettingsViewContentState extends State<_SettingsViewContent> {
           children: [
             Icon(Icons.favorite_rounded, color: Colors.pinkAccent),
             const SizedBox(width: 8),
-            const Text('Thank You!'),
+            Text('Thank You!'.tr),
           ],
         ),
-        content: const Text(
-          'A short video ad will play. When it finishes you\'ll get a '
-          'thank-you and we earn a small amount that keeps CaratOne free.\n\n'
-          'You can close the ad at any time.',
+        content: Text(
+          '${'A short video ad will play. When it finishes you\'ll get a thank-you and we earn a small amount that keeps CaratOne free.'.tr}\n\n'
+          '${'You can close the ad at any time.'.tr}',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Maybe Later'),
+            child: Text('Maybe Later'.tr),
           ),
           ElevatedButton.icon(
             onPressed: () => Navigator.pop(ctx, true),
             icon: const Icon(Icons.play_arrow_rounded),
-            label: const Text('Watch Ad'),
+            label: Text('Watch Ad'.tr),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.pinkAccent,
               foregroundColor: Colors.white,
@@ -822,12 +824,12 @@ class _SettingsViewContentState extends State<_SettingsViewContent> {
       onReward: () {
         if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Row(
               children: [
-                Icon(Icons.favorite_rounded, color: Colors.white, size: 18),
-                SizedBox(width: 8),
-                Text('Thanks for supporting CaratOne ❤️'),
+                const Icon(Icons.favorite_rounded, color: Colors.white, size: 18),
+                const SizedBox(width: 8),
+                Text('Thanks for supporting CaratOne ❤️'.tr),
               ],
             ),
             backgroundColor: Colors.pinkAccent,
@@ -837,8 +839,8 @@ class _SettingsViewContentState extends State<_SettingsViewContent> {
       onUnavailable: () {
         if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Ad not available right now — please try again later.'),
+          SnackBar(
+            content: Text('Ad not available right now — please try again later.'.tr),
           ),
         );
       },

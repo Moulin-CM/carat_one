@@ -1,6 +1,7 @@
 import 'package:firebase_database/firebase_database.dart';
 import '../models/app_version_model.dart';
 
+
 class AppVersionService {
   static final DatabaseReference _versionRef =
       FirebaseDatabase.instance.ref('app_version');

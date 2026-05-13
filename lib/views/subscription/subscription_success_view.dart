@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../models/subscription_plan.dart';
 import '../../viewmodels/subscription_viewmodel.dart';
+import '../../constants/app_translations.dart';
+
 
 /// Full-screen animated success screen shown after a successful purchase
 /// or restore. Pops itself and returns to the subscription plans view.
@@ -67,12 +69,11 @@ class _SubscriptionSuccessViewState extends State<SubscriptionSuccessView>
   }
 
   SubscriptionTier _tierFromName(String name) {
-    switch (name.toLowerCase()) {
-      case 'starter': return SubscriptionTier.starter;
-      case 'pro':     return SubscriptionTier.pro;
-      case 'business':return SubscriptionTier.business;
-      default:        return SubscriptionTier.trial;
-    }
+    final lowerName = name.toLowerCase();
+    if (lowerName == 'starter'.tr.toLowerCase()) return SubscriptionTier.starter;
+    if (lowerName == 'pro'.tr.toLowerCase()) return SubscriptionTier.pro;
+    if (lowerName == 'business'.tr.toLowerCase()) return SubscriptionTier.business;
+    return SubscriptionTier.trial;
   }
 
   @override
@@ -125,8 +126,8 @@ class _SubscriptionSuccessViewState extends State<SubscriptionSuccessView>
                   children: [
                     Text(
                       widget.isRestore
-                          ? 'Subscription Restored!'
-                          : '🎉 Welcome to ${widget.planName}!',
+                          ? 'Subscription Restored!'.tr
+                          : '${'🎉 Welcome to'.tr} ${widget.planName}!',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 26,
@@ -138,8 +139,8 @@ class _SubscriptionSuccessViewState extends State<SubscriptionSuccessView>
                     const SizedBox(height: 12),
                     Text(
                       widget.isRestore
-                          ? 'Your previous subscription has been restored successfully.'
-                          : 'Your plan is now active. Enjoy all the features below.',
+                          ? 'Your previous subscription has been restored successfully.'.tr
+                          : 'Your plan is now active. Enjoy all the features below.'.tr,
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.65),
                         fontSize: 15,
@@ -202,7 +203,7 @@ class _SubscriptionSuccessViewState extends State<SubscriptionSuccessView>
                           borderRadius: BorderRadius.circular(16)),
                       elevation: 0,
                     ),
-                    child: const Text('Go to Dashboard',
+                    child: Text('Go to Dashboard'.tr,
                         style: TextStyle(
                             fontSize: 16, fontWeight: FontWeight.w700)),
                   ),

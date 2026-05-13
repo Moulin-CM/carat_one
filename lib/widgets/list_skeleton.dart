@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
+
 /// Shimmer skeleton for any list-style screen (invoices, purchases,
 /// inventory, expenses, withdrawals, reminders, reports, etc.).
 ///

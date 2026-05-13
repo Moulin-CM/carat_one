@@ -5,6 +5,8 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 import '../../models/subscription_plan.dart';
 import '../../viewmodels/subscription_viewmodel.dart';
 import 'subscription_success_view.dart';
+import '../../constants/app_translations.dart';
+
 
 class SubscriptionPlansView extends StatefulWidget {
   const SubscriptionPlansView({super.key});
@@ -30,11 +32,11 @@ class _SubscriptionPlansViewState extends State<SubscriptionPlansView> {
       final planName = _resolvePlanName(vm);
       Navigator.of(context)
           .push(MaterialPageRoute(
-            builder: (_) => SubscriptionSuccessView(
-              isRestore: vm.isPurchaseRestored,
-              planName: planName,
-            ),
-          ))
+        builder: (_) => SubscriptionSuccessView(
+          isRestore: vm.isPurchaseRestored,
+          planName: planName,
+        ),
+      ))
           .then((_) {
         vm.clearPurchaseState();
         _successNavigated = false;
@@ -42,7 +44,7 @@ class _SubscriptionPlansViewState extends State<SubscriptionPlansView> {
     }
 
     if (vm.hasPurchaseError) {
-      _showErrorSnackbar(vm.errorMessage ?? 'An error occurred.');
+      _showErrorSnackbar(vm.errorMessage ?? 'An error occurred.'.tr);
       vm.clearPurchaseState();
     }
 
@@ -101,9 +103,9 @@ class _SubscriptionPlansViewState extends State<SubscriptionPlansView> {
         icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
         onPressed: () => Navigator.of(context).pop(),
       ),
-      title: const Text(
-        'Choose Your Plan',
-        style: TextStyle(
+      title: Text(
+        'Choose Your Plan'.tr,
+        style: const TextStyle(
             color: Colors.white, fontWeight: FontWeight.w700, fontSize: 18),
       ),
       actions: [
@@ -118,9 +120,9 @@ class _SubscriptionPlansViewState extends State<SubscriptionPlansView> {
                   child: CircularProgressIndicator(
                       strokeWidth: 2, color: Color(0xFF6C63FF)),
                 )
-              : const Text(
-                  'Restore',
-                  style: TextStyle(
+              : Text(
+                  'Restore'.tr,
+                  style: const TextStyle(
                       color: Color(0xFF6C63FF), fontWeight: FontWeight.w600),
                 ),
         ),
@@ -178,8 +180,8 @@ class _SubscriptionPlansViewState extends State<SubscriptionPlansView> {
                 color: Colors.white, size: 32),
           ),
           const SizedBox(height: 16),
-          const Text(
-            'Unlock Full Power',
+          Text(
+            'Unlock Full Power'.tr,
             style: TextStyle(
               color: Colors.white,
               fontSize: 22,
@@ -189,7 +191,7 @@ class _SubscriptionPlansViewState extends State<SubscriptionPlansView> {
           ),
           const SizedBox(height: 6),
           Text(
-            'Choose the plan that fits your business',
+            'Choose the plan that fits your business'.tr,
             style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.6), fontSize: 14),
           ),
@@ -215,8 +217,7 @@ class _SubscriptionPlansViewState extends State<SubscriptionPlansView> {
           ProductDetails? product;
           try {
             product = vm.availableProducts.firstWhere(
-              (p) => p.id ==
-                  _productIdForTier(plan.tier),
+              (p) => p.id == _productIdForTier(plan.tier),
             );
           } catch (_) {
             product = null;
@@ -233,10 +234,14 @@ class _SubscriptionPlansViewState extends State<SubscriptionPlansView> {
 
   String _productIdForTier(SubscriptionTier tier) {
     switch (tier) {
-      case SubscriptionTier.starter:  return 'monthly_499';
-      case SubscriptionTier.pro:      return 'pro_999';
-      case SubscriptionTier.business: return 'business_1499';
-      default: return '';
+      case SubscriptionTier.starter:
+        return 'monthly_499';
+      case SubscriptionTier.pro:
+        return 'pro_999';
+      case SubscriptionTier.business:
+        return 'business_1499';
+      default:
+        return '';
     }
   }
 
@@ -258,7 +263,7 @@ class _SubscriptionPlansViewState extends State<SubscriptionPlansView> {
               color: Colors.white.withValues(alpha: 0.3), size: 60),
           const SizedBox(height: 16),
           Text(
-            'Plans could not be loaded',
+            'Plans could not be loaded'.tr,
             style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.8),
                 fontSize: 16,
@@ -277,8 +282,8 @@ class _SubscriptionPlansViewState extends State<SubscriptionPlansView> {
           OutlinedButton.icon(
             onPressed: () => vm.loadProducts(),
             icon: const Icon(Icons.refresh_rounded, color: Color(0xFF6C63FF)),
-            label: const Text('Retry',
-                style: TextStyle(color: Color(0xFF6C63FF))),
+            label: Text('Retry'.tr,
+                style: const TextStyle(color: Color(0xFF6C63FF))),
             style: OutlinedButton.styleFrom(
               side: const BorderSide(color: Color(0xFF6C63FF)),
               shape: RoundedRectangleBorder(
@@ -298,14 +303,15 @@ class _SubscriptionPlansViewState extends State<SubscriptionPlansView> {
           Icon(Icons.store_mall_directory_outlined,
               color: Colors.white.withValues(alpha: 0.3), size: 60),
           const SizedBox(height: 16),
-          Text('Google Play Store unavailable',
+          Text('Google Play Store unavailable'.tr,
               style: TextStyle(
                   color: Colors.white.withValues(alpha: 0.8),
                   fontSize: 16,
                   fontWeight: FontWeight.w600)),
           const SizedBox(height: 8),
           Text(
-            'Make sure you are connected to the internet and have a Google account set up.',
+            'Make sure you are connected to the internet and have a Google account set up.'.tr
+                .tr,
             textAlign: TextAlign.center,
             style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.45), fontSize: 13),
@@ -314,8 +320,8 @@ class _SubscriptionPlansViewState extends State<SubscriptionPlansView> {
           OutlinedButton.icon(
             onPressed: () => vm.loadProducts(),
             icon: const Icon(Icons.refresh_rounded, color: Color(0xFF6C63FF)),
-            label: const Text('Try Again',
-                style: TextStyle(color: Color(0xFF6C63FF))),
+            label: Text('Try Again'.tr,
+                style: const TextStyle(color: Color(0xFF6C63FF))),
             style: OutlinedButton.styleFrom(
               side: const BorderSide(color: Color(0xFF6C63FF)),
               shape: RoundedRectangleBorder(
@@ -331,10 +337,13 @@ class _SubscriptionPlansViewState extends State<SubscriptionPlansView> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Text(
-        'Subscriptions auto-renew monthly. Cancel anytime in Google Play Store.\nPrices shown are set by your Play Console configuration.',
+        'Subscriptions auto-renew monthly. Cancel anytime in Google Play Store.\nPrices shown are set by your Play Console configuration.'
+            .tr,
         textAlign: TextAlign.center,
         style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.35), fontSize: 11, height: 1.6),
+            color: Colors.white.withValues(alpha: 0.35),
+            fontSize: 11,
+            height: 1.6),
       ),
     );
   }
@@ -342,8 +351,8 @@ class _SubscriptionPlansViewState extends State<SubscriptionPlansView> {
 
 // ── Plan Card ─────────────────────────────────────────────────────────────────
 class _PlanCard extends StatelessWidget {
-  final SubscriptionPlan  plan;
-  final ProductDetails?   product;
+  final SubscriptionPlan plan;
+  final ProductDetails? product;
   final SubscriptionViewModel vm;
 
   const _PlanCard({
@@ -359,8 +368,9 @@ class _PlanCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isPopular = plan.isMostPopular;
-    final borderColor =
-        isPopular ? const Color(0xFF6C63FF) : Colors.white.withValues(alpha: 0.12);
+    final borderColor = isPopular
+        ? const Color(0xFF6C63FF)
+        : Colors.white.withValues(alpha: 0.12);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -392,8 +402,7 @@ class _PlanCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (isPopular)
-                  const SizedBox(height: 8), // space for badge
+                if (isPopular) const SizedBox(height: 8), // space for badge
                 _buildHeader(),
                 const SizedBox(height: 4),
                 _buildPrice(),
@@ -473,7 +482,7 @@ class _PlanCard extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.only(bottom: 4),
           child: Text(
-            '/ month',
+            '/ month'.tr,
             style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.4), fontSize: 13),
           ),
@@ -490,13 +499,13 @@ class _PlanCard extends StatelessWidget {
           onPressed: null,
           icon: const Icon(Icons.check_circle_rounded,
               color: Color(0xFF48C8A8), size: 18),
-          label: const Text('Current Plan',
-              style: TextStyle(color: Color(0xFF48C8A8))),
+          label: Text('Current Plan'.tr,
+              style: const TextStyle(color: Color(0xFF48C8A8))),
           style: OutlinedButton.styleFrom(
             side: const BorderSide(color: Color(0xFF48C8A8)),
             padding: const EdgeInsets.symmetric(vertical: 14),
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
         ),
       );
@@ -518,8 +527,8 @@ class _PlanCard extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 14),
           elevation: plan.isMostPopular ? 4 : 0,
           shadowColor: const Color(0xFF6C63FF).withValues(alpha: 0.4),
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
         child: _isPending
             ? const SizedBox(
@@ -529,9 +538,9 @@ class _PlanCard extends StatelessWidget {
                     strokeWidth: 2.5, color: Colors.white),
               )
             : Text(
-                product == null ? 'Unavailable' : 'Get Started',
-                style: const TextStyle(
-                    fontWeight: FontWeight.w700, fontSize: 15),
+                product == null ? 'Unavailable'.tr : 'Get Started'.tr,
+                style:
+                    const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
               ),
       ),
     );
@@ -544,13 +553,12 @@ class _PlanCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
         decoration: const BoxDecoration(
-          gradient: LinearGradient(
-              colors: [Color(0xFF6C63FF), Color(0xFF48C8A8)]),
-          borderRadius:
-              BorderRadius.vertical(bottom: Radius.circular(10)),
+          gradient:
+              LinearGradient(colors: [Color(0xFF6C63FF), Color(0xFF48C8A8)]),
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(10)),
         ),
-        child: const Text(
-          'MOST POPULAR',
+        child: Text(
+          'MOST POPULAR'.tr,
           style: TextStyle(
               color: Colors.white,
               fontSize: 9,
@@ -573,14 +581,14 @@ class _PlanCard extends StatelessWidget {
           border: Border.all(
               color: const Color(0xFF48C8A8).withValues(alpha: 0.5), width: 1),
         ),
-        child: const Row(
+        child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.check_circle_rounded,
+            const Icon(Icons.check_circle_rounded,
                 color: Color(0xFF48C8A8), size: 12),
-            SizedBox(width: 4),
-            Text('Active',
-                style: TextStyle(
+            const SizedBox(width: 4),
+            Text('Active'.tr,
+                style: const TextStyle(
                     color: Color(0xFF48C8A8),
                     fontSize: 11,
                     fontWeight: FontWeight.w600)),
@@ -607,7 +615,7 @@ class _BenefitRow extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              benefit,
+              benefit.tr,
               style: TextStyle(
                   color: Colors.white.withValues(alpha: 0.85), fontSize: 13.5),
             ),

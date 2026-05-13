@@ -3,13 +3,14 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import '../../services/ads_service.dart';
 
+
 /// Native AdMob ad rendered with Google's `medium` platform template.
 ///
 /// This is intended to be inserted in between list items (every N rows) so the
 /// ad sits in the same visual rhythm as the surrounding content. Native ads
 /// have the highest eCPM of any format, so they pay best when used sparingly.
 ///
-/// AdMob policy: must always show "Ad" / "Sponsored" attribution. The
+/// AdMob policy: must always show "Ad" / "Sponsored".tr attribution. The
 /// platform template renders that automatically, so do NOT remove the
 /// `mainBackgroundColor`/template — it carries the legally required label.
 class NativeAdCard extends StatefulWidget {

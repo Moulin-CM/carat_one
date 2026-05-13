@@ -5,6 +5,10 @@ import 'package:intl/intl.dart';
 import '../../models/inventory_model.dart';
 import '../../services/ads_service.dart';
 import '../../viewmodels/inventory_form_viewmodel.dart';
+import '../../constants/app_translations.dart';
+
+
+import 'package:invoice_generator/constants/app_translations.dart';
 
 class InventoryFormView extends StatelessWidget {
   final InventoryModel? item;
@@ -90,7 +94,7 @@ class _InventoryFormViewContentState extends State<_InventoryFormViewContent> {
                   ),
                 ),
                 const SizedBox(width: 10),
-                Text(isEditing ? 'Edit Inventory' : 'Add Inventory'),
+                Text(isEditing ? 'Edit Inventory'.tr : 'Add Inventory'.tr),
               ],
             ),
           ),
@@ -109,11 +113,11 @@ class _InventoryFormViewContentState extends State<_InventoryFormViewContent> {
                         _buildHeroCard(item, isEditing, currencyFormat),
                         const SizedBox(height: 16),
                         _buildSection(
-                          title: 'Invoice Details',
+                          title: 'Invoice Details'.tr,
                           icon: Icons.receipt_long_rounded,
                           children: [
                             _buildTextField(
-                              'Invoice Number',
+                              'Invoice Number'.tr,
                               item.invoiceNumber,
                               (value) {
                                 viewModel.updateInvoiceNumber(value);
@@ -122,14 +126,14 @@ class _InventoryFormViewContentState extends State<_InventoryFormViewContent> {
                               controller: _invoiceNumberController,
                               validator: (value) {
                                 if (value == null || value.trim().isEmpty) {
-                                  return 'Please enter invoice number';
+                                  return 'Please enter invoice number'.tr;
                                 }
                                 return null;
                               },
                             ),
                             const SizedBox(height: 12),
                             _buildDateField(
-                              'Invoice Date',
+                              'Invoice Date'.tr,
                               _selectedInvoiceDate ?? item.invoiceDate,
                               (date) {
                                 setState(() {
@@ -143,7 +147,7 @@ class _InventoryFormViewContentState extends State<_InventoryFormViewContent> {
                               children: [
                                 Expanded(
                                   child: _buildTextField(
-                                    'Carat',
+                                    'Carat'.tr,
                                     item.carat.toString(),
                                     (value) {
                                       viewModel.updateCarat(value);
@@ -156,11 +160,11 @@ class _InventoryFormViewContentState extends State<_InventoryFormViewContent> {
                                     ],
                                     validator: (value) {
                                       if (value == null || value.trim().isEmpty) {
-                                        return 'Required';
+                                        return 'Required'.tr;
                                       }
                                       final carat = double.tryParse(value);
                                       if (carat == null || carat <= 0) {
-                                        return 'Invalid carat';
+                                        return 'Invalid carat'.tr;
                                       }
                                       return null;
                                     },
@@ -169,7 +173,7 @@ class _InventoryFormViewContentState extends State<_InventoryFormViewContent> {
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: _buildTextField(
-                                    'Price/Carat (₹)',
+                                    'Price/Carat (₹)'.tr,
                                     item.pricePerCarat.toString(),
                                     (value) {
                                       viewModel.updatePricePerCarat(value);
@@ -182,11 +186,11 @@ class _InventoryFormViewContentState extends State<_InventoryFormViewContent> {
                                     ],
                                     validator: (value) {
                                       if (value == null || value.trim().isEmpty) {
-                                        return 'Required';
+                                        return 'Required'.tr;
                                       }
                                       final price = double.tryParse(value);
                                       if (price == null || price < 0) {
-                                        return 'Invalid price';
+                                        return 'Invalid price'.tr;
                                       }
                                       return null;
                                     },
@@ -196,7 +200,7 @@ class _InventoryFormViewContentState extends State<_InventoryFormViewContent> {
                             ),
                             const SizedBox(height: 12),
                             _buildTextField(
-                              'Description (Optional)',
+                              'Description (Optional)'.tr,
                               item.description ?? '',
                               (value) {
                                 viewModel.updateDescription(value);
@@ -234,10 +238,10 @@ class _InventoryFormViewContentState extends State<_InventoryFormViewContent> {
                       : Icon(isEditing ? Icons.save_rounded : Icons.add_rounded),
                   label: Text(
                     viewModel.isSaving
-                        ? 'Saving...'
+                        ? 'Saving...'.tr
                         : isEditing
-                            ? 'Update Inventory'
-                            : 'Add to Inventory',
+                            ? 'Update Inventory'.tr
+                            : 'Add to Inventory'.tr,
                     style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
                   ),
                   style: ElevatedButton.styleFrom(
@@ -298,7 +302,7 @@ class _InventoryFormViewContentState extends State<_InventoryFormViewContent> {
   }
 
   Widget _buildHeroCard(InventoryModel item, bool isEditing, NumberFormat currencyFormat) {
-    final dateFormat = DateFormat('dd MMM yyyy');
+    final dateFormat = DateFormat('dd MMM yyyy'.tr);
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -342,7 +346,7 @@ class _InventoryFormViewContentState extends State<_InventoryFormViewContent> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      isEditing ? 'Edit Inventory Item' : 'New Inventory Item',
+                      isEditing ? 'Edit Inventory Item'.tr : 'New Inventory Item'.tr,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 20,
@@ -352,8 +356,8 @@ class _InventoryFormViewContentState extends State<_InventoryFormViewContent> {
                     const SizedBox(height: 4),
                     Text(
                       isEditing
-                          ? 'Added: ${dateFormat.format(item.addedDate)}'
-                          : 'Add new diamond stock',
+                          ? '${'Added'.tr}: ${dateFormat.format(item.addedDate)}'
+                          : 'Add new diamond stock'.tr,
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.9),
                         fontSize: 13,
@@ -432,7 +436,7 @@ class _InventoryFormViewContentState extends State<_InventoryFormViewContent> {
       controller: controller,
       decoration: InputDecoration(
         labelText: label,
-        hintText: 'Enter $label',
+        hintText: '${'.trEnter'.tr} $label',
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
@@ -462,7 +466,7 @@ class _InventoryFormViewContentState extends State<_InventoryFormViewContent> {
     DateTime initialDate,
     Function(DateTime) onDateSelected,
   ) {
-    final dateFormat = DateFormat('dd MMM yyyy');
+    final dateFormat = DateFormat('dd MMM yyyy'.tr);
     return InkWell(
       onTap: () async {
         final date = await showDatePicker(
@@ -549,13 +553,13 @@ class _InventoryFormViewContentState extends State<_InventoryFormViewContent> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildTotalRow('Total Price', currencyFormat.format(item.totalPrice), false),
+          _buildTotalRow('Total Price'.tr, currencyFormat.format(item.totalPrice), false),
           const SizedBox(height: 8),
           _buildTotalRow('CGST @ ${item.cgstRate.toStringAsFixed(2)}%', currencyFormat.format(item.cgstAmount), false),
           const SizedBox(height: 8),
           _buildTotalRow('SGST @ ${item.sgstRate.toStringAsFixed(2)}%', currencyFormat.format(item.sgstAmount), false),
           const Divider(height: 20),
-          _buildTotalRow('Total with CGST & SGST', currencyFormat.format(item.totalWithGst), true),
+          _buildTotalRow('Total with CGST & SGST'.tr, currencyFormat.format(item.totalWithGst), true),
           const SizedBox(height: 8),
           Align(
             alignment: Alignment.centerRight,
@@ -614,8 +618,8 @@ class _InventoryFormViewContentState extends State<_InventoryFormViewContent> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(viewModel.isEditing
-              ? 'Inventory item updated successfully'
-              : 'Inventory item added successfully'),
+              ? 'Inventory item updated successfully'.tr
+              : 'Inventory item added successfully'.tr),
           backgroundColor: Colors.green,
         ),
       );
@@ -625,7 +629,7 @@ class _InventoryFormViewContentState extends State<_InventoryFormViewContent> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error: ${viewModel.errorMessage ?? 'Failed to save'}'),
+          content: Text('${'Error'.tr}: ${viewModel.errorMessage ?? 'Failed to save'.tr}'),
           backgroundColor: Colors.red,
         ),
       );

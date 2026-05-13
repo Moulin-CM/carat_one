@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../viewmodels/login_viewmodel.dart';
 import 'signup_view.dart';
+import '../../constants/app_translations.dart';
+
 
 class LoginView extends StatelessWidget {
   const LoginView({super.key});
@@ -161,13 +163,13 @@ class _LoginViewContentState extends State<_LoginViewContent> {
           child: Icon(Icons.login_rounded, color: accent, size: 36),
         ),
         const SizedBox(height: 24),
-        const Text(
-          'Welcome Back',
-          style: TextStyle(fontSize: 34, fontWeight: FontWeight.w800, letterSpacing: -0.5),
+        Text(
+          'Welcome Back'.tr,
+          style: const TextStyle(fontSize: 34, fontWeight: FontWeight.w800, letterSpacing: -0.5),
         ),
         const SizedBox(height: 8),
         Text(
-          'Sign in to continue',
+          'Sign in to continue'.tr,
           style: TextStyle(
             color: Colors.grey[600],
             fontSize: 16,
@@ -191,18 +193,18 @@ class _LoginViewContentState extends State<_LoginViewContent> {
       style: const TextStyle(fontSize: 16),
       validator: (value) {
         if (value == null || value.trim().isEmpty) {
-          return 'Email is required';
+          return 'Email is required'.tr;
         }
         final emailRegex = RegExp(
           r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
         );
         if (!emailRegex.hasMatch(value.trim())) {
-          return 'Please enter a valid email address';
+          return 'Please enter a valid email address'.tr;
         }
         return null;
       },
       decoration: InputDecoration(
-        labelText: 'Email *',
+        labelText: 'Email *'.tr,
         labelStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
         prefixIcon: Icon(Icons.email_outlined, color: accent, size: 22),
         filled: true,
@@ -246,12 +248,12 @@ class _LoginViewContentState extends State<_LoginViewContent> {
       style: const TextStyle(fontSize: 16),
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return 'Password is required';
+          return 'Password is required'.tr;
         }
         return null;
       },
       decoration: InputDecoration(
-        labelText: 'Password *',
+        labelText: 'Password *'.tr,
         labelStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
         prefixIcon: Icon(Icons.lock_outline_rounded, color: accent, size: 22),
         suffixIcon: IconButton(
@@ -301,7 +303,7 @@ class _LoginViewContentState extends State<_LoginViewContent> {
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         ),
         child: Text(
-          'Forgot Password?',
+          'Forgot Password?'.tr,
           style: TextStyle(
             color: accent,
             fontWeight: FontWeight.w600,
@@ -356,7 +358,7 @@ class _LoginViewContentState extends State<_LoginViewContent> {
               )
             : const Icon(Icons.login_rounded, size: 22),
         label: Text(
-          viewModel.isLoading ? 'Signing in...' : 'Sign In',
+          viewModel.isLoading ? 'Signing in...'.tr : 'Sign In'.tr,
           style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
         ),
         style: ElevatedButton.styleFrom(
@@ -378,7 +380,7 @@ class _LoginViewContentState extends State<_LoginViewContent> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          "Don't have an account? ",
+          "Don't have an account? ".tr,
           style: TextStyle(
             color: Colors.grey[600],
             fontSize: 15,
@@ -396,7 +398,7 @@ class _LoginViewContentState extends State<_LoginViewContent> {
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
           ),
           child: Text(
-            'Sign Up',
+            'Sign Up'.tr,
             style: TextStyle(
               color: accent,
               fontWeight: FontWeight.w700,
@@ -433,14 +435,14 @@ class _LoginViewContentState extends State<_LoginViewContent> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Reset Password'),
+        title: Text('Reset Password'.tr),
         content: Form(
           key: dialogFormKey,
           child: TextFormField(
             controller: emailController,
             keyboardType: TextInputType.emailAddress,
             decoration: InputDecoration(
-              labelText: 'Email',
+              labelText: 'Email'.tr,
               prefixIcon: Icon(Icons.email_outlined, color: accent),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -448,13 +450,13 @@ class _LoginViewContentState extends State<_LoginViewContent> {
             ),
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
-                return 'Email is required';
+                return 'Email is required'.tr;
               }
               final emailRegex = RegExp(
                 r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
               );
               if (!emailRegex.hasMatch(value.trim())) {
-                return 'Please enter a valid email';
+                return 'Please enter a valid email'.tr;
               }
               return null;
             },
@@ -463,7 +465,7 @@ class _LoginViewContentState extends State<_LoginViewContent> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
+            child: Text('Cancel'.tr),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -473,8 +475,8 @@ class _LoginViewContentState extends State<_LoginViewContent> {
                   Navigator.pop(dialogContext);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: const Text(
-                        'Password reset email sent! Check your inbox.',
+                      content: Text(
+                        'Password reset email sent! Check your inbox.'.tr,
                       ),
                       backgroundColor: Colors.green,
                       behavior: SnackBarBehavior.floating,
@@ -490,7 +492,7 @@ class _LoginViewContentState extends State<_LoginViewContent> {
               backgroundColor: accent,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Send'),
+            child: Text('Send'.tr),
           ),
         ],
       ),

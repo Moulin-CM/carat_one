@@ -1,16 +1,18 @@
 // Mobile (Android/iOS) notification implementation
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:invoice_generator/constants/app_translations.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'dart:convert';
 import '../models/invoice_reminder_model.dart';
+
 
 final FlutterLocalNotificationsPlugin _notifications =
     FlutterLocalNotificationsPlugin();
 
 Future<void> initializeNotifications() async {
   tz.initializeTimeZones();
-  tz.setLocalLocation(tz.getLocation('Asia/Kolkata'));
+  tz.setLocalLocation(tz.getLocation('Asia/Kolkata'.tr));
 
   const androidSettings =
       AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -33,10 +35,10 @@ Future<void> initializeNotifications() async {
 }
 
 Future<void> scheduleNotification(InvoiceReminder reminder) async {
-  const androidDetails = AndroidNotificationDetails(
+  var androidDetails = AndroidNotificationDetails(
     'invoice_reminders',
-    'Invoice Reminders',
-    channelDescription: 'Notifications for invoice due dates',
+    'Invoice Reminders'.tr,
+    channelDescription: 'Notifications for invoice due dates'.tr,
     importance: Importance.high,
     priority: Priority.high,
     icon: '@mipmap/ic_launcher',
@@ -46,12 +48,12 @@ Future<void> scheduleNotification(InvoiceReminder reminder) async {
     presentBadge: true,
     presentSound: true,
   );
-  const notificationDetails =
+  var notificationDetails =
       NotificationDetails(android: androidDetails, iOS: iosDetails);
 
   await _notifications.zonedSchedule(
     reminder.notificationId,
-    'Invoice Due Reminder',
+    'Invoice Due Reminder'.tr,
     'Invoice ${reminder.invoiceNo} for ${reminder.buyerName} is due on ${reminder.dueDate.day}/${reminder.dueDate.month}/${reminder.dueDate.year}',
     tz.TZDateTime.from(reminder.reminderDate, tz.local),
     notificationDetails,
@@ -59,8 +61,8 @@ Future<void> scheduleNotification(InvoiceReminder reminder) async {
     uiLocalNotificationDateInterpretation:
         UILocalNotificationDateInterpretation.absoluteTime,
     payload: jsonEncode({
-      'invoiceId': reminder.invoiceId,
-      'type': 'invoice_reminder',
+      'invoiceId'.tr: reminder.invoiceId,
+      'type'.tr: 'invoice_reminder',
     }),
   );
 }

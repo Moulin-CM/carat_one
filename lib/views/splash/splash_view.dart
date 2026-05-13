@@ -1,8 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:invoice_generator/constants/app_translations.dart';
 import '../../services/onboarding_service.dart';
+import '../../services/localization_service.dart';
 import '../auth/auth_wrapper.dart';
 import '../onboarding/onboarding_view.dart';
+import '../settings/language_selection_view.dart';
+
 
 /// First screen the user sees on launch.
 ///
@@ -61,14 +65,19 @@ class _SplashViewState extends State<SplashView>
 
   Future<void> _goNext() async {
     if (!mounted) return;
-    final seen = await _onboardingSeenFuture;
+    final seenOnboarding = await _onboardingSeenFuture;
     if (!mounted) return;
+
+    final locService = LocalizationService.instance;
+    final seenLanguage = locService.hasSeenSelection;
 
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 450),
-        pageBuilder: (_, __, ___) =>
-            seen ? const AuthWrapper() : const OnboardingView(),
+        pageBuilder: (_, __, ___) {
+          if (!seenLanguage) return const LanguageSelectionView();
+          return seenOnboarding ? const AuthWrapper() : const OnboardingView();
+        },
         transitionsBuilder: (_, animation, __, child) {
           return FadeTransition(opacity: animation, child: child);
         },
@@ -119,9 +128,9 @@ class _SplashViewState extends State<SplashView>
                   const SizedBox(height: 32),
                   FadeTransition(
                     opacity: _fade,
-                    child: const Text(
-                      'CaratOne',
-                      style: TextStyle(
+                    child: Text(
+                      'CaratOne'.tr,
+                      style: const TextStyle(
                         fontSize: 36,
                         fontWeight: FontWeight.w800,
                         color: _deepAccent,
@@ -133,7 +142,7 @@ class _SplashViewState extends State<SplashView>
                   FadeTransition(
                     opacity: _fade,
                     child: Text(
-                      'Smart business management',
+                      'Smart business management'.tr,
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
@@ -167,7 +176,7 @@ class _SplashViewState extends State<SplashView>
                   ),
                   const SizedBox(height: 14),
                   Text(
-                    'Made for jewelry & diamond traders',
+                    'Made for jewelry & diamond traders'.tr,
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.grey[600],

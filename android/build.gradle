@@ -45,9 +45,9 @@ subprojects {
     }
 
     // Prevent circular dependency by only applying to other subprojects
-    if (project.name != 'app') {
+    /*if (project.name != 'app') {
         project.evaluationDependsOn(':app')
-    }
+    }*/
 }
 
 tasks.register("clean", Delete) {

@@ -6,9 +6,13 @@ import '../../models/expense_model.dart';
 import '../../services/expense_storage_service.dart';
 import '../../viewmodels/purchase_viewmodel.dart';
 import '../../widgets/app_bar_factory.dart';
-import '../../widgets/ads/banner_ad_widget.dart';
+
 import '../../widgets/list_skeleton.dart';
 import 'expense_report_view.dart';
+import '../../constants/app_translations.dart';
+
+
+import 'package:invoice_generator/constants/app_translations.dart';
 
 class ExpensesView extends StatelessWidget {
   const ExpensesView({super.key});
@@ -33,7 +37,7 @@ class _ExpensesContentState extends State<_ExpensesContent> {
   static const _accent = Color(0xFF4F8AF4);
   static const _deep = Color(0xFF1E3C72);
 
-  final _dateFmt = DateFormat('dd MMM yyyy');
+  final _dateFmt = DateFormat('dd MMM yyyy'.tr);
   final _currencyFmt = NumberFormat.currency(symbol: '₹', decimalDigits: 0);
 
   @override
@@ -43,12 +47,12 @@ class _ExpensesContentState extends State<_ExpensesContent> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBarFactory.build(
-        title: 'Expenses',
+        title: 'Expenses'.tr,
         onBackPress: () => Navigator.pop(context),
         actions: [
           IconButton(
             icon: const Icon(Icons.description_rounded),
-            tooltip: 'Statement',
+            tooltip: 'Statement'.tr,
             onPressed: () async {
               await Navigator.push(
                 context,
@@ -80,10 +84,10 @@ class _ExpensesContentState extends State<_ExpensesContent> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openAddFlow(context, vm),
         icon: const Icon(Icons.add_rounded),
-        label: const Text('Add Entry'),
+        label: Text('Add Entry'.tr),
         backgroundColor: _accent,
       ),
-      bottomNavigationBar: const BottomBannerAd(),
+
     );
   }
 
@@ -126,9 +130,9 @@ class _ExpensesContentState extends State<_ExpensesContent> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
-                        children: const [
-                          Text('Opening Amount',
-                              style: TextStyle(
+                        children: [
+                          Text('Opening Amount'.tr,
+                              style: const TextStyle(
                                   color: Colors.white70, fontSize: 12)),
                           SizedBox(width: 4),
                           Icon(Icons.edit_rounded,
@@ -153,21 +157,21 @@ class _ExpensesContentState extends State<_ExpensesContent> {
           Row(
             children: [
               Expanded(
-                child: _summaryTile('Credits',
+                child: _summaryTile('Credits'.tr,
                     '+ ${_currencyFmt.format(credits)}',
                     Icons.north_east_rounded,
                     valueColor: Colors.greenAccent),
               ),
               Container(width: 1, height: 30, color: Colors.white24),
               Expanded(
-                child: _summaryTile('Debits',
+                child: _summaryTile('Debits'.tr,
                     '- ${_currencyFmt.format(debits)}',
                     Icons.south_west_rounded,
                     valueColor: Colors.redAccent),
               ),
               Container(width: 1, height: 30, color: Colors.white24),
               Expanded(
-                child: _summaryTile('Available',
+                child: _summaryTile('Available'.tr,
                     _currencyFmt.format(balance),
                     balance >= 0
                         ? Icons.trending_up_rounded
@@ -189,13 +193,13 @@ class _ExpensesContentState extends State<_ExpensesContent> {
     final result = await showDialog<double>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Opening Amount'),
+        title: Text('Opening Amount'.tr),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Enter opening expense amount.',
-                style: TextStyle(fontSize: 12)),
+            Text('Enter opening expense amount.'.tr,
+                style: const TextStyle(fontSize: 12)),
             const SizedBox(height: 12),
             TextField(
               controller: controller,
@@ -212,13 +216,13 @@ class _ExpensesContentState extends State<_ExpensesContent> {
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel')),
+              child: Text('Cancel'.tr)),
           TextButton(
             onPressed: () {
               final v = double.tryParse(controller.text.trim()) ?? 0.0;
               Navigator.pop(ctx, v);
             },
-            child: const Text('Save'),
+            child: Text('Save'.tr),
           ),
         ],
       ),
@@ -280,16 +284,16 @@ class _ExpensesContentState extends State<_ExpensesContent> {
         return await showDialog<bool>(
               context: context,
               builder: (ctx) => AlertDialog(
-                title: const Text('Delete Entry'),
-                content: const Text('Remove this entry?'),
+                title: Text('Delete Entry'.tr),
+                content: Text('Remove this entry?'.tr),
                 actions: [
                   TextButton(
                       onPressed: () => Navigator.pop(ctx, false),
-                      child: const Text('Cancel')),
+                      child: Text('Cancel'.tr)),
                   TextButton(
                     onPressed: () => Navigator.pop(ctx, true),
                     style: TextButton.styleFrom(foregroundColor: Colors.red),
-                    child: const Text('Delete'),
+                    child: Text('Delete'.tr),
                   ),
                 ],
               ),
@@ -346,14 +350,14 @@ class _ExpensesContentState extends State<_ExpensesContent> {
                         color: _deep)),
                 const SizedBox(height: 2),
                 Text(
-                  '${isDebit ? 'Debit' : 'Credit'} • ${_dateFmt.format(entry.date)}',
+                  '${isDebit ? 'Debit'.tr : 'Credit'.tr} • ${_dateFmt.format(entry.date)}',
                   style: TextStyle(color: Colors.grey[600], fontSize: 12),
                 ),
               ],
             ),
           ),
           const SizedBox(width: 8),
-          Text('$sign ${_currencyFmt.format(entry.amount)}',
+          Text('$sign ${_currencyFmt.format(entry.amount)}'.tr,
               style: TextStyle(
                   color: accent,
                   fontWeight: FontWeight.w800,
@@ -369,9 +373,9 @@ class _ExpensesContentState extends State<_ExpensesContent> {
         const SizedBox(height: 80),
         Icon(Icons.receipt_long_outlined, size: 64, color: Colors.grey[300]),
         const SizedBox(height: 16),
-        const Center(
-          child: Text('No entries yet',
-              style: TextStyle(
+        Center(
+          child: Text('No entries yet'.tr,
+              style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                   color: Colors.grey)),
@@ -379,7 +383,7 @@ class _ExpensesContentState extends State<_ExpensesContent> {
         const SizedBox(height: 8),
         Center(
           child: Text(
-              'Tap "Add Entry" to record a Credit or Debit. Debits cannot exceed the Available Balance.',
+              'Tap "Add Entry".tr to record a Credit or Debit. Debits cannot exceed the Available Balance.'.tr,
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.grey[500])),
         ),
@@ -412,7 +416,7 @@ class _ExpensesContentState extends State<_ExpensesContent> {
 
     if (!isCredit && balance <= 0) {
       _showBalanceError(
-          'Insufficient balance. Add a Credit entry before recording a Debit.');
+          'Insufficient balance. Add a Credit entry before recording a Debit.'.tr);
       return;
     }
 
@@ -476,14 +480,14 @@ class _PickKindSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            const Text('Choose Type',
-                style: TextStyle(
+            Text('Choose Type'.tr,
+                style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
                     color: _deep)),
             const SizedBox(height: 4),
             Text(
-                'Credits add money in. Debits can only spend what Credits have made available.',
+                'Credits add money in. Debits can only spend what Credits have made available.'.tr,
                 style: TextStyle(color: Colors.grey[600], fontSize: 13)),
             const SizedBox(height: 12),
             Container(
@@ -498,8 +502,8 @@ class _PickKindSheet extends StatelessWidget {
                   const Icon(Icons.account_balance_wallet_outlined,
                       color: _deep, size: 18),
                   const SizedBox(width: 8),
-                  const Text('Available Balance',
-                      style: TextStyle(
+                  Text('Available Balance'.tr,
+                      style: const TextStyle(
                           color: _deep,
                           fontSize: 12,
                           fontWeight: FontWeight.w600)),
@@ -519,7 +523,7 @@ class _PickKindSheet extends StatelessWidget {
               children: [
                 Expanded(
                   child: _kindTile(
-                    label: 'Credit',
+                    label: 'Credit'.tr,
                     icon: Icons.north_east_rounded,
                     color: Colors.green,
                     onTap: () => Navigator.pop(context, true),
@@ -528,11 +532,11 @@ class _PickKindSheet extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: _kindTile(
-                    label: 'Debit',
+                    label: 'Debit'.tr,
                     icon: Icons.south_west_rounded,
                     color: Colors.red,
                     disabled: debitDisabled,
-                    subLabel: debitDisabled ? 'Insufficient balance' : null,
+                    subLabel: debitDisabled ? 'Insufficient balance'.tr : null,
                     onTap: debitDisabled
                         ? null
                         : () => Navigator.pop(context, false),
@@ -614,7 +618,7 @@ class _AddExpenseSheetState extends State<_AddExpenseSheet> {
   DateTime _date = DateTime.now();
   bool _saving = false;
 
-  final _dateFmt = DateFormat('dd MMM yyyy');
+  final _dateFmt = DateFormat('dd MMM yyyy'.tr);
   final _balanceFmt = NumberFormat.currency(symbol: '₹', decimalDigits: 0);
 
   @override
@@ -626,9 +630,9 @@ class _AddExpenseSheetState extends State<_AddExpenseSheet> {
 
   String? _validateAmount(String? raw) {
     final n = double.tryParse(raw?.trim() ?? '');
-    if (n == null || n <= 0) return 'Enter valid amount';
+    if (n == null || n <= 0) return 'Enter valid amount'.tr;
     if (!widget.isCredit && n > widget.availableBalance) {
-      return 'Exceeds available balance (${_balanceFmt.format(widget.availableBalance)})';
+      return '${'Exceeds available balance'.tr} (${_balanceFmt.format(widget.availableBalance)})';
     }
     return null;
   }
@@ -641,7 +645,7 @@ class _AddExpenseSheetState extends State<_AddExpenseSheet> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-              'Insufficient balance. Available: ${_balanceFmt.format(widget.availableBalance)}'),
+              '${'Insufficient balance. Available'.tr}: ${_balanceFmt.format(widget.availableBalance)}'),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
         ),
@@ -662,7 +666,7 @@ class _AddExpenseSheetState extends State<_AddExpenseSheet> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text('Failed to save: $e'),
+            content: Text('${'Failed to save'.tr}: $e'),
             backgroundColor: Colors.red),
       );
     } finally {
@@ -674,7 +678,7 @@ class _AddExpenseSheetState extends State<_AddExpenseSheet> {
   Widget build(BuildContext context) {
     final bottom = MediaQuery.of(context).viewInsets.bottom;
     final kindColor = widget.isCredit ? Colors.green : Colors.red;
-    final kindLabel = widget.isCredit ? 'Credit' : 'Debit';
+    final kindLabel = widget.isCredit ? 'Credit'.tr : 'Debit'.tr;
     return Padding(
       padding: EdgeInsets.only(bottom: bottom),
       child: SafeArea(
@@ -706,8 +710,8 @@ class _AddExpenseSheetState extends State<_AddExpenseSheet> {
                 const SizedBox(height: 16),
                 Row(
                   children: [
-                    const Text('Add Entry',
-                        style: TextStyle(
+                    Text('Add Entry'.tr,
+                        style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w800,
                             color: _deep)),
@@ -742,8 +746,8 @@ class _AddExpenseSheetState extends State<_AddExpenseSheet> {
                         const Icon(Icons.account_balance_wallet_outlined,
                             color: _deep, size: 18),
                         const SizedBox(width: 8),
-                        const Text('Available Balance',
-                            style: TextStyle(
+                        Text('Available Balance'.tr,
+                            style: const TextStyle(
                                 color: _deep,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600)),
@@ -760,16 +764,16 @@ class _AddExpenseSheetState extends State<_AddExpenseSheet> {
                   ),
                 ],
                 const SizedBox(height: 16),
-                _label('Person Name'),
+                _label('Person Name'.tr),
                 TextFormField(
                   controller: _personCtrl,
                   textCapitalization: TextCapitalization.words,
-                  decoration: _decoration('e.g. Ramesh, Suresh'),
+                  decoration: _decoration('e.g. Ramesh, Suresh'.tr),
                   validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Required' : null,
+                      (v == null || v.trim().isEmpty) ? 'Required'.tr : null,
                 ),
                 const SizedBox(height: 12),
-                _label('Amount'),
+                _label('Amount'.tr),
                 TextFormField(
                   controller: _amountCtrl,
                   keyboardType:
@@ -782,7 +786,7 @@ class _AddExpenseSheetState extends State<_AddExpenseSheet> {
                   validator: _validateAmount,
                 ),
                 const SizedBox(height: 12),
-                _label('Date'),
+                _label('Date'.tr),
                 InkWell(
                   onTap: () async {
                     final d = await showDatePicker(
@@ -827,7 +831,7 @@ class _AddExpenseSheetState extends State<_AddExpenseSheet> {
                             child: CircularProgressIndicator(
                                 strokeWidth: 2, color: Colors.white))
                         : const Icon(Icons.save_rounded),
-                    label: Text(_saving ? 'Saving…' : 'Save'),
+                    label: Text(_saving ? 'Saving…'.tr : 'Save'.tr),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _accent,
                       foregroundColor: Colors.white,

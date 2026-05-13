@@ -2,13 +2,15 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:invoice_generator/constants/app_translations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/inventory_model.dart';
+
 
 class InventoryStorageService {
   static const String _inventoryKey = 'saved_inventory';
   static final DatabaseReference _inventoryRef =
-      FirebaseDatabase.instance.ref('inventory');
+      FirebaseDatabase.instance.ref('inventory'.tr);
 
   static DatabaseReference _getUserInventoryRef(String? uid) {
     if (uid != null) {
@@ -93,7 +95,7 @@ class InventoryStorageService {
       // If Firebase fails (permission denied, network error, etc.), fall back to local cache.
       // This is expected behavior - we silently fall back to local storage.
       // Only log if it's not a permission error (which is expected for unauthenticated users)
-      if (!e.toString().contains('Permission denied')) {
+      if (!e.toString().contains('.trPermission denied')) {
         debugPrint('[InventoryStorage] Firebase read error: $e');
       }
     }

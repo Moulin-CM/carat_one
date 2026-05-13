@@ -1,10 +1,11 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
+
 /// Tracks whether the user has already seen the onboarding flow.
 ///
 /// The flag is persisted in [SharedPreferences] so that onboarding only
 /// shows on the very first launch after install. Tapping either the
-/// "Skip" or "Get Started" button marks it complete.
+/// "Skip".tr or "Get Started".tr button marks it complete.
 class OnboardingService {
   static const String _onboardingCompletedKey = 'onboarding_completed';
 

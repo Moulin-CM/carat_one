@@ -3,6 +3,10 @@ import 'package:intl/intl.dart';
 import '../../models/invoice_model.dart';
 import '../../services/invoice_storage_service.dart';
 import '../../widgets/app_bar_factory.dart';
+import '../../constants/app_translations.dart';
+
+
+import 'package:invoice_generator/constants/app_translations.dart';
 
 class InvoiceDetailsView extends StatefulWidget {
   final InvoiceModel invoice;
@@ -46,15 +50,15 @@ class _InvoiceDetailsViewState extends State<InvoiceDetailsView> {
       if (!mounted) return;
       setState(() {});
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Marked as Paid'),
+        SnackBar(
+          content: Text('Marked as Paid'.tr),
           backgroundColor: Colors.green,
         ),
       );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        SnackBar(content: Text('${'Error'.tr}: $e'), backgroundColor: Colors.red),
       );
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -67,7 +71,7 @@ class _InvoiceDetailsViewState extends State<InvoiceDetailsView> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBarFactory.build(
-        title: isCashSell ? 'Cash Sell Details' : 'Invoice Details',
+        title: isCashSell ? 'Cash Sell Details'.tr : 'Invoice Details'.tr,
         onBackPress: () => Navigator.pop(context),
       ),
       body: Stack(
@@ -140,7 +144,7 @@ class _InvoiceDetailsViewState extends State<InvoiceDetailsView> {
   // ────────────────────── Sections ──────────────────────
 
   Widget _buildInvoiceHeader() {
-    final dateFormat = DateFormat('dd MMM yyyy');
+    final dateFormat = DateFormat('dd MMM yyyy'.tr);
     final isCashSell = _invoice.isCashSell;
     return _card(
       child: Column(
@@ -167,7 +171,7 @@ class _InvoiceDetailsViewState extends State<InvoiceDetailsView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${isCashSell ? 'Cash Sell' : 'Invoice'} #${_invoice.invoiceNo}',
+                      '${isCashSell ? 'Cash Sell'.tr : 'Invoice'.tr} #${_invoice.invoiceNo}',
                       style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w800,
@@ -175,13 +179,13 @@ class _InvoiceDetailsViewState extends State<InvoiceDetailsView> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Date: ${dateFormat.format(_invoice.invoiceDate)}',
+                      '${'Date'.tr}: ${dateFormat.format(_invoice.invoiceDate)}',
                       style: TextStyle(color: Colors.grey[700]),
                     ),
                     if (_invoice.terms.isNotEmpty)
-                      Text('Terms: ${_invoice.terms}',
+                      Text('${'Terms'.tr}: ${_invoice.terms}',
                           style: TextStyle(color: Colors.grey[700])),
-                    Text('Due: ${dateFormat.format(_invoice.dueDate)}',
+                    Text('${'Due'.tr}: ${dateFormat.format(_invoice.dueDate)}',
                         style: TextStyle(color: Colors.grey[700])),
                   ],
                 ),
@@ -197,7 +201,7 @@ class _InvoiceDetailsViewState extends State<InvoiceDetailsView> {
   Widget _statusChip() {
     final paid = _invoice.isFullyPaid;
     final partial = _invoice.totalPaidCarat > 0 && !paid;
-    final label = paid ? 'Paid' : partial ? 'Partial' : 'Unpaid';
+    final label = paid ? 'Paid'.tr : partial ? 'Partial'.tr : 'Unpaid'.tr;
     final color = paid
         ? Colors.green
         : partial
@@ -219,14 +223,14 @@ class _InvoiceDetailsViewState extends State<InvoiceDetailsView> {
   Widget _buildSellerCard() {
     return _sectionCard(
       icon: Icons.storefront_rounded,
-      title: 'Seller',
+      title: 'Seller'.tr,
       rows: [
-        _kv('Name', _invoice.sellerName),
-        _kv('Address', _invoice.sellerAddress),
-        _kv('Mobile', _invoice.sellerMobile),
-        _kv('Email', _invoice.sellerEmail),
-        if (_invoice.sellerGstNo.isNotEmpty) _kv('GST No', _invoice.sellerGstNo),
-        if (_invoice.sellerPanNo.isNotEmpty) _kv('PAN No', _invoice.sellerPanNo),
+        _kv('Name'.tr, _invoice.sellerName),
+        _kv('Address'.tr, _invoice.sellerAddress),
+        _kv('Mobile'.tr, _invoice.sellerMobile),
+        _kv('Email'.tr, _invoice.sellerEmail),
+        if (_invoice.sellerGstNo.isNotEmpty) _kv('GST No'.tr, _invoice.sellerGstNo),
+        if (_invoice.sellerPanNo.isNotEmpty) _kv('PAN No'.tr, _invoice.sellerPanNo),
       ],
     );
   }
@@ -234,22 +238,22 @@ class _InvoiceDetailsViewState extends State<InvoiceDetailsView> {
   Widget _buildBuyerCard() {
     return _sectionCard(
       icon: Icons.person_rounded,
-      title: 'Buyer',
+      title: 'Buyer'.tr,
       rows: [
-        _kv('Name', _invoice.buyerName.isEmpty ? '-' : _invoice.buyerName),
+        _kv('Name'.tr, _invoice.buyerName.isEmpty ? '-' : _invoice.buyerName),
         if (_invoice.buyerContactPerson.isNotEmpty)
-          _kv('Contact Person', _invoice.buyerContactPerson),
+          _kv('Contact Person'.tr, _invoice.buyerContactPerson),
         if (_invoice.buyerContactNo.isNotEmpty)
-          _kv('Contact No', _invoice.buyerContactNo),
-        if (_invoice.buyerEmail.isNotEmpty) _kv('Email', _invoice.buyerEmail),
+          _kv('Contact No'.tr, _invoice.buyerContactNo),
+        if (_invoice.buyerEmail.isNotEmpty) _kv('Email'.tr, _invoice.buyerEmail),
         if (_invoice.buyerAddress.isNotEmpty)
-          _kv('Address', _invoice.buyerAddress),
-        if (_invoice.buyerGstNo.isNotEmpty) _kv('GST No', _invoice.buyerGstNo),
-        if (_invoice.buyerPanNo.isNotEmpty) _kv('PAN No', _invoice.buyerPanNo),
+          _kv('Address'.tr, _invoice.buyerAddress),
+        if (_invoice.buyerGstNo.isNotEmpty) _kv('GST No'.tr, _invoice.buyerGstNo),
+        if (_invoice.buyerPanNo.isNotEmpty) _kv('PAN No'.tr, _invoice.buyerPanNo),
         if (_invoice.buyerStateName.isNotEmpty)
-          _kv('State', '${_invoice.buyerStateName} (${_invoice.buyerStateCode})'),
+          _kv('State'.tr, '${_invoice.buyerStateName} (${_invoice.buyerStateCode})'),
         if (_invoice.placeOfSupply.isNotEmpty)
-          _kv('Place of Supply', _invoice.placeOfSupply),
+          _kv('Place of Supply'.tr, _invoice.placeOfSupply),
       ],
     );
   }
@@ -259,7 +263,7 @@ class _InvoiceDetailsViewState extends State<InvoiceDetailsView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionHeader(Icons.list_alt_rounded, 'Items'),
+          _sectionHeader(Icons.list_alt_rounded, 'Items'.tr),
           const SizedBox(height: 10),
           ..._invoice.items.asMap().entries.map((entry) {
             final i = entry.key;
@@ -274,26 +278,26 @@ class _InvoiceDetailsViewState extends State<InvoiceDetailsView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('${i + 1}. ${item.particular}',
+                  Text('${i + 1}. ${item.particular}'.tr,
                       style: const TextStyle(
                           fontWeight: FontWeight.w700, color: _deep)),
                   const SizedBox(height: 4),
-                  Text('HSN: ${item.hsnCode}',
+                  Text('HSN: ${item.hsnCode}'.tr,
                       style: TextStyle(color: Colors.grey[700], fontSize: 12)),
                   const SizedBox(height: 8),
                   Row(
                     children: [
                       Expanded(
                         child: _itemStat(
-                            'Carat', '${item.carat.toStringAsFixed(2)} ct'),
+                            'Carat'.tr, '${item.carat.toStringAsFixed(2)} ct'),
                       ),
                       Expanded(
                         child: _itemStat(
-                            'Rate', '₹${item.rate.toStringAsFixed(2)}'),
+                            'Rate'.tr, '₹${item.rate.toStringAsFixed(2)}'),
                       ),
                       Expanded(
                         child: _itemStat(
-                            'Amount', '₹${item.amount.toStringAsFixed(2)}',
+                            'Amount'.tr, '₹${item.amount.toStringAsFixed(2)}',
                             alignRight: true),
                       ),
                     ],
@@ -311,14 +315,14 @@ class _InvoiceDetailsViewState extends State<InvoiceDetailsView> {
     return _card(
       child: Column(
         children: [
-          _sectionHeader(Icons.calculate_rounded, 'Totals'),
+          _sectionHeader(Icons.calculate_rounded, 'Totals'.tr),
           const SizedBox(height: 10),
-          _kv('Total Carat', '${_invoice.totalCarat.toStringAsFixed(2)} ct'),
-          _kv('Sub Total', '₹${_invoice.totalAmount.toStringAsFixed(2)}'),
+          _kv('Total Carat'.tr, '${_invoice.totalCarat.toStringAsFixed(2)} ct'),
+          _kv('Sub Total'.tr, '₹${_invoice.totalAmount.toStringAsFixed(2)}'),
           if (_invoice.discountRate > 0) ...[
-            _kv('Discount (${_invoice.discountRate}%)',
+            _kv('${'Discount'.tr} (${_invoice.discountRate}%)',
                 '- ₹${_invoice.discountAmount.toStringAsFixed(2)}'),
-            _kv('Taxable Amount',
+            _kv('Taxable Amount'.tr,
                 '₹${_invoice.taxableAmount.toStringAsFixed(2)}'),
           ],
           if (!_invoice.isCashSell) ...[
@@ -337,12 +341,12 @@ class _InvoiceDetailsViewState extends State<InvoiceDetailsView> {
           const Divider(height: 20),
           Row(
             children: [
-              const Expanded(
-                child: Text('Grand Total',
+              Expanded(
+                child: Text('Grand Total'.tr,
                     style:
-                        TextStyle(fontWeight: FontWeight.w800, color: _deep)),
+                        const TextStyle(fontWeight: FontWeight.w800, color: _deep)),
               ),
-              Text('₹${_invoice.grandTotal.toStringAsFixed(2)}',
+              Text('₹${_invoice.grandTotal.toStringAsFixed(2)}'.tr,
                   style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
@@ -367,12 +371,12 @@ class _InvoiceDetailsViewState extends State<InvoiceDetailsView> {
   Widget _buildBankCard() {
     return _sectionCard(
       icon: Icons.account_balance_rounded,
-      title: 'Bank Details',
+      title: 'Bank Details'.tr,
       rows: [
-        _kv('Bank', _invoice.bankName),
-        _kv('Branch', _invoice.branch),
-        _kv('A/C No', _invoice.accountNo),
-        _kv('IFSC', _invoice.ifscCode),
+        _kv('Bank'.tr, _invoice.bankName),
+        _kv('Branch'.tr, _invoice.branch),
+        _kv('A/C No'.tr, _invoice.accountNo),
+        _kv('IFSC'.tr, _invoice.ifscCode),
       ],
     );
   }
@@ -384,7 +388,7 @@ class _InvoiceDetailsViewState extends State<InvoiceDetailsView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionHeader(Icons.payments_rounded, 'Payment'),
+          _sectionHeader(Icons.payments_rounded, 'Payment'.tr),
           const SizedBox(height: 12),
           _paymentSummary(),
           const SizedBox(height: 16),
@@ -395,14 +399,14 @@ class _InvoiceDetailsViewState extends State<InvoiceDetailsView> {
                 color: Colors.green.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Row(
+              child: Row(
                 children: [
-                  Icon(Icons.check_circle_rounded, color: Colors.green),
-                  SizedBox(width: 10),
+                  const Icon(Icons.check_circle_rounded, color: Colors.green),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'This sell is fully paid.',
-                      style: TextStyle(
+                      'This sell is fully paid.'.tr,
+                      style: const TextStyle(
                           color: Colors.green, fontWeight: FontWeight.w600),
                     ),
                   ),
@@ -422,8 +426,8 @@ class _InvoiceDetailsViewState extends State<InvoiceDetailsView> {
                             strokeWidth: 2, color: Colors.white))
                     : const Icon(Icons.check_circle_rounded),
                 label: Text(_saving
-                    ? 'Saving…'
-                    : 'Received  (₹${_remainingAmount.toStringAsFixed(2)})'),
+                    ? 'Saving…'.tr
+                    : '${'Received'.tr}  (₹${_remainingAmount.toStringAsFixed(2)})'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,
                   foregroundColor: Colors.white,
@@ -446,7 +450,7 @@ class _InvoiceDetailsViewState extends State<InvoiceDetailsView> {
         if (_invoice.isCashSell)
           _paymentRow(
             icon: Icons.payments_outlined,
-            label: 'Cash',
+            label: 'Cash'.tr,
             carat: _invoice.cashPaidCarat,
             amount: _invoice.cashPaidAmount,
             color: const Color(0xFF2E7D32),
@@ -454,7 +458,7 @@ class _InvoiceDetailsViewState extends State<InvoiceDetailsView> {
         else
           _paymentRow(
             icon: Icons.account_balance_outlined,
-            label: 'In Account',
+            label: 'In Account'.tr,
             carat: _invoice.accountPaidCarat,
             amount: _invoice.accountPaidAmount,
             color: _accent,
@@ -472,7 +476,7 @@ class _InvoiceDetailsViewState extends State<InvoiceDetailsView> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Remaining',
+                  'Remaining'.tr,
                   style: TextStyle(
                     fontWeight: FontWeight.w700,
                     color: _deep,
@@ -514,8 +518,7 @@ class _InvoiceDetailsViewState extends State<InvoiceDetailsView> {
             child: Text(label,
                 style: TextStyle(color: color, fontWeight: FontWeight.w700)),
           ),
-          Text(
-            '${carat.toStringAsFixed(2)} ct · ₹${amount.toStringAsFixed(2)}',
+          Text('${carat.toStringAsFixed(2)} ct · ₹${amount.toStringAsFixed(2)}'.tr,
             style: TextStyle(color: color, fontWeight: FontWeight.w700),
           ),
         ],

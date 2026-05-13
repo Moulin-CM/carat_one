@@ -5,6 +5,7 @@ import 'version_check_service.dart';
 import '../models/app_version_model.dart';
 import '../widgets/force_update_dialog.dart';
 
+
 class VersionCheckManager {
   /// Check for app update and show dialog if required
   /// Returns true if update is required (and dialog is shown), false otherwise

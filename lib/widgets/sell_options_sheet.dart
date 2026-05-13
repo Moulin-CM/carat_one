@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:invoice_generator/constants/app_translations.dart';
 
-/// Shows a bottom sheet asking the user to pick between a "By Cash" sell
-/// (no invoice / PDF) and a "By In Account" sell (full GST invoice flow).
+
+/// Shows a bottom sheet asking the user to pick between a "By Cash".tr sell
+/// (no invoice / PDF) and a "By In Account".tr sell (full GST invoice flow).
 ///
 /// Returns `true` for cash, `false` for in-account, or `null` if dismissed.
 Future<bool?> showSellOptionsSheet(BuildContext context) {
@@ -52,9 +54,9 @@ class _SellOptionsSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'How is this sell being made?',
-              style: TextStyle(
+            Text(
+              'How is this sell being made?'.tr,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
                 color: _deep,
@@ -62,29 +64,31 @@ class _SellOptionsSheet extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              'Pick a mode — Cash skips the invoice/PDF, In Account creates a full GST invoice.',
+              'Pick a mode — Cash skips the invoice/PDF, In Account creates a full GST invoice.'
+                  .tr,
               style: TextStyle(color: Colors.grey[600], fontSize: 13),
             ),
             const SizedBox(height: 20),
             _OptionTile(
               icon: Icons.payments_rounded,
               color: const Color(0xFF2E7D32),
-              title: 'By Cash',
-              subtitle: 'Save a cash sell entry. No invoice/PDF generated.',
+              title: 'By Cash'.tr,
+              subtitle: 'Save a cash sell entry. No invoice/PDF generated.'.tr,
               onTap: () => Navigator.pop(context, true),
             ),
             const SizedBox(height: 12),
             _OptionTile(
               icon: Icons.account_balance_rounded,
               color: _accent,
-              title: 'By In Account',
-              subtitle: 'Create a GST invoice with PDF and payment tracking.',
+              title: 'By In Account'.tr,
+              subtitle:
+                  'Create a GST invoice with PDF and payment tracking.'.tr,
               onTap: () => Navigator.pop(context, false),
             ),
             const SizedBox(height: 8),
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: Text('Cancel'.tr),
             ),
           ],
         ),

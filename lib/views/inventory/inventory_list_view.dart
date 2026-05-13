@@ -3,21 +3,49 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../models/inventory_model.dart';
 import '../../viewmodels/inventory_viewmodel.dart';
-import '../../widgets/ads/banner_ad_widget.dart';
+
 import '../../widgets/ads/native_ad_card.dart';
 import '../../widgets/list_skeleton.dart';
 import '../../widgets/paywall_dialog.dart';
 import '../../services/quota_service.dart';
 import '../subscription/subscription_plans_view.dart';
 import 'inventory_form_view.dart';
+import '../../constants/app_translations.dart';
 
-class InventoryListView extends StatelessWidget {
+
+class InventoryListView extends StatefulWidget {
   const InventoryListView({super.key});
 
   @override
+  State<InventoryListView> createState() => _InventoryListViewState();
+}
+
+class _InventoryListViewState extends State<InventoryListView>
+    with AutomaticKeepAliveClientMixin {
+
+  late final InventoryViewModel _viewModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _viewModel = InventoryViewModel()..loadItems();
+  }
+
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => InventoryViewModel()..loadItems(),
+    super.build(context);
+
+    return ChangeNotifierProvider<InventoryViewModel>.value(
+      value: _viewModel,
       child: const _InventoryListViewContent(),
     );
   }
@@ -46,7 +74,7 @@ class _InventoryListViewContentState extends State<_InventoryListViewContent> {
   Widget build(BuildContext context) {
     final viewModel = context.watch<InventoryViewModel>();
     final currencyFormat = NumberFormat.currency(symbol: '₹', decimalDigits: 0);
-    final dateFormat = DateFormat('dd MMM yyyy');
+    final dateFormat = DateFormat('dd MMM yyyy'.tr);
 
     // Filter items based on search query
     final filteredItems = _searchQuery.isEmpty
@@ -75,7 +103,7 @@ class _InventoryListViewContentState extends State<_InventoryListViewContent> {
                 child: Icon(Icons.inventory_2_rounded, color: _accent),
               ),
               const SizedBox(width: 10),
-              const Text('Inventory'),
+              Text('Inventory'.tr),
             ],
           ),
         ),
@@ -83,7 +111,7 @@ class _InventoryListViewContentState extends State<_InventoryListViewContent> {
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
             onPressed: () => viewModel.loadItems(),
-            tooltip: 'Refresh',
+            tooltip: 'Refresh'.tr,
           ),
         ],
       ),
@@ -124,7 +152,7 @@ class _InventoryListViewContentState extends State<_InventoryListViewContent> {
           child: ElevatedButton.icon(
             onPressed: () => _startNewInventory(context, viewModel),
             icon: const Icon(Icons.add_rounded),
-            label: const Text('Add Inventory', style: TextStyle(fontWeight: FontWeight.w700)),
+            label: Text('Add Inventory'.tr, style: const TextStyle(fontWeight: FontWeight.w700)),
             style: ElevatedButton.styleFrom(
               backgroundColor: _accent,
               foregroundColor: Colors.white,
@@ -135,7 +163,7 @@ class _InventoryListViewContentState extends State<_InventoryListViewContent> {
           ),
         ),
       ),
-      bottomNavigationBar: const BottomBannerAd(),
+
     );
   }
 
@@ -144,8 +172,8 @@ class _InventoryListViewContentState extends State<_InventoryListViewContent> {
     if (!canAdd && context.mounted) {
       showDialog(
         context: context,
-        builder: (context) => const PaywallDialog(
-          message: 'You have reached your monthly limit for adding inventory. Please upgrade your plan to continue adding unlimited entries.',
+        builder: (context) => PaywallDialog(
+          message: 'You have reached your monthly limit for adding inventory. Please upgrade your plan to continue adding unlimited entries.'.tr,
         ),
       );
       return;
@@ -226,7 +254,7 @@ class _InventoryListViewContentState extends State<_InventoryListViewContent> {
           color: Color(0xFF1E3C72),
         ),
         decoration: InputDecoration(
-          hintText: 'Search inventory...',
+          hintText: 'Search inventory...'.tr,
           hintStyle: TextStyle(
             color: Colors.grey[500],
             fontSize: 15,
@@ -320,7 +348,7 @@ class _InventoryListViewContentState extends State<_InventoryListViewContent> {
           ),
           const SizedBox(height: 24),
           Text(
-            'No inventory items yet',
+            'No inventory items yet'.tr,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -329,7 +357,7 @@ class _InventoryListViewContentState extends State<_InventoryListViewContent> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Add your first diamond stock to get started',
+            'Add your first diamond stock to get started'.tr,
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey[600],
@@ -438,7 +466,7 @@ class _InventoryListViewContentState extends State<_InventoryListViewContent> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          item.invoiceNumber.isNotEmpty ? item.invoiceNumber : 'No Invoice Number',
+                          item.invoiceNumber.isNotEmpty ? item.invoiceNumber : 'No Invoice Number'.tr,
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
@@ -446,7 +474,7 @@ class _InventoryListViewContentState extends State<_InventoryListViewContent> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Invoice Date: ${dateFormat.format(item.invoiceDate)}',
+                          '${'Invoice Date'.tr}: ${dateFormat.format(item.invoiceDate)}',
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.grey[600],
@@ -458,29 +486,29 @@ class _InventoryListViewContentState extends State<_InventoryListViewContent> {
                   PopupMenuButton(
                     icon: const Icon(Icons.more_vert_rounded),
                     itemBuilder: (context) => [
-                      const PopupMenuItem(
-                        value: 'edit',
+                      PopupMenuItem(
+                        value: 'edit'.tr,
                         child: Row(
                           children: [
-                            Icon(Icons.edit_rounded, size: 20),
-                            SizedBox(width: 8),
-                            Text('Edit'),
+                            const Icon(Icons.edit_rounded, size: 20),
+                            const SizedBox(width: 8),
+                            Text('Edit'.tr),
                           ],
                         ),
                       ),
-                      const PopupMenuItem(
-                        value: 'delete',
+                      PopupMenuItem(
+                        value: 'delete'.tr,
                         child: Row(
                           children: [
-                            Icon(Icons.delete_rounded, size: 20, color: Colors.red),
-                            SizedBox(width: 8),
-                            Text('Delete', style: TextStyle(color: Colors.red)),
+                            const Icon(Icons.delete_rounded, size: 20, color: Colors.red),
+                            const SizedBox(width: 8),
+                            Text('Delete'.tr, style: const TextStyle(color: Colors.red)),
                           ],
                         ),
                       ),
                     ],
                     onSelected: (value) async {
-                      if (value == 'edit') {
+                      if (value == 'edit'.tr) {
                         final result = await Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -490,7 +518,7 @@ class _InventoryListViewContentState extends State<_InventoryListViewContent> {
                         if (result == true && context.mounted) {
                           viewModel.loadItems();
                         }
-                      } else if (value == 'delete') {
+                      } else if (value == 'delete'.tr) {
                         _confirmDelete(context, item, viewModel);
                       }
                     },
@@ -508,7 +536,7 @@ class _InventoryListViewContentState extends State<_InventoryListViewContent> {
                   children: [
                     Expanded(
                       child: _buildInfoItem(
-                        'Carat',
+                        'Carat'.tr,
                         '${item.carat.toStringAsFixed(2)} ct',
                         Icons.scale_rounded,
                       ),
@@ -520,7 +548,7 @@ class _InventoryListViewContentState extends State<_InventoryListViewContent> {
                     ),
                     Expanded(
                       child: _buildInfoItem(
-                        'Price/Carat',
+                        'Price/Carat'.tr,
                         currencyFormat.format(item.pricePerCarat),
                         Icons.currency_rupee_rounded,
                       ),
@@ -532,7 +560,7 @@ class _InventoryListViewContentState extends State<_InventoryListViewContent> {
                     ),
                     Expanded(
                       child: _buildInfoItem(
-                        'Total',
+                        'Total'.tr,
                         currencyFormat.format(item.totalPrice),
                         Icons.account_balance_wallet_rounded,
                         isTotal: true,
@@ -611,7 +639,7 @@ class _InventoryListViewContentState extends State<_InventoryListViewContent> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Inventory totals',
+            'Inventory totals'.tr,
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w700,
@@ -623,7 +651,7 @@ class _InventoryListViewContentState extends State<_InventoryListViewContent> {
             children: [
               Expanded(
                 child: _buildInfoItem(
-                  'Total Carat',
+                  'Total Carat'.tr,
                   '${totalCarat.toStringAsFixed(2)} ct',
                   Icons.scale_rounded,
                 ),
@@ -631,7 +659,7 @@ class _InventoryListViewContentState extends State<_InventoryListViewContent> {
               Container(width: 1, height: 36, color: Colors.grey[300]),
               Expanded(
                 child: _buildInfoItem(
-                  'Total Amount',
+                  'Total Amount'.tr,
                   currencyFormat.format(totalValue),
                   Icons.currency_rupee_rounded,
                 ),
@@ -645,7 +673,7 @@ class _InventoryListViewContentState extends State<_InventoryListViewContent> {
             children: [
               Expanded(
                 child: _buildInfoItem(
-                  'Remaining Carat',
+                  'Remaining Carat'.tr,
                   '${remainingCarat.toStringAsFixed(2)} ct',
                   Icons.scale_rounded,
                 ),
@@ -653,7 +681,7 @@ class _InventoryListViewContentState extends State<_InventoryListViewContent> {
               Container(width: 1, height: 36, color: Colors.grey[300]),
               Expanded(
                 child: _buildInfoItem(
-                  'Remaining Amount',
+                  'Remaining Amount'.tr,
                   currencyFormat.format(remainingAmount),
                   Icons.account_balance_wallet_rounded,
                   isTotal: true,
@@ -671,12 +699,12 @@ class _InventoryListViewContentState extends State<_InventoryListViewContent> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Delete Inventory Item'),
-        content: Text('Are you sure you want to delete invoice "${item.invoiceNumber.isNotEmpty ? item.invoiceNumber : 'this item'}"? This action cannot be undone.'),
+        title: Text('Delete Inventory Item'.tr),
+        content: Text('${'Are you sure you want to delete invoice'.tr} "${item.invoiceNumber.isNotEmpty ? item.invoiceNumber : 'this item'.tr}"? ${'This action cannot be undone.'.tr}'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text('Cancel'.tr),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
@@ -684,7 +712,7 @@ class _InventoryListViewContentState extends State<_InventoryListViewContent> {
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Delete'),
+            child: Text('Delete'.tr),
           ),
         ],
       ),
@@ -695,7 +723,7 @@ class _InventoryListViewContentState extends State<_InventoryListViewContent> {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(success ? 'Item deleted successfully' : 'Failed to delete item'),
+            content: Text(success ? 'Item deleted successfully'.tr : 'Failed to delete item'.tr),
             backgroundColor: success ? Colors.green : Colors.red,
           ),
         );

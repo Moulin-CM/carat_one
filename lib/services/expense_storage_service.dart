@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:invoice_generator/constants/app_translations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/expense_model.dart';
+
 
 class ExpenseStorageService {
   static const String _key = 'saved_expenses';
@@ -38,7 +40,7 @@ class ExpenseStorageService {
 
   static Future<void> saveExpense(ExpenseModel item) async {
     final user = await _getUser();
-    if (user == null) throw StateError('Not logged in');
+    if (user == null) throw StateError('Not logged in'.tr);
     final uid = user.uid;
     final prefs = await SharedPreferences.getInstance();
     final all = await getAllExpenses();

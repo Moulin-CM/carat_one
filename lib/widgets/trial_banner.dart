@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../viewmodels/subscription_viewmodel.dart';
 import '../models/subscription_plan.dart';
 import '../views/subscription/subscription_plans_view.dart';
+import '../constants/app_translations.dart';
+
 
 class TrialBanner extends StatelessWidget {
   const TrialBanner({super.key});
@@ -17,7 +19,7 @@ class TrialBanner extends StatelessWidget {
           if (status.plan == SubscriptionTier.expired) {
             return _buildBanner(
               context,
-              'Your trial has expired. Subscribe to continue using all features.',
+              'Your trial has expired. Subscribe to continue using all features.'.tr,
               Colors.red.shade800,
               true,
             );
@@ -30,7 +32,7 @@ class TrialBanner extends StatelessWidget {
 
         return _buildBanner(
           context,
-          '⏳ $daysLeft days left in your free trial. Upgrade now for unlimited access!',
+          '⏳ $daysLeft ${'days left in your free trial. Upgrade now for unlimited access!'.tr}',
           daysLeft <= 2 ? Colors.orange.shade900 : Colors.blue.shade800,
           false,
         );
@@ -75,7 +77,7 @@ class TrialBanner extends StatelessWidget {
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
             child: Text(
-              'View Plans',
+              'View Plans'.tr,
               style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold),
             ),
           ),

@@ -2,9 +2,11 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:invoice_generator/constants/app_translations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/invoice_model.dart';
 import 'storage_parsers.dart';
+
 
 class InvoiceStorageService {
   static const String _invoicesKey = 'saved_invoices';
@@ -55,7 +57,7 @@ class InvoiceStorageService {
 
   static Future<void> saveInvoice(InvoiceModel invoice) async {
     final user = await _getUser();
-    if (user == null) throw StateError('InvoiceStorageService: user is not logged in.');
+    if (user == null) throw StateError('InvoiceStorageService: user is not logged in.'.tr);
 
     final uid = user.uid;
     final storageKey = _getLocalStorageKey(uid);
@@ -124,7 +126,7 @@ class InvoiceStorageService {
 
   static Future<void> deleteInvoice(String id) async {
     final user = await _getUser();
-    if (user == null) throw StateError('InvoiceStorageService: user is not logged in.');
+    if (user == null) throw StateError('InvoiceStorageService: user is not logged in.'.tr);
 
     final uid = user.uid;
     final storageKey = _getLocalStorageKey(uid);

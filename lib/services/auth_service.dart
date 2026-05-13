@@ -1,4 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:invoice_generator/constants/app_translations.dart';
+
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -62,24 +64,23 @@ class AuthService {
   String _handleAuthException(FirebaseAuthException e) {
     switch (e.code) {
       case 'weak-password':
-        return 'The password provided is too weak.';
+        return 'The password provided is too weak.'.tr;
       case 'email-already-in-use':
-        return 'An account already exists for that email.';
+        return 'An account already exists for that email.'.tr;
       case 'invalid-email':
-        return 'The email address is invalid.';
+        return 'The email address is invalid.'.tr;
       case 'user-not-found':
-        return 'No user found for that email.';
+        return 'No user found for that email.'.tr;
       case 'wrong-password':
-        return 'Wrong password provided.';
+        return 'Wrong password provided.'.tr;
       case 'user-disabled':
-        return 'This user account has been disabled.';
+        return 'This user account has been disabled.'.tr;
       case 'too-many-requests':
-        return 'Too many requests. Please try again later.';
+        return 'Too many requests. Please try again later.'.tr;
       case 'operation-not-allowed':
-        return 'This operation is not allowed.';
+        return 'This operation is not allowed.'.tr;
       default:
-        return e.message ?? 'An unknown error occurred.';
+        return e.message ?? 'An unknown error occurred.'.tr;
     }
   }
 }
-

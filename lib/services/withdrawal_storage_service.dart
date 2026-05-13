@@ -2,9 +2,11 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:invoice_generator/constants/app_translations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/withdrawal_model.dart';
 import 'storage_parsers.dart';
+
 
 class WithdrawalStorageService {
   static const String _key = 'saved_withdrawals';
@@ -40,7 +42,7 @@ class WithdrawalStorageService {
 
   static Future<void> saveWithdrawal(WithdrawalModel item) async {
     final user = await _getUser();
-    if (user == null) throw StateError('Not logged in');
+    if (user == null) throw StateError('Not logged in'.tr);
     final uid = user.uid;
     final prefs = await SharedPreferences.getInstance();
     final all = await getAllWithdrawals();

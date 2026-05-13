@@ -1,9 +1,12 @@
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
+
+import 'package:invoice_generator/constants/app_translations.dart';
 import 'package:pdf/widgets.dart' as pw;
 import '../models/invoice_model.dart';
 import '../models/purchase_model.dart';
 import 'pdf_service.dart';
+
 
 class BuySellReportPdfService {
   static Future<pw.Document> build({
@@ -15,7 +18,7 @@ class BuySellReportPdfService {
   }) async {
     final theme = await PdfService.buildUnicodeTheme();
     final doc = theme != null ? pw.Document(theme: theme) : pw.Document();
-    final dateFmt = DateFormat('dd MMM yyyy');
+    final dateFmt = DateFormat('dd MMM yyyy'.tr);
     final amountFmt = NumberFormat.currency(symbol: 'Rs ', decimalDigits: 2);
     final caratFmt = NumberFormat('#,##0.00');
 
@@ -51,11 +54,11 @@ class BuySellReportPdfService {
           _sectionTitle('Buy Entries (${purchases.length})'),
           _buyHeader(),
           if (purchases.isEmpty)
-            _emptyRow('No purchases in this period')
+            _emptyRow('No purchases in this period'.tr)
           else
             ...purchases.map((p) => _buyRow(p, dateFmt, amountFmt, caratFmt)),
           _subtotalRow(
-              'Total Buy',
+              'Total Buy'.tr,
               '${caratFmt.format(totalBuyCarat)} ct',
               amountFmt.format(totalBuyAmount),
               PdfColors.orange800),
@@ -63,11 +66,11 @@ class BuySellReportPdfService {
           _sectionTitle('Sell Entries (${sells.length})'),
           _sellHeader(),
           if (sells.isEmpty)
-            _emptyRow('No sells in this period')
+            _emptyRow('No sells in this period'.tr)
           else
             ...sells.map((i) => _sellRow(i, dateFmt, amountFmt, caratFmt)),
           _subtotalRow(
-              'Total Sell',
+              'Total Sell'.tr,
               '${caratFmt.format(totalSellCarat)} ct',
               amountFmt.format(totalSellAmount),
               PdfColors.green800),
@@ -95,7 +98,7 @@ class BuySellReportPdfService {
           pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              pw.Text('Buy / Sell Report',
+              pw.Text('Buy / Sell Report'.tr,
                   style: pw.TextStyle(
                       color: PdfColors.white,
                       fontSize: 18,
@@ -109,15 +112,15 @@ class BuySellReportPdfService {
           pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.end,
             children: [
-              pw.Text('From ${dateFmt.format(start)}',
+              pw.Text('From ${dateFmt.format(start)}'.tr,
                   style: const pw.TextStyle(
                       color: PdfColors.white, fontSize: 10)),
-              pw.Text('To ${dateFmt.format(end)}',
+              pw.Text('To ${dateFmt.format(end)}'.tr,
                   style: const pw.TextStyle(
                       color: PdfColors.white, fontSize: 10)),
               pw.SizedBox(height: 4),
               pw.Text(
-                'Generated ${DateFormat('dd MMM yyyy').format(DateTime.now())}',
+                'Generated ${DateFormat('dd MMM yyyy'.tr).format(DateTime.now())}',
                 style: const pw.TextStyle(
                     color: PdfColors.white, fontSize: 9),
               ),
@@ -177,16 +180,16 @@ class BuySellReportPdfService {
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
         box(
-          'BUY',
-          '$buyCount ${buyCount == 1 ? 'entry' : 'entries'}',
+          'BUY'.tr,
+          '$buyCount ${buyCount == 1 ? 'entry'.tr : 'entries'.tr}',
           '${caratFmt.format(buyCarat)} ct',
           amountFmt.format(buyAmount),
           PdfColors.orange800,
         ),
         pw.SizedBox(width: 8),
         box(
-          'SELL',
-          '$sellCount ${sellCount == 1 ? 'entry' : 'entries'}',
+          'SELL'.tr,
+          '$sellCount ${sellCount == 1 ? 'entry'.tr : 'entries'.tr}',
           '${caratFmt.format(sellCarat)} ct',
           amountFmt.format(sellAmount),
           PdfColors.green800,
@@ -205,7 +208,7 @@ class BuySellReportPdfService {
             child: pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                pw.Text('NET (Sell − Buy)',
+                pw.Text('NET (Sell − Buy)'.tr,
                     style: pw.TextStyle(
                         color: netDelta >= 0
                             ? PdfColors.green800
@@ -242,24 +245,24 @@ class BuySellReportPdfService {
   }
 
   static pw.Widget _buyHeader() {
-    return _tableHeaderRow(const [
-      _Col('Date', 2),
-      _Col('Seller', 3),
-      _Col('Size', 1),
-      _Col('Carat', 2, right: true),
-      _Col('Rate', 2, right: true),
-      _Col('Amount', 2, right: true),
+    return _tableHeaderRow([
+      _Col('Date'.tr, 2),
+      _Col('Seller'.tr, 3),
+      _Col('Size'.tr, 1),
+      _Col('Carat'.tr, 2, right: true),
+      _Col('Rate'.tr, 2, right: true),
+      _Col('Amount'.tr, 2, right: true),
     ]);
   }
 
   static pw.Widget _sellHeader() {
-    return _tableHeaderRow(const [
-      _Col('Date', 2),
+    return _tableHeaderRow([
+      _Col('Date'.tr, 2),
       _Col('No', 2),
-      _Col('Buyer', 3),
-      _Col('Mode', 1),
-      _Col('Carat', 2, right: true),
-      _Col('Amount', 2, right: true),
+      _Col('Buyer'.tr, 3),
+      _Col('Mode'.tr, 1),
+      _Col('Carat'.tr, 2, right: true),
+      _Col('Amount'.tr, 2, right: true),
     ]);
   }
 
@@ -304,7 +307,7 @@ class BuySellReportPdfService {
       _Cell(dateFmt.format(i.invoiceDate), 2),
       _Cell(i.invoiceNo.isNotEmpty ? i.invoiceNo : '-', 2),
       _Cell(i.buyerName.isNotEmpty ? i.buyerName : '-', 3),
-      _Cell(i.isCashSell ? 'Cash' : 'Bill', 1),
+      _Cell(i.isCashSell ? 'Cash'.tr : 'Bill'.tr, 1),
       _Cell('${caratFmt.format(i.totalCarat)} ct', 2, right: true),
       _Cell(amountFmt.format(i.grandTotal), 2, right: true),
     ]);
@@ -395,7 +398,7 @@ class BuySellReportPdfService {
       child: pw.Row(
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
-          pw.Text('NET (Sell − Buy)',
+          pw.Text('NET (Sell − Buy)'.tr,
               style: pw.TextStyle(
                   color: PdfColors.white,
                   fontWeight: pw.FontWeight.bold,

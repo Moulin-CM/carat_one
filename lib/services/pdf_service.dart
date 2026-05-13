@@ -1,4 +1,6 @@
 import 'dart:io';
+
+import 'package:invoice_generator/constants/app_translations.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -8,6 +10,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:cross_file/cross_file.dart';
 import '../models/invoice_model.dart';
+
 
 class PdfService {
   /// Cached Unicode-capable PDF theme so every generated document renders
@@ -43,9 +46,9 @@ class PdfService {
   static Future<pw.Document> generatePdfDocument(InvoiceModel invoice) async {
     final theme = await buildUnicodeTheme();
     final pdf = theme != null ? pw.Document(theme: theme) : pw.Document();
-    final dateFormat = DateFormat('dd-MM-yyyy');
+    final dateFormat = DateFormat('dd-MM-yyyy'.tr);
 
-    // Calculate rounded total for "Amount in words" consistency
+    // Calculate rounded total for "Amount in words".tr consistency
     final rawGrandTotal = invoice.grandTotal;
     final roundedGrandTotal = rawGrandTotal.round();
 
@@ -87,7 +90,7 @@ class PdfService {
                 text: pw.TextSpan(
                   children: [
                     pw.TextSpan(
-                      text: 'Amount in words: ',
+                      text: 'Amount in words: '.tr,
                       style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
                     ),
                     pw.TextSpan(
@@ -121,7 +124,7 @@ class PdfService {
     final buyer = sanitize(invoice.buyerName);
     final no = sanitize(invoice.invoiceNo);
     final parts = <String>[
-      'Invoice',
+      'Invoice'.tr,
       if (no.isNotEmpty) no,
       if (buyer.isNotEmpty) buyer,
     ];
@@ -172,8 +175,7 @@ class PdfService {
         decoration: pw.BoxDecoration(
           border: pw.Border.all(color: PdfColors.black, width: 1),
         ),
-        child: pw.Text(
-          'Tax Invoice',
+        child: pw.Text('Tax Invoice'.tr,
           style: pw.TextStyle(
             fontSize: 14,
             fontWeight: pw.FontWeight.bold,
@@ -209,9 +211,9 @@ class PdfService {
                   ),
                   pw.SizedBox(height: 2),
                   if (invoice.sellerMobile.isNotEmpty)
-                    pw.Text('MO: ${invoice.sellerMobile}', style: const pw.TextStyle(fontSize: 9)),
+                    pw.Text('MO: ${invoice.sellerMobile}'.tr, style: const pw.TextStyle(fontSize: 9)),
                   if (invoice.sellerEmail.isNotEmpty)
-                    pw.Text('Email: ${invoice.sellerEmail}', style: const pw.TextStyle(fontSize: 9)),
+                    pw.Text('Email: ${invoice.sellerEmail}'.tr, style: const pw.TextStyle(fontSize: 9)),
                 ],
               ),
             ),
@@ -225,13 +227,13 @@ class PdfService {
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
                   if (invoice.sellerGstNo.isNotEmpty)
-                    _buildLabelValue('GST NO', invoice.sellerGstNo, size: 9),
+                    _buildLabelValue('GST NO'.tr, invoice.sellerGstNo, size: 9),
                   if (invoice.sellerPanNo.isNotEmpty)
-                    _buildLabelValue('PAN NO', invoice.sellerPanNo, size: 9),
+                    _buildLabelValue('PAN NO'.tr, invoice.sellerPanNo, size: 9),
                   if (invoice.sellerCstNo.isNotEmpty)
-                    _buildLabelValue('CST NO', invoice.sellerCstNo, size: 9),
+                    _buildLabelValue('CST NO'.tr, invoice.sellerCstNo, size: 9),
                   if (invoice.sellerVatNo.isNotEmpty)
-                    _buildLabelValue('VAT NO', invoice.sellerVatNo, size: 9),
+                    _buildLabelValue('VAT NO'.tr, invoice.sellerVatNo, size: 9),
                 ],
               ),
             ),
@@ -259,7 +261,7 @@ class PdfService {
                   text: pw.TextSpan(
                     children: [
                       pw.TextSpan(
-                        text: 'Buyer: ',
+                        text: 'Buyer: '.tr,
                         style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
                       ),
                       pw.TextSpan(
@@ -278,13 +280,13 @@ class PdfService {
                         crossAxisAlignment: pw.CrossAxisAlignment.start,
                         children: [
                           if (invoice.buyerAddress.isNotEmpty) ...[
-                            pw.Text('Address:', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                            pw.Text('Address:'.tr, style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
                             pw.Text(invoice.buyerAddress, style: const pw.TextStyle(fontSize: 9)),
                           ],
                           if (invoice.buyerContactPerson.isNotEmpty)
-                            _buildLabelValue('CONTACT', invoice.buyerContactPerson, size: 9),
+                            _buildLabelValue('CONTACT'.tr, invoice.buyerContactPerson, size: 9),
                           if (invoice.buyerContactNo.isNotEmpty)
-                            _buildLabelValue('MOBILE', invoice.buyerContactNo, size: 9),
+                            _buildLabelValue('MOBILE'.tr, invoice.buyerContactNo, size: 9),
                           if (invoice.buyerEmail.isNotEmpty)
                             _buildLabelValue('EMAIL', invoice.buyerEmail, size: 9),
                         ],
@@ -296,13 +298,13 @@ class PdfService {
                         crossAxisAlignment: pw.CrossAxisAlignment.start,
                         children: [
                           if (invoice.buyerGstNo.isNotEmpty)
-                            _buildLabelValue('GST NO', invoice.buyerGstNo, size: 9),
+                            _buildLabelValue('GST NO'.tr, invoice.buyerGstNo, size: 9),
                           if (invoice.buyerPanNo.isNotEmpty)
-                            _buildLabelValue('PAN NO', invoice.buyerPanNo, size: 9),
+                            _buildLabelValue('PAN NO'.tr, invoice.buyerPanNo, size: 9),
                           if (invoice.buyerStateName.isNotEmpty)
-                            _buildLabelValue('State', '${invoice.buyerStateName}${invoice.buyerStateCode.isNotEmpty ? " (${invoice.buyerStateCode})" : ""}', size: 9),
+                            _buildLabelValue('State'.tr, '${invoice.buyerStateName}${invoice.buyerStateCode.isNotEmpty ? " (${invoice.buyerStateCode})" : ""}', size: 9),
                           if (invoice.placeOfSupply.isNotEmpty)
-                            _buildLabelValue('Supply', invoice.placeOfSupply, size: 9),
+                            _buildLabelValue('Supply'.tr, invoice.placeOfSupply, size: 9),
                         ],
                       ),
                     ),
@@ -322,11 +324,11 @@ class PdfService {
             child: pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                _buildInvoiceDetailRow('Inv No.', invoice.invoiceNo),
-                _buildInvoiceDetailRow('Date', dateFormat.format(invoice.invoiceDate)),
+                _buildInvoiceDetailRow('Inv No.'.tr, invoice.invoiceNo),
+                _buildInvoiceDetailRow('Date'.tr, dateFormat.format(invoice.invoiceDate)),
                 if (invoice.terms.isNotEmpty) 
-                   _buildInvoiceDetailRow('Terms', invoice.terms),
-                _buildInvoiceDetailRow('Due Date', dateFormat.format(invoice.dueDate)),
+                   _buildInvoiceDetailRow('Terms'.tr, invoice.terms),
+                _buildInvoiceDetailRow('Due Date'.tr, dateFormat.format(invoice.dueDate)),
               ],
             ),
           ),
@@ -340,7 +342,7 @@ class PdfService {
       padding: const pw.EdgeInsets.only(bottom: 2),
       child: pw.Row(
         children: [
-          pw.Text('$label: ', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+          pw.Text('$label: '.tr, style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
           pw.Text(value, style: const pw.TextStyle(fontSize: 9)),
         ],
       ),
@@ -351,7 +353,7 @@ class PdfService {
     return pw.Row(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-        pw.Text('$label: ', style: pw.TextStyle(fontSize: size, fontWeight: pw.FontWeight.bold)),
+        pw.Text('$label: '.tr, style: pw.TextStyle(fontSize: size, fontWeight: pw.FontWeight.bold)),
         pw.Expanded(child: pw.Text(value, style: pw.TextStyle(fontSize: size))),
       ],
     );
@@ -373,11 +375,11 @@ class PdfService {
           decoration: const pw.BoxDecoration(color: PdfColors.grey300),
           children: [
             _buildTableCell('S', isHeader: true),
-            _buildTableCell('PARTICULAR', isHeader: true),
-            _buildTableCell('HSN CODE', isHeader: true),
-            _buildTableCell('Carat', isHeader: true),
-            _buildTableCell('Rate (Rs)', isHeader: true),
-            _buildTableCell('Amount (Rs)', isHeader: true),
+            _buildTableCell('PARTICULAR'.tr, isHeader: true),
+            _buildTableCell('HSN CODE'.tr, isHeader: true),
+            _buildTableCell('Carat'.tr, isHeader: true),
+            _buildTableCell('Rate (Rs)'.tr, isHeader: true),
+            _buildTableCell('Amount (Rs)'.tr, isHeader: true),
           ],
         ),
         ...invoice.items.asMap().entries.map((entry) {
@@ -397,7 +399,7 @@ class PdfService {
           decoration: const pw.BoxDecoration(color: PdfColors.grey200),
           children: [
             _buildTableCell('', isBold: true),
-            _buildTableCell('TOTAL', isBold: true),
+            _buildTableCell('TOTAL'.tr, isBold: true),
             _buildTableCell('', isBold: true),
             _buildTableCell(invoice.totalCarat.toStringAsFixed(2), isBold: true),
             _buildTableCell('', isBold: true),
@@ -443,7 +445,7 @@ class PdfService {
               if (invoice.discountRate > 0) ...[
                 _buildTaxRow('Discount @ ${invoice.discountRate}%',
                     '- ${_formatCurrency(invoice.discountAmount)}'),
-                _buildTaxRow('Taxable Amount',
+                _buildTaxRow('Taxable Amount'.tr,
                     _formatCurrency(invoice.taxableAmount)),
               ],
               if (!invoice.isIgst) ...[
@@ -455,14 +457,14 @@ class PdfService {
               if (invoice.brokerChargeRate > 0)
                 _buildTaxRow('Broker Charge @ ${invoice.brokerChargeRate}%',
                     '- ${_formatCurrency(invoice.brokerChargeAmount)}'),
-              _buildTaxRow('Round Off', _formatCurrency(roundOff)),
+              _buildTaxRow('Round Off'.tr, _formatCurrency(roundOff)),
               pw.SizedBox(height: 4),
               pw.Row(
                 mainAxisSize: pw.MainAxisSize.min,
                 children: [
-                  pw.Text('TOTAL Carat: ${invoice.totalCarat.toStringAsFixed(2)}', style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold)),
+                  pw.Text('TOTAL Carat: ${invoice.totalCarat.toStringAsFixed(2)}'.tr, style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold)),
                   pw.SizedBox(width: 12),
-                  pw.Text('Amount (Rs): ${_formatCurrency(roundedGrandTotal)}', style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold)),
+                  pw.Text('Amount (Rs): ${_formatCurrency(roundedGrandTotal)}'.tr, style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold)),
                 ],
               ),
             ],
@@ -476,7 +478,7 @@ class PdfService {
     return pw.Row(
       mainAxisSize: pw.MainAxisSize.min,
       children: [
-        pw.Text('$label: ', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+        pw.Text('$label: '.tr, style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
         pw.Text(value, style: const pw.TextStyle(fontSize: 10)),
       ],
     );
@@ -490,18 +492,18 @@ class PdfService {
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          pw.Text('RTGS Instructions (Beneficiary):', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+          pw.Text('RTGS Instructions (Beneficiary):'.tr, style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
           pw.SizedBox(height: 2),
           pw.Row(
             children: [
-              pw.Expanded(child: _buildBankInfo('Bank Name', invoice.bankName)),
-              pw.Expanded(child: _buildBankInfo('Branch', invoice.branch)),
+              pw.Expanded(child: _buildBankInfo('Bank Name'.tr, invoice.bankName)),
+              pw.Expanded(child: _buildBankInfo('Branch'.tr, invoice.branch)),
             ],
           ),
           pw.Row(
             children: [
-              pw.Expanded(child: _buildBankInfo('Account No', invoice.accountNo)),
-              pw.Expanded(child: _buildBankInfo('IFSC Code', invoice.ifscCode)),
+              pw.Expanded(child: _buildBankInfo('Account No'.tr, invoice.accountNo)),
+              pw.Expanded(child: _buildBankInfo('IFSC Code'.tr, invoice.ifscCode)),
             ],
           ),
         ],
@@ -512,7 +514,7 @@ class PdfService {
   static pw.Widget _buildBankInfo(String label, String value) {
     return pw.Row(
       children: [
-        pw.Text('$label: ', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+        pw.Text('$label: '.tr, style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
         pw.Text(value, style: const pw.TextStyle(fontSize: 9)),
       ],
     );
@@ -526,10 +528,10 @@ class PdfService {
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          pw.Text('Terms and Conditions:', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
-          pw.Text('E. & O. E. | Goods once sold will not be taken back.', style: const pw.TextStyle(fontSize: 9)),
-          pw.Text('Payment within the days of invoice terms. In case of delay interest of 1.5% per month will be charged.', style: const pw.TextStyle(fontSize: 9)),
-          pw.Text('Subject to Surat Jurisdiction', style: const pw.TextStyle(fontSize: 9)),
+          pw.Text('Terms and Conditions:'.tr, style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+          pw.Text('E. & O. E. | Goods once sold will not be taken back.'.tr, style: const pw.TextStyle(fontSize: 9)),
+          pw.Text('Payment within the days of invoice terms. In case of delay interest of 1.5% per month will be charged.'.tr, style: const pw.TextStyle(fontSize: 9)),
+          pw.Text('Subject to Surat Jurisdiction'.tr, style: const pw.TextStyle(fontSize: 9)),
         ],
       ),
     );
@@ -544,7 +546,7 @@ class PdfService {
           pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: [
-              pw.Text('Purchaser', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+              pw.Text('Purchaser'.tr, style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
               pw.Text(invoice.sellerName, style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
             ],
           ),
@@ -552,8 +554,8 @@ class PdfService {
           pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: [
-              pw.Text('Signature', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
-              pw.Text('Signature', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+              pw.Text('Signature'.tr, style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+              pw.Text('Signature'.tr, style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
             ],
           ),
         ],
@@ -562,9 +564,9 @@ class PdfService {
   }
 
   static String _numberToWords(int number) {
-    if (number == 0) return 'Zero Only';
-    final ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
-    final tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+    if (number == 0) return 'Zero Only'.tr;
+    final ones = ['', 'One'.tr, 'Two'.tr, 'Three'.tr, 'Four'.tr, 'Five'.tr, 'Six'.tr, 'Seven'.tr, 'Eight'.tr, 'Nine'.tr, 'Ten'.tr, 'Eleven'.tr, 'Twelve'.tr, 'Thirteen'.tr, 'Fourteen'.tr, 'Fifteen'.tr, 'Sixteen'.tr, 'Seventeen'.tr, 'Eighteen'.tr, 'Nineteen'.tr];
+    final tens = ['', '', 'Twenty'.tr, 'Thirty'.tr, 'Forty'.tr, 'Fifty'.tr, 'Sixty'.tr, 'Seventy'.tr, 'Eighty'.tr, 'Ninety'.tr];
     String convert(int n) {
       if (n < 20) return ones[n];
       if (n < 100) return '${tens[n ~/ 10]} ${ones[n % 10]}'.trim();

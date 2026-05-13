@@ -12,8 +12,12 @@ import '../../services/invoice_storage_service.dart';
 import '../../services/purchase_storage_service.dart';
 import '../../viewmodels/brokerage_report_data.dart';
 import '../../widgets/app_bar_factory.dart';
-import '../../widgets/ads/banner_ad_widget.dart';
+
 import '../../widgets/list_skeleton.dart';
+import '../../constants/app_translations.dart';
+
+
+import 'package:invoice_generator/constants/app_translations.dart';
 
 enum _PeriodMode { monthly, yearly, custom }
 
@@ -30,9 +34,9 @@ class _BrokerageReportViewState extends State<BrokerageReportView> {
 
   final _currencyFmt = NumberFormat.currency(symbol: '₹', decimalDigits: 0);
   final _caratFmt = NumberFormat('#,##0.00');
-  final _dateFmt = DateFormat('dd MMM yyyy');
-  final _monthFmt = DateFormat('MMMM yyyy');
-  final _yearFmt = DateFormat('yyyy');
+  final _dateFmt = DateFormat('dd MMM yyyy'.tr);
+  final _monthFmt = DateFormat('MMMM yyyy'.tr);
+  final _yearFmt = DateFormat('yyyy'.tr);
 
   _PeriodMode _mode = _PeriodMode.yearly;
   DateTime _monthAnchor = DateTime.now();
@@ -134,7 +138,7 @@ class _BrokerageReportViewState extends State<BrokerageReportView> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBarFactory.build(
-        title: 'Brokerage Report',
+        title: 'Brokerage Report'.tr,
         onBackPress: () => Navigator.pop(context),
       ),
       body: Stack(
@@ -173,7 +177,7 @@ class _BrokerageReportViewState extends State<BrokerageReportView> {
       bottomNavigationBar: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const BannerAdWidget(),
+
           _actionBar(),
         ],
       ),
@@ -191,12 +195,12 @@ class _BrokerageReportViewState extends State<BrokerageReportView> {
         children: [
           Icon(Icons.handshake_outlined, size: 48, color: Colors.grey[300]),
           const SizedBox(height: 10),
-          const Text('No brokerage entries in this period',
+          Text('No brokerage entries in this period'.tr,
               style: TextStyle(
                   color: _deep, fontWeight: FontWeight.w700)),
           const SizedBox(height: 6),
           Text(
-            'Widen the date range above, or add a Broker Name / Broker Charge % to existing purchases or invoices so they appear here.',
+            'Widen the date range above, or add a Broker Name / Broker Charge % to existing purchases or invoices so they appear here.'.tr,
             textAlign: TextAlign.center,
             style: TextStyle(color: Colors.grey[600], fontSize: 12),
           ),
@@ -225,7 +229,7 @@ class _BrokerageReportViewState extends State<BrokerageReportView> {
             children: [
               Expanded(
                 child: _summaryBlock(
-                  label: 'BROKERS',
+                  label: 'BROKERS'.tr,
                   value: brokerCount.toString(),
                   color: Colors.white,
                 ),
@@ -233,7 +237,7 @@ class _BrokerageReportViewState extends State<BrokerageReportView> {
               Container(width: 1, height: 36, color: Colors.white24),
               Expanded(
                 child: _summaryBlock(
-                  label: 'ENTRIES',
+                  label: 'ENTRIES'.tr,
                   value: entryCount.toString(),
                   color: Colors.white,
                 ),
@@ -241,7 +245,7 @@ class _BrokerageReportViewState extends State<BrokerageReportView> {
               Container(width: 1, height: 36, color: Colors.white24),
               Expanded(
                 child: _summaryBlock(
-                  label: 'TOTAL',
+                  label: 'TOTAL'.tr,
                   value: _currencyFmt.format(_grandTotal),
                   color: Colors.amberAccent,
                 ),
@@ -329,8 +333,8 @@ class _BrokerageReportViewState extends State<BrokerageReportView> {
                                 fontWeight: FontWeight.w800)),
                         const SizedBox(height: 2),
                         Text(
-                          '${b.entries.length} ${b.entries.length == 1 ? 'entry' : 'entries'} · '
-                          '${b.buyCount} buy · ${b.sellCount} sell · ${_caratFmt.format(b.totalCarat)} ct',
+                          '${b.entries.length} ${b.entries.length == 1 ? 'entry'.tr : 'entries'.tr} · '
+                          '${b.buyCount} ${'buy'.tr} · ${b.sellCount} ${'sell'.tr} · ${_caratFmt.format(b.totalCarat)} ct',
                           style: TextStyle(
                               color: Colors.grey[600], fontSize: 11),
                         ),
@@ -394,7 +398,7 @@ class _BrokerageReportViewState extends State<BrokerageReportView> {
               borderRadius: BorderRadius.circular(6),
             ),
             child: Text(
-              isBuy ? 'BUY' : 'SELL',
+              isBuy ? 'BUY'.tr : 'SELL'.tr,
               style: TextStyle(
                   color: sideColor,
                   fontSize: 9,
@@ -414,8 +418,7 @@ class _BrokerageReportViewState extends State<BrokerageReportView> {
                       fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 2),
-                Text(
-                  '${_dateFmt.format(e.date)} · ${e.itemLabel} · ${_caratFmt.format(e.carat)} ct',
+                Text('${_dateFmt.format(e.date)} · ${e.itemLabel} · ${_caratFmt.format(e.carat)} ct'.tr,
                   style:
                       TextStyle(color: Colors.grey[600], fontSize: 11),
                 ),
@@ -453,7 +456,7 @@ class _BrokerageReportViewState extends State<BrokerageReportView> {
               child: OutlinedButton.icon(
                 onPressed: _busy ? null : _viewReport,
                 icon: const Icon(Icons.remove_red_eye_rounded),
-                label: const Text('View Report'),
+                label: Text('View Report'.tr),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: _accent,
                   side: const BorderSide(color: _accent),
@@ -474,7 +477,7 @@ class _BrokerageReportViewState extends State<BrokerageReportView> {
                         child: CircularProgressIndicator(
                             strokeWidth: 2, color: Colors.white))
                     : const Icon(Icons.download_rounded),
-                label: Text(_busy ? 'Preparing…' : 'Download PDF'),
+                label: Text(_busy ? 'Preparing…'.tr : 'Download PDF'.tr),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _accent,
                   foregroundColor: Colors.white,
@@ -535,9 +538,9 @@ class _BrokerageReportViewState extends State<BrokerageReportView> {
       ),
       child: Row(
         children: [
-          tab('Monthly', _PeriodMode.monthly),
-          tab('Yearly', _PeriodMode.yearly),
-          tab('Custom', _PeriodMode.custom),
+          tab('Monthly'.tr, _PeriodMode.monthly),
+          tab('Yearly'.tr, _PeriodMode.yearly),
+          tab('Custom'.tr, _PeriodMode.custom),
         ],
       ),
     );
@@ -701,7 +704,7 @@ class _BrokerageReportViewState extends State<BrokerageReportView> {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Row(
         children: [
-          field('From', _customStart, (d) {
+          field('From'.tr, _customStart, (d) {
             setState(() {
               _customStart = d;
               if (_customEnd.isBefore(_customStart)) _customEnd = _customStart;
@@ -709,7 +712,7 @@ class _BrokerageReportViewState extends State<BrokerageReportView> {
             });
           }),
           const SizedBox(width: 10),
-          field('To', _customEnd, (d) => setState(() {
+          field('To'.tr, _customEnd, (d) => setState(() {
                 _customEnd = d;
                 _recompute();
               }),
@@ -744,8 +747,8 @@ class _BrokerageReportViewState extends State<BrokerageReportView> {
   Future<void> _viewReport() async {
     if (_busy) return;
     if (_aggregates.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Nothing to preview for this period')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Nothing to preview for this period'.tr)));
       return;
     }
 
@@ -756,7 +759,7 @@ class _BrokerageReportViewState extends State<BrokerageReportView> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('PDF failed: $e'),
+            content: Text('${'PDF failed'.tr}: $e'),
             backgroundColor: Colors.red));
       }
     } finally {
@@ -771,7 +774,7 @@ class _BrokerageReportViewState extends State<BrokerageReportView> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('Preview failed: $e'),
+            content: Text('${'Preview failed'.tr}: $e'),
             backgroundColor: Colors.red));
       }
     }
@@ -785,8 +788,8 @@ class _BrokerageReportViewState extends State<BrokerageReportView> {
   Future<void> _downloadPdf() async {
     if (_busy) return;
     if (_aggregates.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Nothing to download for this period')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Nothing to download for this period'.tr)));
       return;
     }
 
@@ -805,7 +808,7 @@ class _BrokerageReportViewState extends State<BrokerageReportView> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('PDF failed: $e'),
+            content: Text('${'PDF failed'.tr}: $e'),
             backgroundColor: Colors.red));
       }
     } finally {
@@ -816,12 +819,12 @@ class _BrokerageReportViewState extends State<BrokerageReportView> {
     try {
       await Share.shareXFiles(
         [XFile(file.path)],
-        text: 'Brokerage Report – $_periodLabel',
+        text: '${'Brokerage Report'.tr} – $_periodLabel',
       );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('Share failed: $e'),
+            content: Text('${'Share failed'.tr}: $e'),
             backgroundColor: Colors.red));
       }
     }

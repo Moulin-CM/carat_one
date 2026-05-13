@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import '../../viewmodels/reminder_viewmodel.dart';
 import '../../models/invoice_reminder_model.dart';
 import '../../widgets/list_skeleton.dart';
+import '../../constants/app_translations.dart';
+
 
 class RemindersView extends StatelessWidget {
   const RemindersView({super.key});
@@ -47,7 +49,7 @@ class _RemindersViewContent extends StatelessWidget {
                 child: Icon(Icons.notifications_active_rounded, color: accent),
               ),
               const SizedBox(width: 10),
-              const Text('Invoice Reminders'),
+              Text('Invoice Reminders'.tr),
             ],
           ),
         ),
@@ -55,7 +57,7 @@ class _RemindersViewContent extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
             onPressed: () => viewModel.loadReminders(),
-            tooltip: 'Refresh',
+            tooltip: 'Refresh'.tr,
           ),
         ],
       ),
@@ -142,12 +144,12 @@ class _RemindersViewContent extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'No Active Reminders',
+            'No Active Reminders'.tr,
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: deepAccent),
           ),
           const SizedBox(height: 6),
           Text(
-            'Set reminders for your invoices to get notified',
+            'Set reminders for your invoices to get notified'.tr,
             style: TextStyle(color: Colors.grey[600]),
           ),
         ],
@@ -162,8 +164,8 @@ class _RemindersViewContent extends StatelessWidget {
     Color accent,
     Color deepAccent,
   ) {
-    final dateFormat = DateFormat('dd MMM yyyy');
-    final timeFormat = DateFormat('hh:mm a');
+    final dateFormat = DateFormat('dd MMM yyyy'.tr);
+    final timeFormat = DateFormat('hh:mm a'.tr);
     final isOverdue = reminder.reminderDate.isBefore(DateTime.now());
     final isDueSoon = reminder.reminderDate.difference(DateTime.now()).inHours < 24;
 
@@ -220,7 +222,7 @@ class _RemindersViewContent extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      reminder.buyerName.isNotEmpty ? reminder.buyerName : 'Unnamed Buyer',
+                      reminder.buyerName.isNotEmpty ? reminder.buyerName : 'Unnamed Buyer'.tr,
                       style: const TextStyle(
                         fontWeight: FontWeight.w800,
                         fontSize: 16,
@@ -228,7 +230,7 @@ class _RemindersViewContent extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Invoice: ${reminder.invoiceNo}',
+                      '${'Invoice'.tr}: ${reminder.invoiceNo}',
                       style: TextStyle(
                         color: Colors.grey[700],
                         fontSize: 13,
@@ -243,17 +245,17 @@ class _RemindersViewContent extends StatelessWidget {
                   final confirm = await showDialog<bool>(
                     context: context,
                     builder: (context) => AlertDialog(
-                      title: const Text('Cancel Reminder'),
-                      content: const Text('Are you sure you want to cancel this reminder?'),
+                      title: Text('Cancel Reminder'.tr),
+                      content: Text('Are you sure you want to cancel this reminder?'.tr),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.pop(context, false),
-                          child: const Text('No'),
+                          child: Text('No'.tr),
                         ),
                         ElevatedButton(
                           onPressed: () => Navigator.pop(context, true),
                           style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                          child: const Text('Yes, Cancel'),
+                          child: Text('Yes, Cancel'.tr),
                         ),
                       ],
                     ),
@@ -261,12 +263,12 @@ class _RemindersViewContent extends StatelessWidget {
                   if (confirm == true && context.mounted) {
                     final success = await viewModel.cancelReminder(reminder.notificationId);
                     if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(success ? 'Reminder cancelled' : 'Failed to cancel reminder'),
-                          backgroundColor: success ? Colors.green : Colors.red,
-                        ),
-                      );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(success ? 'Reminder cancelled'.tr : 'Failed to cancel reminder'.tr),
+                            backgroundColor: success ? Colors.green : Colors.red,
+                          ),
+                        );
                     }
                   }
                 },
@@ -304,7 +306,7 @@ class _RemindersViewContent extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Reminder: ${dateFormat.format(reminder.reminderDate)} at ${timeFormat.format(reminder.reminderDate)}',
+                        '${'Reminder'.tr}: ${dateFormat.format(reminder.reminderDate)} ${'at'.tr} ${timeFormat.format(reminder.reminderDate)}',
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -317,7 +319,7 @@ class _RemindersViewContent extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Due Date: ${dateFormat.format(reminder.dueDate)}',
+                        '${'Due Date'.tr}: ${dateFormat.format(reminder.dueDate)}',
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.grey[600],

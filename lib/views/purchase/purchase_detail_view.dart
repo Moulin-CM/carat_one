@@ -7,7 +7,11 @@ import '../../widgets/custom_card.dart';
 import '../../widgets/custom_section.dart';
 import '../../widgets/custom_info_row.dart';
 import '../../widgets/app_bar_factory.dart';
+import '../../constants/app_translations.dart';
 import 'purchase_form_view.dart';
+
+
+import 'package:invoice_generator/constants/app_translations.dart';
 
 class PurchaseDetailView extends StatefulWidget {
   final PurchaseModel purchase;
@@ -22,12 +26,12 @@ class _PurchaseDetailViewState extends State<PurchaseDetailView> {
   static const _accent = Color(0xFF4F8AF4);
   static const _deep = Color(0xFF1E3C72);
   final _currencyFmt = NumberFormat.currency(symbol: '₹', decimalDigits: 0);
-  final _dateFmt = DateFormat('dd MMM yyyy');
+  final _dateFmt = DateFormat('dd MMM yyyy'.tr);
   final _caratFmt = NumberFormat('#,##0.00');
   // Payment-to-seller tracking
   final _paymentAmountController = TextEditingController();
   final _paymentFormKey = GlobalKey<FormState>();
-  String _paidThroughMode = 'cash';
+  String _paidThroughMode = 'cash'.tr;
   bool _savingPayment = false;
 
   @override
@@ -56,7 +60,7 @@ class _PurchaseDetailViewState extends State<PurchaseDetailView> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBarFactory.build(
-        title: 'Purchase Details',
+        title: 'Purchase Details'.tr,
         onBackPress: () => Navigator.pop(context),
         actions: [
           IconButton(
@@ -69,7 +73,7 @@ class _PurchaseDetailViewState extends State<PurchaseDetailView> {
               );
               if (result == true) _reload();
             },
-            tooltip: 'Edit',
+            tooltip: 'Edit'.tr,
           ),
         ],
       ),
@@ -110,21 +114,21 @@ class _PurchaseDetailViewState extends State<PurchaseDetailView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            _purchase.sellerName.isNotEmpty ? _purchase.sellerName : 'Unknown Seller',
+            _purchase.sellerName.isNotEmpty ? _purchase.sellerName : 'Unknown Seller'.tr,
             style: const TextStyle(
                 color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800),
           ),
           if (_purchase.brokerName.isNotEmpty)
-            Text('Broker: ${_purchase.brokerName}',
+            Text('${'Broker'.tr}: ${_purchase.brokerName}',
                 style: const TextStyle(color: Colors.white70, fontSize: 13)),
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _whiteChip('Size', _purchase.size.isNotEmpty ? _purchase.size : '-'),
-              _whiteChip('Buy Date', _dateFmt.format(_purchase.buyDate)),
-              _whiteChip('Pay Date', _dateFmt.format(_purchase.paymentDate)),
-              _whiteChip('Due Days', '${_purchase.dueDays}d'),
+              _whiteChip('Size'.tr, _purchase.size.isNotEmpty ? _purchase.size : '-'),
+              _whiteChip('Buy Date'.tr, _dateFmt.format(_purchase.buyDate)),
+              _whiteChip('Pay Date'.tr, _dateFmt.format(_purchase.paymentDate)),
+              _whiteChip('Due Days'.tr, '${_purchase.dueDays}d'),
             ],
           ),
         ],
@@ -145,30 +149,30 @@ class _PurchaseDetailViewState extends State<PurchaseDetailView> {
 
   Widget _detailsSection() {
     return CustomSection(
-      title: 'Party & Dates',
+      title: 'Party & Dates'.tr,
       icon: Icons.people_rounded,
       children: [
-        CustomInfoRow(label: 'Seller', value: _purchase.sellerName),
-        CustomInfoRow(label: 'Broker', value: _purchase.brokerName.isNotEmpty ? _purchase.brokerName : '-'),
-        CustomInfoRow(label: 'Size', value: _purchase.size.isNotEmpty ? _purchase.size : '-'),
-        CustomInfoRow(label: 'Buy Date', value: _dateFmt.format(_purchase.buyDate)),
-        CustomInfoRow(label: 'Payment Date', value: _dateFmt.format(_purchase.paymentDate)),
-        CustomInfoRow(label: 'Due Days', value: '${_purchase.dueDays} days'),
+        CustomInfoRow(label: 'Seller'.tr, value: _purchase.sellerName),
+        CustomInfoRow(label: 'Broker'.tr, value: _purchase.brokerName.isNotEmpty ? _purchase.brokerName : '-'),
+        CustomInfoRow(label: 'Size'.tr, value: _purchase.size.isNotEmpty ? _purchase.size : '-'),
+        CustomInfoRow(label: 'Buy Date'.tr, value: _dateFmt.format(_purchase.buyDate)),
+        CustomInfoRow(label: 'Payment Date'.tr, value: _dateFmt.format(_purchase.paymentDate)),
+        CustomInfoRow(label: 'Due Days'.tr, value: '${_purchase.dueDays} ${'days'.tr}'),
       ],
     );
   }
 
   Widget _financialSection() {
     return CustomSection(
-      title: 'Financial Summary',
+      title: 'Financial Summary'.tr,
       icon: Icons.attach_money_rounded,
       children: [
-        CustomInfoRow(label: 'Total Amount', value: _currencyFmt.format(_purchase.grossAmount)),
-        CustomInfoRow(label: 'Discount Amt', value: _currencyFmt.format(_purchase.discountValue)),
-        CustomInfoRow(label: 'Net Amount', value: _currencyFmt.format(_purchase.netAmount), isBold: true, valueColor: _deep),
-        CustomInfoRow(label: 'Total Carat', value: '${_caratFmt.format(_purchase.totalCarat)} ct'),
-        CustomInfoRow(label: 'Rate per Carat', value: _currencyFmt.format(_purchase.amountPerCarat)),
-        CustomInfoRow(label: 'Discount (%)', value: '${_purchase.discount}%'),
+        CustomInfoRow(label: 'Total Amount'.tr, value: _currencyFmt.format(_purchase.grossAmount)),
+        CustomInfoRow(label: 'Discount Amt'.tr, value: _currencyFmt.format(_purchase.discountValue)),
+        CustomInfoRow(label: 'Net Amount'.tr, value: _currencyFmt.format(_purchase.netAmount), isBold: true, valueColor: _deep),
+        CustomInfoRow(label: 'Total Carat'.tr, value: '${_caratFmt.format(_purchase.totalCarat)} ct'),
+        CustomInfoRow(label: 'Rate per Carat'.tr, value: _currencyFmt.format(_purchase.amountPerCarat)),
+        CustomInfoRow(label: 'Discount (%)'.tr, value: '${_purchase.discount}%'),
       ],
     );
   }
@@ -182,12 +186,12 @@ class _PurchaseDetailViewState extends State<PurchaseDetailView> {
     final fullyPaid = _purchase.isFullyPaid;
 
     return CustomSection(
-      title: 'Payment',
+      title: 'Payment'.tr,
       icon: Icons.payments_rounded,
       children: [
         _paidRow(
           icon: Icons.payments_outlined,
-          label: 'Cash',
+          label: 'Cash'.tr,
           carat: _purchase.cashPaidCarat,
           amount: _purchase.cashPaidAmount,
           color: Colors.green,
@@ -195,7 +199,7 @@ class _PurchaseDetailViewState extends State<PurchaseDetailView> {
         const SizedBox(height: 8),
         _paidRow(
           icon: Icons.account_balance_outlined,
-          label: 'In Account',
+          label: 'In Account'.tr,
           carat: _purchase.accountPaidCarat,
           amount: _purchase.accountPaidAmount,
           color: _accent,
@@ -211,10 +215,10 @@ class _PurchaseDetailViewState extends State<PurchaseDetailView> {
             children: [
               const Icon(Icons.timelapse_rounded, color: _deep, size: 18),
               const SizedBox(width: 8),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Remaining',
-                  style: TextStyle(
+                  'Remaining'.tr,
+                  style: const TextStyle(
                       fontWeight: FontWeight.w700, color: _deep),
                 ),
               ),
@@ -235,14 +239,14 @@ class _PurchaseDetailViewState extends State<PurchaseDetailView> {
               color: Colors.green.withOpacity(0.1),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(Icons.check_circle_rounded, color: Colors.green),
+                const Icon(Icons.check_circle_rounded, color: Colors.green),
                 SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'This purchase is fully paid.',
-                    style: TextStyle(
+                    'This purchase is fully paid.'.tr,
+                    style: const TextStyle(
                         color: Colors.green, fontWeight: FontWeight.w600),
                   ),
                 ),
@@ -255,9 +259,9 @@ class _PurchaseDetailViewState extends State<PurchaseDetailView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Paid Payment Through:',
-                  style: TextStyle(
+                Text(
+                  'Paid Payment Through:'.tr,
+                  style: const TextStyle(
                       fontWeight: FontWeight.w700, color: _deep),
                 ),
                 const SizedBox(height: 8),
@@ -265,16 +269,16 @@ class _PurchaseDetailViewState extends State<PurchaseDetailView> {
                   children: [
                     Expanded(
                       child: _paidModeTile(
-                        value: 'cash',
-                        label: 'Cash',
+                        value: 'cash'.tr,
+                        label: 'Cash'.tr,
                         icon: Icons.payments_outlined,
                       ),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: _paidModeTile(
-                        value: 'account',
-                        label: 'In Account',
+                        value: 'account'.tr,
+                        label: 'In Account'.tr,
                         icon: Icons.account_balance_outlined,
                       ),
                     ),
@@ -282,7 +286,7 @@ class _PurchaseDetailViewState extends State<PurchaseDetailView> {
                 ),
                 const SizedBox(height: 14),
                 Text(
-                  'Amount Paid (max ${_currencyFmt.format(remainingAmount)})',
+                  '${'Amount Paid'.tr} (${'max'.tr} ${_currencyFmt.format(remainingAmount)})',
                   style: TextStyle(
                       color: Colors.grey[700],
                       fontWeight: FontWeight.w600,
@@ -298,7 +302,7 @@ class _PurchaseDetailViewState extends State<PurchaseDetailView> {
                         RegExp(r'^\d*\.?\d{0,2}')),
                   ],
                   decoration: InputDecoration(
-                    hintText: 'Enter amount paid',
+                    hintText: 'Enter amount paid'.tr,
                     filled: true,
                     fillColor: const Color(0xFFF4F7FC),
                     border: OutlineInputBorder(
@@ -309,11 +313,11 @@ class _PurchaseDetailViewState extends State<PurchaseDetailView> {
                   ),
                   validator: (v) {
                     if (v == null || v.trim().isEmpty) {
-                      return 'Enter amount paid';
+                      return 'Enter amount paid'.tr;
                     }
                     final value = double.tryParse(v.trim());
-                    if (value == null) return 'Invalid number';
-                    if (value <= 0) return 'Must be greater than 0';
+                    if (value == null) return 'Invalid number'.tr;
+                    if (value <= 0) return 'Must be greater than 0'.tr;
                     return null;
                   },
                 ),
@@ -330,7 +334,7 @@ class _PurchaseDetailViewState extends State<PurchaseDetailView> {
                                 strokeWidth: 2, color: Colors.white),
                           )
                         : const Icon(Icons.save_rounded),
-                    label: Text(_savingPayment ? 'Saving…' : 'Save'),
+                    label: Text(_savingPayment ? 'Saving…'.tr : 'Save'.tr),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _accent,
                       foregroundColor: Colors.white,
@@ -372,8 +376,7 @@ class _PurchaseDetailViewState extends State<PurchaseDetailView> {
                 style:
                     TextStyle(color: color, fontWeight: FontWeight.w700)),
           ),
-          Text(
-            '${_caratFmt.format(carat)} ct · ${_currencyFmt.format(amount)}',
+          Text('${_caratFmt.format(carat)} ct · ${_currencyFmt.format(amount)}'.tr,
             style: TextStyle(color: color, fontWeight: FontWeight.w700),
           ),
         ],
@@ -435,7 +438,7 @@ class _PurchaseDetailViewState extends State<PurchaseDetailView> {
 
     setState(() => _savingPayment = true);
     try {
-      if (_paidThroughMode == 'cash') {
+      if (_paidThroughMode == 'cash'.tr) {
         _purchase.cashPaidCarat += enteredCarat;
       } else {
         _purchase.accountPaidCarat += enteredCarat;
@@ -447,8 +450,8 @@ class _PurchaseDetailViewState extends State<PurchaseDetailView> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Payment of ${_currencyFmt.format(enteredAmount)} saved '
-            '(${_paidThroughMode == 'cash' ? 'Cash' : 'In Account'})',
+            '${'Payment of'.tr} ${_currencyFmt.format(enteredAmount)} ${'saved'.tr} '
+            '(${_paidThroughMode == 'cash'.tr ? 'Cash'.tr : 'In Account'.tr})',
           ),
           backgroundColor: Colors.green,
         ),
@@ -457,7 +460,7 @@ class _PurchaseDetailViewState extends State<PurchaseDetailView> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text('Error saving payment: $e'),
+            content: Text('${'Error saving payment'.tr}: $e'),
             backgroundColor: Colors.red),
       );
     } finally {

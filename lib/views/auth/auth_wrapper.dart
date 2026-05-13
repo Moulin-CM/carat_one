@@ -7,6 +7,7 @@ import '../../widgets/dashboard_skeleton.dart';
 import 'welcome_view.dart';
 import '../shell/main_shell.dart';
 
+
 class AuthWrapper extends StatefulWidget {
   const AuthWrapper({super.key});
 

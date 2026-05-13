@@ -9,8 +9,12 @@ import '../../models/expense_model.dart';
 import '../../services/expense_report_pdf_service.dart';
 import '../../services/expense_storage_service.dart';
 import '../../widgets/app_bar_factory.dart';
-import '../../widgets/ads/banner_ad_widget.dart';
+import '../../constants/app_translations.dart';
+
 import '../../widgets/list_skeleton.dart';
+
+
+import 'package:invoice_generator/constants/app_translations.dart';
 
 enum _PeriodMode { monthly, yearly, custom }
 
@@ -26,10 +30,10 @@ class _ExpenseReportViewState extends State<ExpenseReportView> {
   static const _deep = Color(0xFF1E3C72);
 
   final _currencyFmt = NumberFormat.currency(symbol: '₹', decimalDigits: 0);
-  final _dateFmt = DateFormat('dd MMM yyyy');
-  final _monthFmt = DateFormat('MMMM yyyy');
-  final _yearFmt = DateFormat('yyyy');
-  final _dayLabelFmt = DateFormat('EEE, dd MMM yyyy');
+  final _dateFmt = DateFormat('dd MMM yyyy'.tr);
+  final _monthFmt = DateFormat('MMMM yyyy'.tr);
+  final _yearFmt = DateFormat('yyyy'.tr);
+  final _dayLabelFmt = DateFormat('EEE, dd MMM yyyy'.tr);
 
   _PeriodMode _mode = _PeriodMode.monthly;
   DateTime _monthAnchor = DateTime.now();
@@ -128,17 +132,17 @@ class _ExpenseReportViewState extends State<ExpenseReportView> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBarFactory.build(
-        title: 'Expense Statement',
+        title: 'Expense Statement'.tr,
         onBackPress: () => Navigator.pop(context),
         actions: [
           IconButton(
             icon: const Icon(Icons.picture_as_pdf_rounded),
-            tooltip: 'View / Print PDF',
+            tooltip: 'View / Print PDF'.tr,
             onPressed: _exporting ? null : _printPdf,
           ),
           IconButton(
             icon: const Icon(Icons.share_rounded),
-            tooltip: 'Share PDF',
+            tooltip: 'Share PDF'.tr,
             onPressed: _exporting ? null : _sharePdf,
           ),
         ],
@@ -164,7 +168,7 @@ class _ExpenseReportViewState extends State<ExpenseReportView> {
           ),
         ],
       ),
-      bottomNavigationBar: const BottomBannerAd(),
+
     );
   }
 
@@ -213,9 +217,9 @@ class _ExpenseReportViewState extends State<ExpenseReportView> {
       ),
       child: Row(
         children: [
-          tab('Monthly', _PeriodMode.monthly),
-          tab('Yearly', _PeriodMode.yearly),
-          tab('Custom', _PeriodMode.custom),
+          tab('Monthly'.tr, _PeriodMode.monthly),
+          tab('Yearly'.tr, _PeriodMode.yearly),
+          tab('Custom'.tr, _PeriodMode.custom),
         ],
       ),
     );
@@ -371,14 +375,14 @@ class _ExpenseReportViewState extends State<ExpenseReportView> {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Row(
         children: [
-          field('From', _customStart, (d) {
+          field('From'.tr, _customStart, (d) {
             setState(() {
               _customStart = d;
               if (_customEnd.isBefore(_customStart)) _customEnd = _customStart;
             });
           }),
           const SizedBox(width: 10),
-          field('To', _customEnd, (d) => setState(() => _customEnd = d),
+          field('To'.tr, _customEnd, (d) => setState(() => _customEnd = d),
               firstDate: _customStart),
         ],
       ),
@@ -407,28 +411,28 @@ class _ExpenseReportViewState extends State<ExpenseReportView> {
             children: [
               Expanded(
                 child: _summaryStat(
-                    'Credits',
+                    'Credits'.tr,
                     '+ ${_currencyFmt.format(_creditTotal)}',
                     Colors.greenAccent),
               ),
               Container(width: 1, height: 30, color: Colors.white24),
               Expanded(
                 child: _summaryStat(
-                    'Debits',
+                    'Debits'.tr,
                     '- ${_currencyFmt.format(_debitTotal)}',
                     Colors.redAccent),
               ),
               Container(width: 1, height: 30, color: Colors.white24),
               Expanded(
                 child: _summaryStat(
-                    'Net',
+                    'Net'.tr,
                     netStr,
                     net >= 0 ? Colors.greenAccent : Colors.redAccent),
               ),
             ],
           ),
           const SizedBox(height: 6),
-          Text('$count ${count == 1 ? 'entry' : 'entries'}',
+          Text('$count ${count == 1 ? 'entry'.tr : 'entries'.tr}',
               style: const TextStyle(color: Colors.white54, fontSize: 11)),
         ],
       ),
@@ -502,7 +506,7 @@ class _ExpenseReportViewState extends State<ExpenseReportView> {
         ? Icons.trending_up_rounded
         : Icons.trending_down_rounded;
     final sign = e.isCredit ? '+' : '-';
-    final name = e.personName.isNotEmpty ? e.personName : 'Entry';
+    final name = e.personName.isNotEmpty ? e.personName : 'Entry'.tr;
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -541,14 +545,13 @@ class _ExpenseReportViewState extends State<ExpenseReportView> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  e.isCredit ? 'Credit' : 'Debit',
+                  e.isCredit ? 'Credit'.tr : 'Debit'.tr,
                   style: TextStyle(color: Colors.grey[600], fontSize: 11),
                 ),
               ],
             ),
           ),
-          Text(
-            '$sign ${_currencyFmt.format(e.amount)}',
+          Text('$sign ${_currencyFmt.format(e.amount)}'.tr,
             style: TextStyle(
                 color: color,
                 fontSize: 14,
@@ -566,9 +569,9 @@ class _ExpenseReportViewState extends State<ExpenseReportView> {
         Icon(Icons.description_outlined,
             size: 64, color: Colors.grey[300]),
         const SizedBox(height: 16),
-        const Center(
-          child: Text('No expenses in this period',
-              style: TextStyle(
+        Center(
+          child: Text('No expenses in this period'.tr,
+              style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                   color: Colors.grey)),
@@ -616,8 +619,8 @@ class _ExpenseReportViewState extends State<ExpenseReportView> {
   Future<void> _printPdf() async {
     if (_exporting) return;
     if (_filtered.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Nothing to print for this period')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Nothing to print for this period'.tr)));
       return;
     }
     setState(() => _exporting = true);
@@ -629,7 +632,7 @@ class _ExpenseReportViewState extends State<ExpenseReportView> {
       if (!mounted) return;
       setState(() => _exporting = false);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('PDF failed: $e'), backgroundColor: Colors.red));
+          content: Text('${'PDF failed'.tr}: $e'), backgroundColor: Colors.red));
       return;
     }
 
@@ -644,15 +647,15 @@ class _ExpenseReportViewState extends State<ExpenseReportView> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Preview failed: $e'), backgroundColor: Colors.red));
+          content: Text('${'Preview failed'.tr}: $e'), backgroundColor: Colors.red));
     }
   }
 
   Future<void> _sharePdf() async {
     if (_exporting) return;
     if (_filtered.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Nothing to share for this period')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Nothing to share for this period'.tr)));
       return;
     }
     setState(() => _exporting = true);
@@ -665,7 +668,7 @@ class _ExpenseReportViewState extends State<ExpenseReportView> {
       if (!mounted) return;
       setState(() => _exporting = false);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('PDF failed: $e'), backgroundColor: Colors.red));
+          content: Text('${'PDF failed'.tr}: $e'), backgroundColor: Colors.red));
       return;
     }
 
@@ -674,12 +677,12 @@ class _ExpenseReportViewState extends State<ExpenseReportView> {
     try {
       await Share.shareXFiles(
         [XFile(file.path)],
-        text: 'Expense Statement – $_periodLabel',
+        text: '${'Expense Statement'.tr} – $_periodLabel',
       );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Share failed: $e'), backgroundColor: Colors.red));
+          content: Text('${'Share failed'.tr}: $e'), backgroundColor: Colors.red));
     }
   }
 }
