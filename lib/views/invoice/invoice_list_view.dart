@@ -17,6 +17,7 @@ import '../subscription/subscription_plans_view.dart';
 import 'invoice_form_view.dart';
 import 'invoice_details_view.dart';
 import '../../constants/app_translations.dart';
+import 'package:flutter/foundation.dart';
 
 
 class InvoiceListView extends StatefulWidget {
@@ -743,19 +744,38 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
 
   Future<void> _openPdf(InvoiceModel invoice) async {
     await _checkPdfQuotaAndExecute(context, () async {
-      final filePath = await _getPdfFilePath(invoice);
-      if (filePath == null) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Could not generate PDF for this invoice.'.tr)),
-          );
-        }
-        return;
-      }
-
       try {
+        // Flutter Web cannot use dart:io File APIs
+        if (kIsWeb) {
+          final pdf = await PdfService.generatePdfDocument(invoice);
+          final bytes = await pdf.save();
+
+          await Printing.layoutPdf(
+            onLayout: (format) async => bytes,
+            name: PdfService.buildInvoiceFileName(invoice),
+          );
+
+          return;
+        }
+
+        final filePath = await _getPdfFilePath(invoice);
+
+        if (filePath == null) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Could not generate PDF for this invoice.'.tr,
+                ),
+              ),
+            );
+          }
+          return;
+        }
+
         final file = File(filePath);
         final bytes = await file.readAsBytes();
+
         await Printing.layoutPdf(
           onLayout: (format) async => bytes,
           name: file.uri.pathSegments.last,
@@ -763,7 +783,9 @@ class _InvoiceListViewContentState extends State<_InvoiceListViewContent> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('${'Could not open PDF'.tr}: $e')),
+            SnackBar(
+              content: Text('${'Could not open PDF'.tr}: $e'),
+            ),
           );
         }
       }
