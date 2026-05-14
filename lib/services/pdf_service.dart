@@ -109,6 +109,9 @@ class PdfService {
             
             // Terms and Conditions
             _buildTermsAndConditions(),
+            pw.SizedBox(height: 8),
+
+            _buildDeclaration(),
           ];
         },
       ),
@@ -532,6 +535,62 @@ class PdfService {
           pw.Text('E. & O. E. | Goods once sold will not be taken back.'.tr, style: const pw.TextStyle(fontSize: 9)),
           pw.Text('Payment within the days of invoice terms. In case of delay interest of 1.5% per month will be charged.'.tr, style: const pw.TextStyle(fontSize: 9)),
           pw.Text('Subject to Surat Jurisdiction'.tr, style: const pw.TextStyle(fontSize: 9)),
+        ],
+      ),
+    );
+  }
+
+  static pw.Widget _buildDeclaration() {
+    return pw.Container(
+      padding: const pw.EdgeInsets.all(6),
+      width: double.infinity,
+      decoration: pw.BoxDecoration(
+        border: pw.Border.all(
+          color: PdfColors.black,
+          width: 1,
+        ),
+      ),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text(
+            'Declaration',
+            style: pw.TextStyle(
+              fontSize: 10,
+              fontWeight: pw.FontWeight.bold,
+            ),
+          ),
+
+          pw.SizedBox(height: 4),
+
+          pw.Text(
+            '1. The diamonds herein invoiced have been purchased from legitimate sources not involved in funding conflict, in compliance with United Nations Resolutions and corresponding national laws. '
+                'The seller hereby guarantees that these diamonds are conflict free and confirms.',
+            style: const pw.TextStyle(fontSize: 8),
+            textAlign: pw.TextAlign.justify,
+          ),
+
+          pw.SizedBox(height: 3),
+
+          pw.Text(
+            '2. By receipt of the above goods, then buyer/consignee acknowledges that the above goods purchased or received will be fully represented and disclosed as laboratory grown polished diamonds.',
+            style: const pw.TextStyle(fontSize: 8),
+            textAlign: pw.TextAlign.justify,
+          ),
+
+          pw.SizedBox(height: 3),
+
+          pw.Text(
+            '3. Payment to be made by NEFT/RTGS/IMPS only.',
+            style: const pw.TextStyle(fontSize: 8),
+          ),
+
+          pw.SizedBox(height: 3),
+
+          pw.Text(
+            '4. No E-Way bill is required.',
+            style: const pw.TextStyle(fontSize: 8),
+          ),
         ],
       ),
     );
