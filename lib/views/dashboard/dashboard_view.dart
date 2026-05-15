@@ -1202,8 +1202,6 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
   }
 
   Future<void> _startNewSell(BuildContext context) async {
-    final viewModel = context.read<DashboardViewModel>();
-
     final canAdd = await QuotaService().canAddEntry(false);
 
     if (!canAdd && context.mounted) {
@@ -1227,11 +1225,7 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
     );
 
     if (result == true && mounted) {
-      Future.microtask(() async {
-        if (mounted) {
-          await viewModel.loadInvoices();
-        }
-      });
+      context.read<DashboardViewModel>().notifyListeners();
     }
   }
 

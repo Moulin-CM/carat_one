@@ -118,7 +118,7 @@ class _SignUpViewContentState extends State<_SignUpViewContent> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
-        children: List.generate(4, (index) {
+        children: List.generate(viewModel.totalSteps, (index) {
           final isActive = index == viewModel.currentStep;
           final isCompleted = index < viewModel.currentStep;
           return Expanded(
@@ -135,7 +135,8 @@ class _SignUpViewContentState extends State<_SignUpViewContent> {
                     ),
                   ),
                 ),
-                if (index < 3) const SizedBox(width: 8),
+                if (index < viewModel.totalSteps - 1)
+                  const SizedBox(width: 8),
               ],
             ),
           );
@@ -155,6 +156,8 @@ class _SignUpViewContentState extends State<_SignUpViewContent> {
         return _buildStep3(context, viewModel, accent);
       case 3:
         return _buildStep4(context, viewModel, accent);
+      case 4:
+        return _buildStep5(context, viewModel, accent);
       default:
         return const SizedBox();
     }
@@ -533,6 +536,89 @@ class _SignUpViewContentState extends State<_SignUpViewContent> {
     );
   }
 
+  Widget _buildStep5(
+      BuildContext context, SignUpViewModel viewModel, Color accent) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle('Verify Your Email'.tr, accent),
+        const SizedBox(height: 16),
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: accent.withOpacity(0.06),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: accent.withOpacity(0.2)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.mark_email_read_outlined, color: accent, size: 28),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Check your inbox'.tr,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'We sent a verification link to:'.tr,
+                style: TextStyle(color: Colors.grey[700], fontSize: 14),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                viewModel.profile.email,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Open the email and tap the link to verify your address. Then come back here and tap "I\'ve Verified" to finish creating your account.'
+                    .tr,
+                style: TextStyle(color: Colors.grey[700], fontSize: 13, height: 1.4),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.amber.shade50,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.amber.shade200),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.info_outline,
+                  color: Colors.amber.shade800, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Didn\'t receive it? Check your spam folder, or tap "Resend Email" below.'
+                      .tr,
+                  style: TextStyle(
+                      color: Colors.amber.shade900, fontSize: 12, height: 1.4),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildSectionTitle(String title, Color accent) {
     return Row(
       children: [
@@ -662,6 +748,159 @@ class _SignUpViewContentState extends State<_SignUpViewContent> {
     );
   }
 
+  Widget _buildPrimaryButtons(
+      BuildContext context, SignUpViewModel viewModel, Color accent) {
+    final step = viewModel.currentStep;
+    final isVerifyStep = step == 4;
+    final busy = viewModel.isLoading ||
+        viewModel.checkingVerification ||
+        viewModel.sendingVerification;
+
+    Widget primaryLabel;
+    if (viewModel.isLoading || viewModel.checkingVerification) {
+      primaryLabel = const SizedBox(
+        height: 20,
+        width: 20,
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+        ),
+      );
+    } else {
+      String label;
+      if (step < 3) {
+        label = 'Next'.tr;
+      } else if (step == 3) {
+        label = 'Sign Up'.tr;
+      } else {
+        label = "I've Verified".tr;
+      }
+      primaryLabel = Text(
+        label,
+        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+      );
+    }
+
+    Future<void> onPrimary() async {
+      if (step < 3) {
+        if (_formKey.currentState!.validate()) {
+          viewModel.nextStep();
+        }
+        return;
+      }
+      if (step == 3) {
+        if (!_formKey.currentState!.validate()) return;
+        await viewModel.createAccountAndSendVerification();
+        return;
+      }
+      // step == 4: verify
+      final success = await viewModel.checkEmailVerifiedAndFinalize();
+      if (success && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Account created successfully!'.tr),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          '/home',
+          (route) => false,
+        );
+      }
+    }
+
+    Widget secondaryButton;
+    if (isVerifyStep) {
+      secondaryButton = OutlinedButton(
+        onPressed: busy ? null : () => viewModel.resendVerificationEmail(),
+        style: OutlinedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+          side: BorderSide(color: accent),
+        ),
+        child: viewModel.sendingVerification
+            ? SizedBox(
+                height: 18,
+                width: 18,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(accent),
+                ),
+              )
+            : Text(
+                'Resend Email'.tr,
+                style: TextStyle(color: accent, fontWeight: FontWeight.w600),
+              ),
+      );
+    } else if (step > 0) {
+      secondaryButton = OutlinedButton(
+        onPressed: busy ? null : () => viewModel.previousStep(),
+        style: OutlinedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+          side: BorderSide(color: accent),
+        ),
+        child: Text(
+          'Previous'.tr,
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+      );
+    } else {
+      secondaryButton = const SizedBox.shrink();
+    }
+
+    final showSecondary = isVerifyStep || step > 0;
+
+    return Column(
+      children: [
+        Row(
+          children: [
+            if (showSecondary) ...[
+              Expanded(child: secondaryButton),
+              const SizedBox(width: 12),
+            ],
+            Expanded(
+              child: ElevatedButton(
+                onPressed: busy ? null : onPrimary,
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  backgroundColor: accent,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  elevation: 6,
+                  shadowColor: accent.withOpacity(0.4),
+                ),
+                child: primaryLabel,
+              ),
+            ),
+          ],
+        ),
+        if (isVerifyStep) ...[
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: busy
+                ? null
+                : () async {
+                    await viewModel.cancelPendingVerification();
+                    if (context.mounted) Navigator.of(context).pop();
+                  },
+            child: Text(
+              'Cancel & start over'.tr,
+              style: TextStyle(color: Colors.grey[700], fontSize: 13),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
   Widget _buildNavigationButtons(
       BuildContext context, SignUpViewModel viewModel, Color accent) {
     return Container(
@@ -702,87 +941,7 @@ class _SignUpViewContentState extends State<_SignUpViewContent> {
                   ],
                 ),
               ),
-            Row(
-              children: [
-                if (viewModel.currentStep > 0)
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: viewModel.isLoading
-                          ? null
-                          : () => viewModel.previousStep(),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        side: BorderSide(color: accent),
-                      ),
-                      child: Text('Previous'.tr, style: const TextStyle(fontWeight: FontWeight.w600)),
-                    ),
-                  ),
-                if (viewModel.currentStep > 0) const SizedBox(width: 12),
-                Expanded(
-                  flex: viewModel.currentStep == 0 ? 1 : 1,
-                  child: ElevatedButton(
-                    onPressed: viewModel.isLoading
-                        ? null
-                        : () async {
-                            if (viewModel.currentStep < 3) {
-                              // Validate current step before proceeding
-                              if (_formKey.currentState!.validate()) {
-                                viewModel.nextStep();
-                              }
-                            } else {
-                              // Validate final step before sign-up
-                              if (_formKey.currentState!.validate()) {
-                                final success = await viewModel.signUp();
-                                if (success && context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Account created successfully!'.tr),
-                                    backgroundColor: Colors.green,
-                                    duration: const Duration(seconds: 2),
-                                  ),
-                                );
-                                // Navigate to the root route and clear the entire
-                                // back-stack (Onboarding, WelcomeView, SignUpView).
-                                // Using pushNamedAndRemoveUntil avoids revealing
-                                // the loading dashboard skeleton.
-                                Navigator.of(context).pushNamedAndRemoveUntil(
-                                  '/home',
-                                  (route) => false,
-                                );
-                                }
-                              }
-                            }
-                          },
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      backgroundColor: accent,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      elevation: 6,
-                      shadowColor: accent.withOpacity(0.4),
-                    ),
-                    child: viewModel.isLoading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                            ),
-                          )
-                        : Text(
-                            viewModel.currentStep < 3 ? 'Next'.tr : 'Sign Up'.tr,
-                            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
-                          ),
-                  ),
-                ),
-              ],
-            ),
+            _buildPrimaryButtons(context, viewModel, accent),
           ],
         ),
       ),

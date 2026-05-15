@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../services/version_check_manager.dart';
 import '../../services/version_check_service.dart';
 import '../../widgets/dashboard_skeleton.dart';
+import 'email_verification_gate.dart';
 import 'welcome_view.dart';
 import '../shell/main_shell.dart';
 
@@ -52,7 +53,9 @@ class _AuthWrapperState extends State<AuthWrapper> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.authStateChanges(),
+      // userChanges() fires on profile updates (including emailVerified via
+      // getIdToken(true)) — authStateChanges() would not.
+      stream: FirebaseAuth.instance.userChanges(),
       builder: (context, snapshot) {
         // Show a minimal loading indicator only while waiting for auth state
         // Don't use DashboardSkeleton here - let WelcomeView/UI transitions handle loading
@@ -64,12 +67,14 @@ class _AuthWrapperState extends State<AuthWrapper> {
           );
         }
 
-        final isLoggedIn = snapshot.hasData && snapshot.data != null;
-
-        if (isLoggedIn) {
-          return const MainShell();
+        final user = snapshot.data;
+        if (user == null) {
+          return const WelcomeView();
         }
-        return const WelcomeView();
+        if (!user.emailVerified) {
+          return const EmailVerificationGate();
+        }
+        return const MainShell();
       },
     );
   }
