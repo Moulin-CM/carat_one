@@ -4,6 +4,7 @@ import '../models/app_settings_model.dart';
 import '../services/invoice_storage_service.dart';
 import '../services/settings_service.dart';
 import '../services/auth_service.dart';
+import '../services/import/import_event_bus.dart';
 import 'invoice_form_viewmodel.dart';
 
 class InvoiceListViewModel extends ChangeNotifier {
@@ -13,10 +14,25 @@ class InvoiceListViewModel extends ChangeNotifier {
   List<InvoiceModel> _filteredInvoices = [];
   AppSettingsModel _settings = AppSettingsModel();
   bool _isLoading = false;
+  bool _hasLoadedOnce = false;
   String? _errorMessage;
   String _searchQuery = '';
   DateTime? _startDate;
   DateTime? _endDate;
+
+  InvoiceListViewModel() {
+    ImportEventBus.instance.addListener(_onImported);
+  }
+
+  void _onImported() {
+    loadInvoices();
+  }
+
+  @override
+  void dispose() {
+    ImportEventBus.instance.removeListener(_onImported);
+    super.dispose();
+  }
 
   List<InvoiceModel> get invoices =>
       _filteredInvoices.isEmpty &&
@@ -66,9 +82,14 @@ class InvoiceListViewModel extends ChangeNotifier {
   }
 
   Future<void> loadInvoices() async {
-    _isLoading = true;
+    // Only show the full skeleton shimmer on the very first load.
+    // Subsequent refreshes (e.g. after returning from InvoiceFormView or
+    // pull-to-refresh) update data silently so the shimmer doesn't flash.
+    if (!_hasLoadedOnce) {
+      _isLoading = true;
+      notifyListeners();
+    }
     _errorMessage = null;
-    notifyListeners();
 
     try {
       // _getUser() inside InvoiceStorageService waits for auth automatically
@@ -80,9 +101,11 @@ class InvoiceListViewModel extends ChangeNotifier {
       _settings = results[1] as AppSettingsModel;
       _applyFilters();
       _isLoading = false;
+      _hasLoadedOnce = true;
       notifyListeners();
     } catch (e) {
       _isLoading = false;
+      _hasLoadedOnce = true;
       _errorMessage = e.toString();
       notifyListeners();
     }

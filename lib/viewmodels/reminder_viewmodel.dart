@@ -8,6 +8,7 @@ import '../services/subscription_service.dart';
 
 class ReminderViewModel extends ChangeNotifier {
   bool _isLoading = false;
+  bool _hasLoadedOnce = false;
   String? _errorMessage;
   List<InvoiceReminder> _reminders = [];
   final _subService = SubscriptionService();
@@ -21,16 +22,22 @@ class ReminderViewModel extends ChangeNotifier {
   }
 
   Future<void> loadReminders() async {
-    _isLoading = true;
+    // Only show the full skeleton shimmer on the very first load.
+    // Subsequent refreshes update data silently so the shimmer doesn't flash.
+    if (!_hasLoadedOnce) {
+      _isLoading = true;
+      notifyListeners();
+    }
     _errorMessage = null;
-    notifyListeners();
 
     try {
       _reminders = await NotificationService.getAllReminders();
       _isLoading = false;
+      _hasLoadedOnce = true;
       notifyListeners();
     } catch (e) {
       _isLoading = false;
+      _hasLoadedOnce = true;
       _errorMessage = e.toString();
       notifyListeners();
     }

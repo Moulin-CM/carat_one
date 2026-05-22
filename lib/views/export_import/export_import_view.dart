@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../viewmodels/export_import_viewmodel.dart';
+import '../../services/import/data_import_service.dart';
 import '../../constants/app_translations.dart';
-
-
-import 'package:invoice_generator/constants/app_translations.dart';
 
 class ExportImportView extends StatelessWidget {
   const ExportImportView({super.key});
@@ -112,12 +110,14 @@ class _ExportImportViewContentState extends State<_ExportImportViewContent> {
                   ),
                   const SizedBox(height: 18),
                   _buildSection(
-                    title: 'Import Invoices'.tr,
+                    title: 'Import Data'.tr,
                     icon: Icons.file_upload_rounded,
-                    description: 'Import invoices from a backup file'.tr,
+                    description: 'Import purchases or sells from Excel, CSV, PDF or JSON'.tr,
                     children: [
+                      _buildKindSelector(viewModel),
+                      const SizedBox(height: 12),
                       _buildInfoCard(
-                        'Select a backup file (JSON format) to import invoices. Existing invoices will not be overwritten.'.tr,
+                        'Select what you want to import, then pick a file. Column headers in the file are matched to fields automatically (e.g. "Amount", "Total" or "Price" all map to amount).'.tr,
                         Icons.info_outline_rounded,
                       ),
                       const SizedBox(height: 16),
@@ -135,7 +135,7 @@ class _ExportImportViewContentState extends State<_ExportImportViewContent> {
                                 )
                               : const Icon(Icons.file_upload_rounded),
                           label: Text(
-                            viewModel.isImporting ? 'Importing...'.tr : 'Import from Backup'.tr,
+                            viewModel.isImporting ? 'Importing...'.tr : 'Pick File and Import'.tr,
                             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                           ),
                           style: ElevatedButton.styleFrom(
@@ -151,14 +151,15 @@ class _ExportImportViewContentState extends State<_ExportImportViewContent> {
                   ),
                   const SizedBox(height: 18),
                   _buildSection(
-                    title: 'Backup Information'.tr,
+                    title: 'Supported Formats'.tr,
                     icon: Icons.description_rounded,
                     children: [
                       _buildInfoCard(
-                        '• Backup files are in JSON format\n'
-                        '• All invoice data is included\n'
-                        '• Files can be shared across devices\n'
-                        '• Imported invoices get new IDs to avoid conflicts'.tr,
+                        '• Excel (.xlsx, .xls) — first sheet, first row as headers\n'
+                        '• CSV (.csv) — comma-separated, first row as headers\n'
+                        '• JSON (.json) — array of objects, or a backup file\n'
+                        '• PDF (.pdf) — best with table-style PDFs; arbitrary supplier PDFs may not parse cleanly\n\n'
+                        'Imported records get fresh IDs and appear in the corresponding list immediately.'.tr,
                         Icons.help_outline_rounded,
                       ),
                     ],
@@ -168,6 +169,82 @@ class _ExportImportViewContentState extends State<_ExportImportViewContent> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildKindSelector(ExportImportViewModel vm) {
+    final isPurchase = vm.selectedKind == ImportDataKind.purchase;
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: _surfaceTint,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildKindOption(
+              label: 'Purchases'.tr,
+              icon: Icons.shopping_cart_rounded,
+              selected: isPurchase,
+              onTap: () => vm.setSelectedKind(ImportDataKind.purchase),
+            ),
+          ),
+          Expanded(
+            child: _buildKindOption(
+              label: 'Sells / Invoices'.tr,
+              icon: Icons.receipt_long_rounded,
+              selected: !isPurchase,
+              onTap: () => vm.setSelectedKind(ImportDataKind.sell),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildKindOption({
+    required String label,
+    required IconData icon,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        decoration: BoxDecoration(
+          color: selected ? Colors.white : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.06),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 18, color: selected ? _deepAccent : Colors.grey[600]),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                label,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: selected ? _deepAccent : Colors.grey[700],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -369,85 +446,114 @@ class _ExportImportViewContentState extends State<_ExportImportViewContent> {
 
   Future<void> _handleImport(BuildContext context, ExportImportViewModel viewModel) async {
     try {
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
+      final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['json'],
+        allowedExtensions: const ['xlsx', 'xls', 'csv', 'json', 'pdf'],
         withData: false,
       );
+      if (result == null || result.files.single.path == null) return;
 
-      if (result != null && result.files.single.path != null) {
-        final filePath = result.files.single.path!;
-        
-        // Show confirmation dialog
-        final confirm = await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text('Import Invoices'.tr),
-            content: Text(
-              '${'This will import invoices from the selected backup file.'.tr}\n\n'
-              '${'File'.tr}: ${result.files.single.name}\n\n'
-              '${'Existing invoices will not be overwritten. Continue?'.tr}',
+      final filePath = result.files.single.path!;
+      final fileName = result.files.single.name;
+      final kindLabel = viewModel.selectedKind == ImportDataKind.purchase
+          ? 'purchases'.tr
+          : 'sells'.tr;
+
+      final confirm = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Import $kindLabel'),
+          content: Text(
+            '${'This will import'.tr} $kindLabel ${'from the selected file.'.tr}\n\n'
+            '${'File'.tr}: $fileName\n\n'
+            '${'Continue?'.tr}',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text('Cancel'.tr),
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: Text('Cancel'.tr),
-              ),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context, true),
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-                child: Text('Import'.tr),
-              ),
-            ],
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+              child: Text('Import'.tr),
+            ),
+          ],
+        ),
+      );
+      if (confirm != true || !context.mounted) return;
+
+      final importResult =
+          await viewModel.importData(filePath, viewModel.selectedKind);
+      if (!context.mounted) return;
+
+      if (importResult == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(viewModel.errorMessage ?? 'Import failed'.tr),
+            backgroundColor: Colors.red,
           ),
         );
-
-        if (confirm == true && context.mounted) {
-          final importResult = await viewModel.importInvoices(filePath);
-          
-          if (context.mounted) {
-            if (importResult != null) {
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: Text('Import Complete'.tr),
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('${'Total'.tr}: ${importResult.totalCount} ${'invoices'.tr}'),
-                      Text('${'Success'.tr}: ${importResult.successCount}'),
-                      if (importResult.errorCount > 0)
-                        Text('${'Errors'.tr}: ${importResult.errorCount}', style: const TextStyle(color: Colors.red)),
-                      if (importResult.errors.isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        Text('Errors:'.tr, style: const TextStyle(fontWeight: FontWeight.bold)),
-                        ...importResult.errors.take(3).map((e) => Text('• $e'.tr, style: const TextStyle(fontSize: 12))),
-                      ],
-                    ],
-                  ),
-                  actions: [
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context); // Close dialog
-                        Navigator.pop(context, true); // Return to previous screen with refresh flag
-                      },
-                      child: Text('OK'.tr),
-                    ),
-                  ],
-                ),
-              );
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(viewModel.errorMessage ?? 'Error importing invoices'.tr),
-                  backgroundColor: Colors.red,
-                ),
-              );
-            }
-          }
-        }
+        return;
       }
+
+      await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Import Complete'.tr),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('${'Total rows'.tr}: ${importResult.totalRows}'),
+                Text('${'Success'.tr}: ${importResult.successCount}'),
+                if (importResult.errorCount > 0)
+                  Text(
+                    '${'Errors'.tr}: ${importResult.errorCount}',
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                if (importResult.matchedHeaders.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Text('Matched columns:'.tr,
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Text(
+                    importResult.matchedHeaders.join(', '),
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                ],
+                if (importResult.unmatchedHeaders.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text('Ignored columns (no field match):'.tr,
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Text(
+                    importResult.unmatchedHeaders.join(', '),
+                    style: const TextStyle(fontSize: 12, color: Colors.orange),
+                  ),
+                ],
+                if (importResult.errors.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text('Errors:'.tr,
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
+                  ...importResult.errors.take(5).map(
+                        (e) => Text('• $e',
+                            style: const TextStyle(fontSize: 12)),
+                      ),
+                ],
+              ],
+            ),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context); // Close dialog
+                Navigator.pop(context, true); // Return with refresh flag
+              },
+              child: Text('OK'.tr),
+            ),
+          ],
+        ),
+      );
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

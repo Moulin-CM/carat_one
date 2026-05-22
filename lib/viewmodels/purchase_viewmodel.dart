@@ -10,6 +10,7 @@ import '../services/expense_storage_service.dart';
 import '../services/withdrawal_storage_service.dart';
 import '../services/invoice_storage_service.dart';
 import '../services/settings_service.dart';
+import '../services/import/import_event_bus.dart';
 
 enum LedgerEntryKind { expense, purchase, sale }
 
@@ -49,8 +50,25 @@ class PurchaseViewModel extends ChangeNotifier {
   AppSettingsModel _settings = AppSettingsModel();
   bool _isLoading = false;
   bool _isSyncing = false;
+  bool _hasLoadedOnce = false;
   String? _errorMessage;
   String _searchQuery = '';
+
+  PurchaseViewModel() {
+    ImportEventBus.instance.addListener(_onImported);
+  }
+
+  void _onImported() {
+    // Reload after either kind of import — invoice imports also affect
+    // the carats-sold / profit totals computed from invoices on this VM.
+    loadPurchases();
+  }
+
+  @override
+  void dispose() {
+    ImportEventBus.instance.removeListener(_onImported);
+    super.dispose();
+  }
 
   List<PurchaseModel> get purchases {
     if (_searchQuery.isEmpty) return _purchases;
@@ -188,9 +206,14 @@ class PurchaseViewModel extends ChangeNotifier {
       amount <= 0 || amount <= ledgerFinalAmount;
 
   Future<void> loadPurchases() async {
-    _isLoading = true;
+    // Only show the full skeleton shimmer on the very first load.
+    // Subsequent refreshes (e.g. after returning from a form view or
+    // pull-to-refresh) update data silently so the shimmer doesn't flash.
+    if (!_hasLoadedOnce) {
+      _isLoading = true;
+      notifyListeners();
+    }
     _errorMessage = null;
-    notifyListeners();
     try {
       final results = await Future.wait([
         PurchaseStorageService.getAllPurchases(),
@@ -205,9 +228,11 @@ class PurchaseViewModel extends ChangeNotifier {
       _invoices = results[3] as List<InvoiceModel>;
       _settings = results[4] as AppSettingsModel;
       _isLoading = false;
+      _hasLoadedOnce = true;
       notifyListeners();
     } catch (e) {
       _isLoading = false;
+      _hasLoadedOnce = true;
       _errorMessage = e.toString();
       notifyListeners();
     }

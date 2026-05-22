@@ -6,6 +6,7 @@ import '../services/invoice_storage_service.dart';
 class InventoryViewModel extends ChangeNotifier {
   List<InventoryModel> _items = [];
   bool _isLoading = false;
+  bool _hasLoadedOnce = false;
   String? _errorMessage;
   double _consumedCarat = 0.0;
   double _consumedAmount = 0.0;
@@ -77,17 +78,24 @@ class InventoryViewModel extends ChangeNotifier {
   }
 
   Future<void> loadItems() async {
-    _isLoading = true;
+    // Only show the full skeleton shimmer on the very first load.
+    // Subsequent refreshes (e.g. after returning from a form view or
+    // pull-to-refresh) update data silently so the shimmer doesn't flash.
+    if (!_hasLoadedOnce) {
+      _isLoading = true;
+      notifyListeners();
+    }
     _errorMessage = null;
-    notifyListeners();
 
     try {
       _items = await InventoryStorageService.getAllInventoryItems();
       await _loadConsumedFromInvoices();
       _isLoading = false;
+      _hasLoadedOnce = true;
       notifyListeners();
     } catch (e) {
       _isLoading = false;
+      _hasLoadedOnce = true;
       _errorMessage = e.toString();
       notifyListeners();
     }
