@@ -816,15 +816,22 @@
             border: 1px solid var(--line);
         }
         .vis-row {
-            display: flex;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: 1fr 110px 80px;
             align-items: center;
+            gap: 14px;
             padding: 10px 4px;
             border-bottom: 1px dashed var(--line);
             font-size: 13px;
             color: rgba(255, 255, 255, 0.75);
         }
         .vis-row:last-child { border-bottom: none; }
+        .vis-row .vis-amt {
+            font-weight: 700;
+            color: #fff;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
         .vis-row .vis-tag {
             font-size: 11px;
             font-weight: 700;
@@ -832,9 +839,11 @@
             border-radius: 999px;
             background: rgba(16, 185, 129, 0.18);
             color: #34d399;
+            justify-self: end;
+            text-align: center;
+            min-width: 64px;
         }
         .vis-row .vis-tag.warn { background: rgba(245, 158, 11, 0.18); color: var(--gold); }
-        .vis-row .vis-amt { font-weight: 700; color: #fff; }
 
         /* ─────────────────────────────────────────────
            SHOWCASE TOUR
@@ -1381,8 +1390,14 @@
         .reveal[data-delay="6"] { transition-delay: 0.48s; }
 
         /* ─────────────────────────────────────────────
-           RESPONSIVE
+           RESPONSIVE — built mobile-up, refined per breakpoint
            ───────────────────────────────────────────── */
+
+        /* Global safeguards against horizontal overflow on any screen */
+        html, body { max-width: 100%; overflow-x: hidden; }
+        .hero-phone-stage { max-width: 100%; }
+
+        /* Tablets & small laptops (≤ 1199px) */
         @media (max-width: 1199.98px) {
             .hero { padding: 160px 0 80px; }
             .hero-grid { gap: 40px; }
@@ -1395,69 +1410,248 @@
             .footer-col.hide-md { display: none; }
         }
 
+        /* Tablets (≤ 991px) */
         @media (max-width: 991.98px) {
             .top-nav .nav-links { display: none; }
-            .hero { padding: 140px 0 60px; }
-            .hero-grid { grid-template-columns: 1fr; gap: 80px; }
+            .hero { padding: 130px 0 60px; }
+            .hero-grid { grid-template-columns: 1fr; gap: 60px; }
+            .hero-sub { max-width: 100%; }
             .hero-phone-stage { min-height: 540px; }
             .hero-phone { width: 250px; border-width: 10px; border-radius: 38px; }
             .features-section, .showcase-section, .work-section,
-            .compare-section, .faq-section { padding: 90px 0; }
-            .bento { grid-template-columns: repeat(2, 1fr); }
+            .compare-section, .faq-section, .final-cta { padding: 90px 0; }
+            .contact-section { padding: 80px 0; }
+            .bento { grid-template-columns: repeat(2, 1fr); gap: 16px; }
             .bento-1, .bento-2, .bento-3, .bento-4, .bento-5 { grid-column: span 2; }
             .compare-grid { grid-template-columns: 1fr; }
             .mini-phone { border-width: 7px; border-radius: 30px; max-width: 220px; margin: 0 auto; }
             .stagger-up { transform: none; }
             .work-img-wrapper img { max-height: 480px; }
+            .contact-card { padding: 44px 32px; }
+            .cta-card { padding: 56px 36px; }
         }
 
+        /* Phones (≤ 767px) */
         @media (max-width: 767.98px) {
-            .lang-nav { top: 12px; right: 12px; padding: 4px; }
-            .lang-btn { padding: 6px 11px; font-size: 11px; }
-            .top-nav { top: 12px; padding: 6px 8px 6px 12px; }
-            .nav-brand { font-size: 12px; padding-right: 10px; gap: 8px; }
-            .nav-brand .brand-mark { width: 24px; height: 24px; }
-            .nav-cta { padding: 7px 14px; font-size: 12px; margin-left: 4px; }
-            .hero { padding: 110px 0 40px; }
-            .hero-eyebrow { font-size: 11px; }
-            .hero-eyebrow .pill { font-size: 10px; }
-            .hero-title { letter-spacing: -1px; }
-            .hero-sub { font-size: 1rem; }
-            .cta-btn, .ghost-btn { padding: 14px 22px; font-size: 14px; }
-            .hero-phone-stage { min-height: 460px; }
-            .hero-phone { width: 220px; }
-            .float-card { padding: 10px 14px; }
-            .float-card .fc-value { font-size: 14px; }
-            .float-card .fc-label { font-size: 10px; }
-            .float-card .fc-icon { width: 32px; height: 32px; font-size: 13px; }
-            .float-card.fc-stock { top: 4%; left: -5%; }
-            .float-card.fc-profit { top: 38%; right: -8%; }
-            .float-card.fc-invoice { bottom: 10%; left: -4%; }
-            .features-section, .showcase-section, .work-section,
-            .compare-section, .faq-section { padding: 70px 0; }
-            .bento { grid-template-columns: 1fr; }
-            .bento-1, .bento-2, .bento-3, .bento-4, .bento-5 { grid-column: span 1; }
-            .bento-card { padding: 26px; }
-            .bento-1 .bento-title { font-size: 22px; }
-            .compare-col { padding: 30px 24px; }
-            .footer-grid { grid-template-columns: 1fr 1fr; gap: 30px; }
-            .footer-col.hide-md { display: block; }
-            .cta-card { padding: 50px 28px; }
-            .stats-grid { gap: 30px 20px; }
-        }
+            /* Top nav: pin to LEFT edge as a compact brand pill — the centered
+               layout fought the lang switcher on the right, so on mobile we
+               split them to opposite corners. CTA hidden (the hero already
+               has a prominent one). */
+            .top-nav {
+                top: 10px;
+                left: 10px;
+                right: auto;
+                transform: none;
+                padding: 5px 14px 5px 6px;
+                gap: 8px;
+            }
+            .nav-brand {
+                font-size: 11.5px;
+                letter-spacing: 0.6px;
+                padding-right: 0;
+                border-right: none;
+                gap: 8px;
+            }
+            .nav-brand .brand-mark { width: 26px; height: 26px; border-radius: 8px; }
+            .nav-brand .brand-mark i { font-size: 12px; }
+            .top-nav .nav-cta { display: none; }
 
-        @media (max-width: 480px) {
-            .lang-btn { padding: 5px 9px; font-size: 10px; }
-            .hero-phone { width: 200px; border-width: 8px; border-radius: 32px; }
-            .float-card.fc-profit { right: -4%; padding: 8px 12px; }
+            /* Lang nav */
+            .lang-nav { top: 10px; right: 10px; padding: 4px; }
+            .lang-btn { padding: 6px 10px; font-size: 11px; }
+
+            /* Hero */
+            .hero { padding: 80px 0 30px; }
+            .hero-eyebrow { font-size: 11px; padding: 5px; margin-bottom: 22px; max-width: 100%; }
+            .hero-eyebrow .pill { font-size: 9.5px; padding: 3px 8px; }
+            .hero-title { font-size: clamp(1.9rem, 8.5vw, 2.8rem); letter-spacing: -1px; line-height: 1.1; margin-bottom: 18px; }
+            .hero-sub { font-size: 0.98rem; margin-bottom: 26px; }
+            .hero-ctas { gap: 10px; margin-bottom: 28px; }
+            .cta-btn, .ghost-btn { padding: 13px 20px; font-size: 13.5px; flex: 1 1 auto; justify-content: center; min-width: 0; }
+            .hero-trust { gap: 12px 18px; font-size: 12px; }
+
+            /* Hero phone — keep float cards INSIDE bounds */
+            .hero-phone-stage { min-height: 420px; padding: 30px 0 10px; }
+            .hero-phone { width: 200px; border-width: 9px; border-radius: 34px; }
+            .hero-phone::before { width: 90px; height: 18px; border-radius: 0 0 12px 12px; }
+            .float-card { padding: 9px 12px; border-radius: 14px; max-width: 150px; }
+            .float-card .fc-value { font-size: 12.5px; }
+            .float-card .fc-label { font-size: 9.5px; }
+            .float-card .fc-icon { width: 30px; height: 30px; font-size: 12px; border-radius: 9px; }
+            .float-card .fc-row { gap: 8px; }
+            .float-card.fc-stock { top: 2%; left: 0; }
+            .float-card.fc-profit { top: 38%; right: 0; }
+            .float-card.fc-invoice { bottom: 2%; left: 2%; }
             .float-card.fc-profit .float-spark { display: none; }
-            .footer-grid { grid-template-columns: 1fr; }
+
+            /* Stats */
+            .stats-band { padding: 40px 0; }
+            .stats-grid { gap: 26px 18px; }
+            .stat-num { font-size: 2.1rem; }
+            .stat-label { font-size: 11px; letter-spacing: 0.4px; margin-top: 6px; }
+            .stat-item { padding: 6px 8px; }
+
+            /* Section padding */
+            .features-section, .showcase-section, .work-section,
+            .compare-section, .faq-section, .final-cta { padding: 64px 0; }
+            .contact-section { padding: 56px 0; }
+
+            /* Section headings */
+            .section-title { font-size: clamp(1.7rem, 6.5vw, 2.4rem); letter-spacing: -1px; line-height: 1.1; }
+            .section-sub { font-size: 0.98rem; }
+            .section-eyebrow { font-size: 11px; padding: 5px 11px; margin-bottom: 14px; }
+
+            /* Bento */
+            .bento { grid-template-columns: 1fr; gap: 14px; }
+            .bento-1, .bento-2, .bento-3, .bento-4, .bento-5 { grid-column: span 1; }
+            .bento-card { padding: 24px; border-radius: 22px; }
+            .bento-1 { padding: 26px; }
+            .bento-1 .bento-title { font-size: 20px; }
+            .bento-title { font-size: 18px; }
+            .bento-desc { font-size: 13.5px; }
+            .bento-icon { width: 46px; height: 46px; font-size: 18px; margin-bottom: 18px; border-radius: 13px; }
+            .bento-1 .bento-mini-vis { margin-top: 16px; padding: 14px; border-radius: 14px; }
+            .vis-row { grid-template-columns: minmax(0, 1fr) 80px 60px; font-size: 12px; padding: 8px 2px; gap: 10px; }
+            .vis-row > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+            .vis-row .vis-tag { font-size: 10px; padding: 2px 6px; min-width: 56px; }
+
+            /* Showcase */
+            .mini-phone { max-width: 200px; border-width: 6px; border-radius: 26px; }
+            .mini-phone::before { width: 50px; height: 5px; }
+            .showcase-section .row > [class*="col-"] { margin-bottom: 24px; }
+            .screen-caption { margin-top: 18px; }
+            .screen-caption h5 { font-size: 0.95rem; }
+            .screen-caption p { font-size: 12px; }
+            .marquee-strip { margin-top: 44px; padding: 16px 0; }
+            .marquee-item { font-size: 13px; gap: 10px; }
+            .marquee-track { gap: 40px; }
+
+            /* Work */
+            .work-img-wrapper { padding: 8px; border-radius: 22px; }
+            .work-img-wrapper img { max-height: 440px; border-radius: 14px; }
+            .benefit-pill { padding: 14px 16px; border-radius: 14px; gap: 12px; margin-bottom: 10px; }
+            .benefit-pill .check { width: 32px; height: 32px; font-size: 12px; border-radius: 10px; }
+            .benefit-pill span { font-size: 13.5px; }
+
+            /* Compare */
+            .compare-col { padding: 26px 20px; border-radius: 22px; }
+            .compare-col h3 { font-size: 17px; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+            .compare-col h3 .badge-tag { font-size: 9px; padding: 3px 8px; }
+            .compare-list li { font-size: 13.5px; padding: 12px 0; gap: 12px; line-height: 1.5; }
+
+            /* FAQ */
+            .accordion-trigger { padding: 18px 18px; font-size: 14px; gap: 12px; }
+            .accordion-trigger .icon { width: 28px; height: 28px; font-size: 11px; border-radius: 8px; }
+            .accordion-content-inner { padding: 0 18px 18px; font-size: 13.5px; line-height: 1.6; }
+            .faq-item { border-radius: 16px; margin-bottom: 10px; }
+
+            /* Final CTA */
+            .cta-card { padding: 44px 22px; border-radius: 24px; }
+            .cta-card h2 { font-size: clamp(1.6rem, 6vw, 2.2rem); letter-spacing: -1px; }
+            .cta-card p { font-size: 0.98rem; margin-bottom: 24px; }
+            .cta-card .cta-row { gap: 10px; flex-direction: column; align-items: stretch; }
+            .cta-card .cta-row .cta-btn,
+            .cta-card .cta-row .ghost-btn { width: 100%; justify-content: center; }
+
+            /* Contact */
+            .contact-card { padding: 36px 22px; border-radius: 22px; }
+            .contact-card h2 { font-size: 1.5rem !important; letter-spacing: -0.5px !important; }
+            .contact-card p { font-size: 14px; }
+            .contact-icon { width: 60px; height: 60px; font-size: 22px; border-radius: 16px; margin-bottom: 18px; }
+            .email-link { padding: 14px 22px; font-size: 14px; gap: 10px; }
+
+            /* Footer */
+            footer { padding: 60px 0 32px; }
+            .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 40px; }
+            .footer-col.hide-md { display: block; }
+            .footer-brand { grid-column: 1 / -1; }
+            .footer-brand h3 { font-size: 28px; }
+            .footer-brand p { font-size: 13px; max-width: 100%; }
+            .footer-bottom { font-size: 12px; gap: 10px; }
         }
 
+        /* Small phones (≤ 480px) */
+        @media (max-width: 480px) {
+            .top-nav { top: 8px; left: 8px; padding: 4px 12px 4px 5px; gap: 7px; }
+            .nav-brand { font-size: 11px; gap: 7px; }
+            .nav-brand .brand-mark { width: 24px; height: 24px; }
+            .nav-brand .brand-mark i { font-size: 11px; }
+            .lang-nav { padding: 3px; top: 8px; right: 8px; }
+            .lang-btn { padding: 5px 8px; font-size: 10px; }
+
+            .hero { padding: 72px 0 20px; }
+            .hero-title { font-size: clamp(1.65rem, 8vw, 2.2rem); }
+            .hero-eyebrow { font-size: 10.5px; }
+            .hero-eyebrow .pill { font-size: 9px; padding: 3px 7px; }
+            .hero-sub { font-size: 0.94rem; }
+
+            /* Hero CTAs stack full-width on the tightest screens */
+            .hero-ctas { flex-direction: column; align-items: stretch; }
+            .hero-ctas .cta-btn,
+            .hero-ctas .ghost-btn { width: 100%; flex: 1 1 auto; }
+            .hero-trust { gap: 8px 14px; font-size: 11.5px; }
+
+            .hero-phone-stage { min-height: 360px; padding: 24px 0 4px; }
+            .hero-phone { width: 180px; border-width: 8px; border-radius: 30px; }
+            .hero-phone::before { width: 78px; height: 16px; }
+            .float-card { padding: 8px 11px; max-width: 130px; }
+            .float-card .fc-value { font-size: 11.5px; }
+            .float-card .fc-label { font-size: 9px; }
+            .float-card .fc-icon { width: 28px; height: 28px; font-size: 11px; border-radius: 8px; }
+            .float-card.fc-stock { top: 0; left: 2%; }
+            .float-card.fc-invoice { bottom: 0; left: 4%; }
+            .float-card.fc-profit { top: 36%; right: 2%; }
+
+            .stats-band { padding: 32px 0; }
+            .stat-num { font-size: 1.85rem; }
+            .stat-label { font-size: 10px; }
+            .stat-item { padding: 4px 6px; }
+
+            .features-section, .showcase-section, .work-section,
+            .compare-section, .faq-section, .final-cta { padding: 56px 0; }
+            .contact-section { padding: 50px 0; }
+
+            .bento-card { padding: 22px; }
+            .bento-1 { padding: 22px; }
+
+            .footer-grid { grid-template-columns: 1fr; gap: 28px; }
+            .footer-bottom { flex-direction: column; align-items: flex-start; text-align: left; }
+        }
+
+        /* Tiny phones (≤ 360px) — Galaxy Fold closed, very old devices */
+        @media (max-width: 360px) {
+            .top-nav { padding: 4px 10px 4px 4px; gap: 6px; }
+            .nav-brand { font-size: 10.5px; letter-spacing: 0.5px; }
+            .nav-brand .brand-mark { width: 22px; height: 22px; }
+            .nav-brand .brand-mark i { font-size: 10px; }
+            .hero-phone { width: 160px; }
+            .hero-phone-stage { min-height: 320px; }
+            .float-card .fc-row { gap: 6px; }
+            .float-card { padding: 7px 10px; max-width: 120px; }
+            .stats-grid { gap: 18px 12px; }
+            .stat-num { font-size: 1.65rem; }
+            .hero-title { font-size: 1.7rem; }
+            .section-title { font-size: 1.55rem; }
+        }
+
+        /* Landscape phones: short viewport, ensure hero doesn't dominate */
+        @media (max-height: 540px) and (orientation: landscape) and (max-width: 991.98px) {
+            .hero { padding: 90px 0 40px; }
+            .hero-phone-stage { min-height: 360px; }
+        }
+
+        /* Touch devices */
         @media (hover: none), (pointer: coarse) {
             .cursor-dot, .cursor-ring { display: none !important; }
+            /* Re-enable native cursor on interactive elements that had it removed */
+            body, a, button, .feature-card, .mini-phone, .lang-btn,
+            .cta-btn, .email-link, .phone-frame, .nav-link,
+            .accordion-trigger, .ghost-btn { cursor: auto; }
+            a, button, .accordion-trigger, .nav-cta, .cta-btn, .ghost-btn,
+            .email-link, .lang-btn, .mini-phone, .bento-card { cursor: pointer; }
         }
 
+        /* Reduced motion */
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
                 animation-duration: 0.01ms !important;
@@ -1541,7 +1735,7 @@
 
                 <div class="hero-phone-stage reveal" data-delay="2" data-tilt>
                     <div class="hero-phone">
-                        <img src="assets/img/dashboard.jpeg" alt="App Dashboard" onerror="this.src='https://via.placeholder.com/290x630/2563eb/ffffff?text=Dashboard'">
+                        <img src="assets/img/dashboard.jpeg" alt="App Dashboard">
                     </div>
 
                     <div class="float-card fc-stock up">
@@ -1685,31 +1879,31 @@
 
             <div class="row g-5 justify-content-center align-items-center">
                 <div class="col-md-6 col-lg-3 reveal" data-delay="1">
-                    <div class="mini-phone"><img src="assets/img/inventory.jpeg" alt="Inventory" onerror="this.src='https://via.placeholder.com/280x600/2563eb/ffffff?text=Inventory'"></div>
+                    <div class="mini-phone"><img src="assets/img/inventory.jpeg" alt="Inventory"></div>
                     <div class="screen-caption"><h5 id="s1-t">Inventory at a Glance</h5><p id="s1-d">Real-time carat stock with valuation breakdowns.</p></div>
                 </div>
                 <div class="col-md-6 col-lg-3 stagger-up reveal" data-delay="2">
-                    <div class="mini-phone"><img src="assets/img/invoice.jpeg" alt="Invoice" onerror="this.src='https://via.placeholder.com/280x600/1e3a8a/ffffff?text=Invoice'"></div>
+                    <div class="mini-phone"><img src="assets/img/invoice.jpeg" alt="Invoice"></div>
                     <div class="screen-caption"><h5 id="s2-t">Smart Invoicing</h5><p id="s2-d">Generate GST or Cash Sell invoices in seconds.</p></div>
                 </div>
                 <div class="col-md-6 col-lg-3 reveal" data-delay="3">
-                    <div class="mini-phone"><img src="assets/img/expenses.jpeg" alt="Expenses" onerror="this.src='https://via.placeholder.com/280x600/38bdf8/ffffff?text=Expenses'"></div>
+                    <div class="mini-phone"><img src="assets/img/expenses.jpeg" alt="Expenses"></div>
                     <div class="screen-caption"><h5 id="s3-t">Daily Expense Ledger</h5><p id="s3-d">Track every rupee with categorized expense logs.</p></div>
                 </div>
                 <div class="col-md-6 col-lg-3 stagger-up reveal" data-delay="4">
-                    <div class="mini-phone"><img src="assets/img/brokers.jpeg" alt="Brokers" onerror="this.src='https://via.placeholder.com/280x600/0f172a/ffffff?text=Brokers'"></div>
+                    <div class="mini-phone"><img src="assets/img/brokers.jpeg" alt="Brokers"></div>
                     <div class="screen-caption"><h5 id="s4-t">Broker Insights</h5><p id="s4-d">Performance reports and commission tracking, simplified.</p></div>
                 </div>
                 <div class="col-md-6 col-lg-3 reveal" data-delay="1">
-                    <div class="mini-phone"><img src="assets/img/purchase.jpeg" alt="Purchase" onerror="this.src='https://via.placeholder.com/280x600/2563eb/ffffff?text=Purchase'"></div>
+                    <div class="mini-phone"><img src="assets/img/purchase.jpeg" alt="Purchase"></div>
                     <div class="screen-caption"><h5 id="s5-t">Quick Purchase Entry</h5><p id="s5-d">Auto-calculated amounts with party and broker details.</p></div>
                 </div>
                 <div class="col-md-6 col-lg-3 stagger-up reveal" data-delay="2">
-                    <div class="mini-phone"><img src="assets/img/sell_mode.jpeg" alt="Sell Mode" onerror="this.src='https://via.placeholder.com/280x600/1e3a8a/ffffff?text=Sell+Mode'"></div>
+                    <div class="mini-phone"><img src="assets/img/sell_mode.jpeg" alt="Sell Mode"></div>
                     <div class="screen-caption"><h5 id="s6-t">Flexible Sell Modes</h5><p id="s6-d">Pick a Cash sell or full GST invoice in one tap.</p></div>
                 </div>
                 <div class="col-md-6 col-lg-3 reveal" data-delay="3">
-                    <div class="mini-phone"><img src="assets/img/cash_sell.jpeg" alt="Cash Sell" onerror="this.src='https://via.placeholder.com/280x600/38bdf8/ffffff?text=Cash+Sell'"></div>
+                    <div class="mini-phone"><img src="assets/img/cash_sell.jpeg" alt="Cash Sell"></div>
                     <div class="screen-caption"><h5 id="s7-t">Cash Sell, Streamlined</h5><p id="s7-d">Add items, apply discounts, save in seconds.</p></div>
                 </div>
             </div>
@@ -1762,7 +1956,7 @@
                 </div>
                 <div class="col-lg-6 text-center">
                     <div class="work-img-wrapper reveal" data-delay="2">
-                        <img src="assets/img/reports.jpeg" alt="Reports" onerror="this.src='https://via.placeholder.com/400x550/1e3a8a/ffffff?text=Reports'">
+                        <img src="assets/img/reports.jpeg" alt="Reports">
                     </div>
                 </div>
             </div>
