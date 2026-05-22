@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carat One - Diamond Trading Simplified</title>
+    <title>Carat One — The Modern Operating System for Diamond Merchants</title>
     <meta name="description" content="Carat One — the professional digital ledger for modern diamond merchants. Track inventory, generate GST invoices, and manage brokers all in one secure app.">
-    <meta name="theme-color" content="#2563eb">
+    <meta name="theme-color" content="#0c1230">
     <link rel="icon" type="image/png" sizes="48x48" href="assets/img/favicon-48.png">
     <link rel="icon" type="image/png" sizes="192x192" href="assets/img/favicon-192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="assets/img/favicon-512.png">
@@ -13,196 +13,852 @@
     <link rel="shortcut icon" href="assets/img/favicon-48.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #2563eb;
-            --secondary: #1e3a8a;
+            --bg-0: #07091c;
+            --bg-1: #0c1230;
+            --bg-2: #11173b;
+            --ink-0: #0f172a;
+            --ink-1: #1e293b;
+            --ink-2: #64748b;
+            --ink-3: #94a3b8;
+            --line: rgba(255, 255, 255, 0.08);
+            --line-strong: rgba(255, 255, 255, 0.16);
+            --primary: #4f8af4;
+            --primary-deep: #2563eb;
             --accent: #38bdf8;
-            --dark: #0f172a;
-            --light: #f8fafc;
-            --glass: rgba(255, 255, 255, 0.85);
+            --violet: #a78bfa;
+            --gold: #fbbf24;
+            --rose: #f0abfc;
+            --grad-1: linear-gradient(135deg, #4f8af4 0%, #38bdf8 50%, #a78bfa 100%);
+            --grad-text: linear-gradient(120deg, #38bdf8 0%, #a78bfa 35%, #f0abfc 50%, #a78bfa 65%, #38bdf8 100%);
+            --serif: 'Instrument Serif', 'Times New Roman', serif;
         }
 
         * { -webkit-box-sizing: border-box; box-sizing: border-box; }
-
-        html { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+        html { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; scroll-behavior: smooth; }
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            color: var(--dark);
-            background-color: #fff;
-            scroll-behavior: smooth;
+            color: #e2e8f0;
+            background-color: var(--bg-0);
             overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+            letter-spacing: -0.005em;
         }
 
         img { max-width: 100%; height: auto; }
+        a { color: inherit; text-decoration: none; }
 
-        /* Premium Gradient Background */
-        .hero-section {
-            background: radial-gradient(circle at 0% 0%, #3b82f6 0%, #1e3a8a 100%);
-            color: white;
-            padding: 120px 0 180px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .hero-section::after {
+        /* SVG noise overlay applied to dark sections */
+        .noise::after {
             content: '';
             position: absolute;
-            bottom: -2px;
-            left: 0;
-            width: 100%;
-            height: 100px;
-            background: white;
-            -webkit-clip-path: polygon(0 100%, 100% 100%, 100% 0);
-            clip-path: polygon(0 100%, 100% 100%, 100% 0);
+            inset: 0;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.12 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            opacity: 0.5;
+            mix-blend-mode: overlay;
+            z-index: 1;
         }
 
-        /* Language Switcher */
-        .lang-nav {
+        /* ─────────────────────────────────────────────
+           CUSTOM CURSOR
+           ───────────────────────────────────────────── */
+        .cursor-dot,
+        .cursor-ring {
             position: fixed;
-            top: 25px;
-            right: 25px;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 10000;
+            opacity: 0;
+            will-change: transform, width, height;
+        }
+
+        .cursor-dot {
+            width: 6px;
+            height: 6px;
+            margin: -3px 0 0 -3px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.6);
+            transition: width 0.25s ease, height 0.25s ease,
+                        margin 0.25s ease, opacity 0.25s ease;
+        }
+
+        .cursor-ring {
+            width: 38px;
+            height: 38px;
+            margin: -19px 0 0 -19px;
+            border: 1.5px solid rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            transition: width 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+                        height 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+                        margin 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+                        background 0.3s ease,
+                        border-color 0.3s ease,
+                        opacity 0.25s ease;
+        }
+
+        .cursor-ring.is-hover {
+            width: 72px; height: 72px;
+            margin: -36px 0 0 -36px;
+            background: rgba(56, 189, 248, 0.14);
+            border-color: rgba(56, 189, 248, 0.75);
+        }
+        .cursor-dot.is-hover { width: 0; height: 0; margin: 0; }
+
+        @media (hover: hover) and (pointer: fine) {
+            body, a, button, .feature-card, .mini-phone,
+            .lang-btn, .cta-btn, .email-link, .phone-frame,
+            .nav-link, .accordion-trigger, .ghost-btn { cursor: none; }
+            .cursor-dot, .cursor-ring { opacity: 1; }
+        }
+
+        /* ─────────────────────────────────────────────
+           TOP NAVIGATION
+           ───────────────────────────────────────────── */
+        .top-nav {
+            position: fixed;
+            top: 18px;
+            left: 50%;
+            transform: translateX(-50%);
             z-index: 1000;
-            background: var(--glass);
-            -webkit-backdrop-filter: blur(12px);
-            backdrop-filter: blur(12px);
-            padding: 6px;
-            border-radius: 50px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            border: 1px solid rgba(255,255,255,0.3);
-            display: -webkit-inline-box;
-            display: -ms-inline-flexbox;
             display: inline-flex;
-            -webkit-box-align: center;
-            -ms-flex-align: center;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 10px 8px 16px;
+            background: rgba(7, 9, 28, 0.55);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            backdrop-filter: blur(24px) saturate(180%);
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            transition: top 0.35s ease, padding 0.35s ease;
+        }
+        .top-nav.is-scrolled { top: 12px; padding: 6px 8px 6px 14px; }
+
+        .nav-brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 800;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+            color: #fff;
+            padding-right: 14px;
+            border-right: 1px solid var(--line);
+        }
+        .nav-brand .brand-mark {
+            width: 28px; height: 28px;
+            border-radius: 9px;
+            background: var(--grad-1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            box-shadow: 0 6px 20px rgba(79, 138, 244, 0.5);
+        }
+        .nav-brand .brand-mark i { font-size: 13px; }
+
+        .nav-links {
+            display: inline-flex;
             align-items: center;
             gap: 2px;
-            line-height: 1;
+            padding-left: 8px;
+        }
+        .nav-link {
+            font-size: 13px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.7);
+            padding: 8px 14px;
+            border-radius: 999px;
+            transition: color 0.25s ease, background 0.25s ease;
+        }
+        .nav-link:hover { color: #fff; background: rgba(255, 255, 255, 0.06); }
+
+        .nav-cta {
+            margin-left: 6px;
+            padding: 9px 18px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #0c1230;
+            background: linear-gradient(135deg, #fff, #e2e8f0);
+            box-shadow: 0 8px 24px rgba(255, 255, 255, 0.18);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .nav-cta:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 12px 30px rgba(255, 255, 255, 0.28);
         }
 
+        /* ─────────────────────────────────────────────
+           LANGUAGE PILL (floats top-right)
+           ───────────────────────────────────────────── */
+        .lang-nav {
+            position: fixed;
+            top: 22px;
+            right: 22px;
+            z-index: 999;
+            padding: 5px;
+            background: rgba(7, 9, 28, 0.55);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            backdrop-filter: blur(24px) saturate(180%);
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        }
         .lang-btn {
             border: none;
             background: transparent;
-            padding: 8px 18px;
-            border-radius: 25px;
+            padding: 7px 14px;
+            border-radius: 999px;
             font-weight: 700;
-            font-size: 13px;
-            cursor: pointer;
-            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            color: var(--secondary);
-            line-height: 1;
-            display: -webkit-inline-box;
-            display: -ms-inline-flexbox;
-            display: inline-flex;
-            -webkit-box-align: center;
-            -ms-flex-align: center;
-            align-items: center;
-            -webkit-box-pack: center;
-            -ms-flex-pack: center;
-            justify-content: center;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
             font-family: inherit;
+            transition: 0.3s;
+            line-height: 1;
         }
-
+        .lang-btn:hover { color: #fff; }
         .lang-btn.active {
-            background: var(--primary);
-            color: white;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+            background: linear-gradient(135deg, var(--primary-deep), var(--accent));
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(56, 189, 248, 0.45);
         }
 
-        /* Premium Phone Mockup */
-        .phone-wrapper {
+        /* ─────────────────────────────────────────────
+           HERO
+           ───────────────────────────────────────────── */
+        .hero {
             position: relative;
-            max-width: 320px;
-            margin: -140px auto 60px;
-            z-index: 10;
-            perspective: 1000px;
-        }
-
-        .phone-frame {
-            border: 12px solid #111;
-            border-radius: 48px;
+            padding: 180px 0 100px;
             overflow: hidden;
-            -webkit-box-shadow: 0 40px 80px rgba(0,0,0,0.25);
-            box-shadow: 0 40px 80px rgba(0,0,0,0.25);
-            background: #fff;
-            -webkit-transform: rotateY(-5deg) rotateX(5deg);
-            transform: rotateY(-5deg) rotateX(5deg);
-            -webkit-transition: 0.6s ease;
-            transition: 0.6s ease;
+            isolation: isolate;
+            background:
+                radial-gradient(ellipse 80% 60% at 20% 0%, rgba(79, 138, 244, 0.35), transparent 60%),
+                radial-gradient(ellipse 60% 50% at 90% 30%, rgba(167, 139, 250, 0.30), transparent 60%),
+                radial-gradient(ellipse 50% 60% at 50% 100%, rgba(56, 189, 248, 0.22), transparent 60%),
+                var(--bg-0);
         }
 
-        .phone-frame:hover {
-            -webkit-transform: rotateY(0deg) rotateX(0deg) scale(1.02);
-            transform: rotateY(0deg) rotateX(0deg) scale(1.02);
-        }
-
-        .phone-frame img { width: 100%; display: block; }
-
-        /* Feature Cards */
-        .feature-card {
-            border: none;
-            border-radius: 32px;
-            padding: 45px;
-            background: #fff;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.03);
-            transition: 0.4s;
-            height: 100%;
-            border: 1px solid #f1f5f9;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-12px);
-            box-shadow: 0 30px 60px rgba(37, 99, 235, 0.08);
-            border-color: rgba(37, 99, 235, 0.1);
-        }
-
-        .icon-circle {
-            width: 70px;
-            height: 70px;
-            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-            color: var(--primary);
-            border-radius: 22px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 30px;
-            font-size: 28px;
-        }
-
-        /* App Tour / Showcase Section */
-        .showcase-section {
-            padding: 120px 0;
-            background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
-            position: relative;
+        /* Aurora blobs */
+        .aurora {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: -1;
             overflow: hidden;
         }
+        .aurora .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(110px);
+            opacity: 0.55;
+            mix-blend-mode: screen;
+            will-change: transform;
+        }
+        .blob-1 { width: 600px; height: 600px; background: #4f8af4; top: -200px; left: -120px;
+                  animation: auroraA 26s ease-in-out infinite; }
+        .blob-2 { width: 500px; height: 500px; background: #a78bfa; top: 10%; right: -150px;
+                  animation: auroraB 30s ease-in-out infinite; opacity: 0.45; }
+        .blob-3 { width: 460px; height: 460px; background: #38bdf8; bottom: -200px; left: 30%;
+                  animation: auroraA 22s ease-in-out infinite reverse; opacity: 0.5; }
+        .blob-4 { width: 300px; height: 300px; background: #f0abfc; top: 40%; left: 45%;
+                  animation: auroraB 28s ease-in-out infinite; opacity: 0.25; }
 
-        .showcase-section::before {
+        @keyframes auroraA {
+            0%, 100% { transform: translate(0,0) scale(1); }
+            33%      { transform: translate(80px,-60px) scale(1.12); }
+            66%      { transform: translate(-50px,70px) scale(0.92); }
+        }
+        @keyframes auroraB {
+            0%, 100% { transform: translate(0,0) scale(1); }
+            50%      { transform: translate(-90px,-40px) scale(1.15); }
+        }
+
+        /* Grid pattern overlay */
+        .hero::before {
             content: '';
             position: absolute;
-            top: 50%;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+            background-size: 60px 60px;
+            mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, #000 30%, transparent 80%);
+            -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, #000 30%, transparent 80%);
+            z-index: -1;
+        }
+
+        /* Spotlight follows cursor */
+        .hero-spotlight {
+            position: absolute; inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            background: radial-gradient(
+                700px circle at var(--mouse-x, 50%) var(--mouse-y, 30%),
+                rgba(255, 255, 255, 0.07),
+                transparent 45%
+            );
+        }
+
+        /* Hero diamond particles */
+        .hero-particles { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
+        .hero-particle {
+            position: absolute;
+            color: rgba(255, 255, 255, 0.4);
+            top: 100%;
+            animation: particleDrift linear infinite;
+            will-change: transform, opacity;
+        }
+        @keyframes particleDrift {
+            0%   { transform: translateY(0) rotate(0deg);    opacity: 0; }
+            10%  { opacity: 1; }
+            90%  { opacity: 1; }
+            100% { transform: translateY(-130vh) rotate(360deg); opacity: 0; }
+        }
+
+        .hero-grid {
+            position: relative;
+            z-index: 2;
+            display: grid;
+            grid-template-columns: 1.15fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .hero-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 6px 6px 6px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--line);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            font-size: 13px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 28px;
+        }
+        .hero-eyebrow .pill {
+            background: linear-gradient(135deg, var(--primary-deep), var(--accent));
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.4px;
+        }
+
+        .hero-title {
+            font-size: clamp(2.6rem, 6vw, 5rem);
+            font-weight: 800;
+            line-height: 1.02;
+            letter-spacing: -2px;
+            color: #fff;
+            margin-bottom: 22px;
+        }
+        .hero-title .serif {
+            font-family: var(--serif);
+            font-weight: 400;
+            font-style: italic;
+            letter-spacing: -1px;
+            background: var(--grad-text);
+            background-size: 250% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            animation: textShimmer 8s linear infinite;
+            padding: 0 6px;
+        }
+        @keyframes textShimmer {
+            0%   { background-position: 0% center; }
+            100% { background-position: 250% center; }
+        }
+
+        .hero-sub {
+            font-size: 1.15rem;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.72);
+            margin-bottom: 36px;
+            max-width: 540px;
+        }
+
+        .hero-ctas {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-bottom: 40px;
+        }
+
+        .cta-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 16px 28px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 15px;
+            color: #0c1230;
+            background: linear-gradient(135deg, #ffffff, #e2e8f0);
+            text-decoration: none;
+            transition: box-shadow 0.4s ease, transform 0.3s ease;
+            box-shadow: 0 14px 40px rgba(255, 255, 255, 0.18);
+            position: relative;
+            will-change: transform;
+        }
+        .cta-btn:hover {
+            box-shadow: 0 18px 50px rgba(255, 255, 255, 0.30);
+        }
+        .cta-btn .arrow {
+            transition: transform 0.3s ease;
+        }
+        .cta-btn:hover .arrow { transform: translateX(4px); }
+
+        .ghost-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px 26px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 15px;
+            color: #fff;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--line-strong);
+            transition: background 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
+            will-change: transform;
+        }
+        .ghost-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        .ghost-btn i { color: var(--accent); }
+
+        .hero-trust {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 22px 28px;
+            color: rgba(255, 255, 255, 0.55);
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .hero-trust span {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .hero-trust i { color: var(--accent); }
+
+        /* Hero phone (right side) */
+        .hero-phone-stage {
+            position: relative;
+            perspective: 1500px;
+            min-height: 620px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .hero-phone {
+            position: relative;
+            width: 290px;
+            border: 12px solid #0a0d24;
+            border-radius: 44px;
+            overflow: hidden;
+            background: #fff;
+            box-shadow:
+                0 60px 120px rgba(0, 0, 0, 0.55),
+                0 0 0 1px rgba(56, 189, 248, 0.2),
+                0 0 80px rgba(56, 189, 248, 0.25);
+            transform: rotateY(var(--ty, -8deg)) rotateX(var(--tx, 4deg));
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            will-change: transform;
+        }
+        .hero-phone::before {
+            content: '';
+            position: absolute;
+            top: 0;
             left: 50%;
-            width: 700px;
-            height: 700px;
-            background: radial-gradient(circle, rgba(56, 189, 248, 0.08) 0%, transparent 70%);
-            transform: translate(-50%, -50%);
+            transform: translateX(-50%);
+            width: 110px;
+            height: 22px;
+            background: #0a0d24;
+            border-radius: 0 0 14px 14px;
+            z-index: 3;
+        }
+        .hero-phone img { width: 100%; display: block; }
+
+        /* Floating UI cards around hero phone */
+        .float-card {
+            position: absolute;
+            padding: 14px 18px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(18px) saturate(150%);
+            -webkit-backdrop-filter: blur(18px) saturate(150%);
+            border: 1px solid var(--line-strong);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+            color: #fff;
+            z-index: 4;
+            will-change: transform;
+        }
+        .float-card .fc-row {
+            display: flex; align-items: center; gap: 12px;
+        }
+        .float-card .fc-icon {
+            width: 38px; height: 38px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: #fff;
+            flex-shrink: 0;
+        }
+        .float-card .fc-label {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+        .float-card .fc-value {
+            font-size: 17px;
+            font-weight: 800;
+            color: #fff;
+            line-height: 1.1;
+            margin-top: 2px;
+        }
+        .float-card.up { animation: floatY 6s ease-in-out infinite; }
+        .float-card.down { animation: floatY 7s ease-in-out infinite reverse; }
+        @keyframes floatY {
+            0%, 100% { transform: translateY(0); }
+            50%      { transform: translateY(-12px); }
+        }
+
+        .float-card.fc-stock {
+            top: 8%; left: -8%;
+        }
+        .float-card.fc-stock .fc-icon { background: linear-gradient(135deg, #4f8af4, #38bdf8); }
+        .float-card.fc-profit {
+            top: 38%; right: -12%;
+        }
+        .float-card.fc-profit .fc-icon { background: linear-gradient(135deg, #10b981, #34d399); }
+        .float-card.fc-invoice {
+            bottom: 12%; left: -6%;
+        }
+        .float-card.fc-invoice .fc-icon { background: linear-gradient(135deg, #a78bfa, #f0abfc); }
+
+        .float-spark {
+            margin-top: 8px;
+            display: flex;
+            align-items: flex-end;
+            gap: 3px;
+            height: 24px;
+        }
+        .float-spark span {
+            flex: 1;
+            background: linear-gradient(180deg, #34d399, rgba(52, 211, 153, 0.2));
+            border-radius: 2px;
+            animation: sparkPulse 2.5s ease-in-out infinite;
+        }
+        .float-spark span:nth-child(1) { animation-delay: 0s; height: 30%; }
+        .float-spark span:nth-child(2) { animation-delay: 0.2s; height: 55%; }
+        .float-spark span:nth-child(3) { animation-delay: 0.4s; height: 40%; }
+        .float-spark span:nth-child(4) { animation-delay: 0.6s; height: 75%; }
+        .float-spark span:nth-child(5) { animation-delay: 0.8s; height: 60%; }
+        .float-spark span:nth-child(6) { animation-delay: 1.0s; height: 90%; }
+        @keyframes sparkPulse {
+            0%, 100% { opacity: 0.6; transform: scaleY(0.9); }
+            50%      { opacity: 1; transform: scaleY(1.1); }
+        }
+
+        /* ─────────────────────────────────────────────
+           STATS BAND
+           ───────────────────────────────────────────── */
+        .stats-band {
+            position: relative;
+            padding: 50px 0;
+            background: linear-gradient(180deg, var(--bg-0) 0%, var(--bg-1) 100%);
+            border-top: 1px solid var(--line);
+            border-bottom: 1px solid var(--line);
+            overflow: hidden;
+            z-index: 1;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 30px;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+        .stat-item {
+            position: relative;
+            padding: 10px 18px;
+        }
+        .stat-item + .stat-item::before {
+            content: '';
+            position: absolute;
+            left: -15px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 1px;
+            height: 50px;
+            background: var(--line);
+        }
+        .stat-num {
+            font-family: var(--serif);
+            font-size: clamp(2.2rem, 4vw, 3.4rem);
+            font-weight: 400;
+            background: var(--grad-text);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            line-height: 1;
+            animation: textShimmer 8s linear infinite;
+        }
+        .stat-label {
+            margin-top: 10px;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.55);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        /* ─────────────────────────────────────────────
+           SECTION SCAFFOLDING
+           ───────────────────────────────────────────── */
+        section { position: relative; }
+
+        .section-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            background: rgba(56, 189, 248, 0.1);
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            color: var(--accent);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 18px;
+        }
+        .section-eyebrow .dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 10px var(--accent);
+        }
+
+        .section-title {
+            font-size: clamp(2rem, 4vw, 3.4rem);
+            font-weight: 800;
+            line-height: 1.06;
+            letter-spacing: -1.5px;
+            color: #fff;
+            margin-bottom: 18px;
+        }
+        .section-title .serif {
+            font-family: var(--serif);
+            font-weight: 400;
+            font-style: italic;
+            color: rgba(255, 255, 255, 0.85);
+            padding: 0 6px;
+        }
+
+        .section-sub {
+            font-size: 1.05rem;
+            color: rgba(255, 255, 255, 0.6);
+            max-width: 620px;
+            line-height: 1.65;
+        }
+
+        /* Bento grid */
+        .features-section {
+            padding: 130px 0;
+            background: var(--bg-1);
+        }
+        .features-section::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 60% 40% at 80% 20%, rgba(167, 139, 250, 0.15), transparent 60%),
+                radial-gradient(ellipse 50% 40% at 20% 80%, rgba(56, 189, 248, 0.12), transparent 60%);
             pointer-events: none;
         }
 
-        .mini-phone {
-            border: 8px solid #0f172a;
-            border-radius: 36px;
-            overflow: hidden;
-            box-shadow: 0 25px 50px rgba(15, 23, 42, 0.15);
-            background: #fff;
-            transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        .bento {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            grid-auto-rows: minmax(220px, auto);
+            gap: 20px;
             position: relative;
+            z-index: 2;
+        }
+        .bento-card {
+            position: relative;
+            padding: 32px;
+            border-radius: 28px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.02));
+            border: 1px solid var(--line);
+            overflow: hidden;
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+                        border-color 0.4s ease,
+                        box-shadow 0.5s ease;
+            isolation: isolate;
+        }
+        .bento-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(
+                500px circle at var(--mx, 50%) var(--my, 50%),
+                rgba(56, 189, 248, 0.10),
+                transparent 40%
+            );
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .bento-card:hover::before { opacity: 1; }
+        .bento-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(56, 189, 248, 0.35);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
         }
 
+        /* gradient border on hover (mask trick) */
+        .bento-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.6), rgba(167, 139, 250, 0.6), transparent 70%);
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .bento-card:hover::after { opacity: 1; }
+
+        .bento-card > * { position: relative; z-index: 2; }
+
+        .bento-icon {
+            width: 54px; height: 54px;
+            border-radius: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, rgba(79, 138, 244, 0.2), rgba(56, 189, 248, 0.2));
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            color: var(--accent);
+            font-size: 22px;
+            margin-bottom: 22px;
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .bento-card:hover .bento-icon { transform: scale(1.1) rotate(-6deg); }
+
+        .bento-title {
+            color: #fff;
+            font-size: 22px;
+            font-weight: 800;
+            margin: 0 0 10px;
+            letter-spacing: -0.5px;
+        }
+        .bento-desc {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+            line-height: 1.55;
+            margin: 0;
+        }
+
+        /* Bento sizing */
+        .bento-1 { grid-column: span 4; grid-row: span 2; padding: 40px; }
+        .bento-2 { grid-column: span 2; }
+        .bento-3 { grid-column: span 2; }
+        .bento-4 { grid-column: span 3; }
+        .bento-5 { grid-column: span 3; }
+
+        .bento-1 .bento-title { font-size: 28px; }
+        .bento-1 .bento-mini-vis {
+            margin-top: 24px;
+            padding: 18px;
+            border-radius: 16px;
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--line);
+        }
+        .vis-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 4px;
+            border-bottom: 1px dashed var(--line);
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.75);
+        }
+        .vis-row:last-child { border-bottom: none; }
+        .vis-row .vis-tag {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 999px;
+            background: rgba(16, 185, 129, 0.18);
+            color: #34d399;
+        }
+        .vis-row .vis-tag.warn { background: rgba(245, 158, 11, 0.18); color: var(--gold); }
+        .vis-row .vis-amt { font-weight: 700; color: #fff; }
+
+        /* ─────────────────────────────────────────────
+           SHOWCASE TOUR
+           ───────────────────────────────────────────── */
+        .showcase-section {
+            padding: 130px 0;
+            background:
+                radial-gradient(ellipse 70% 50% at 50% 0%, rgba(79, 138, 244, 0.15), transparent 60%),
+                var(--bg-0);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mini-phone {
+            border: 8px solid #0a0d24;
+            border-radius: 36px;
+            overflow: hidden;
+            background: #fff;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4),
+                        0 0 0 1px rgba(56, 189, 248, 0.1);
+            transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1),
+                        box-shadow 0.55s ease;
+            position: relative;
+        }
         .mini-phone::before {
             content: '';
             position: absolute;
@@ -211,406 +867,1048 @@
             transform: translateX(-50%);
             width: 60px;
             height: 6px;
-            background: #0f172a;
+            background: #0a0d24;
             border-radius: 0 0 8px 8px;
             z-index: 2;
         }
-
-        .mini-phone img {
-            width: 100%;
-            display: block;
-        }
-
+        .mini-phone img { width: 100%; display: block; }
         .mini-phone:hover {
-            transform: translateY(-15px) scale(1.03);
-            box-shadow: 0 40px 80px rgba(37, 99, 235, 0.2);
+            transform: translateY(-18px) scale(1.04);
+            box-shadow: 0 50px 100px rgba(56, 189, 248, 0.25),
+                        0 0 0 1px rgba(56, 189, 248, 0.4);
         }
 
-        .screen-caption {
-            text-align: center;
-            margin-top: 28px;
-        }
-
+        .screen-caption { text-align: center; margin-top: 22px; }
         .screen-caption h5 {
             font-weight: 800;
             margin-bottom: 6px;
-            color: var(--dark);
+            color: #fff;
+            font-size: 1rem;
         }
-
         .screen-caption p {
-            color: #64748b;
-            font-size: 14px;
+            color: rgba(255, 255, 255, 0.55);
+            font-size: 13px;
             margin: 0;
         }
 
         .stagger-up { transform: translateY(-40px); }
+        @media (max-width: 991px) { .stagger-up { transform: none; } }
 
-        @media (max-width: 991px) {
-            .stagger-up { transform: none; }
+        /* Marquee strip */
+        .marquee-strip {
+            margin-top: 70px;
+            padding: 22px 0;
+            background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.06), transparent);
+            border-top: 1px solid var(--line);
+            border-bottom: 1px solid var(--line);
+            overflow: hidden;
+            mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+            -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
         }
-
-        /* Workload Section */
-        .work-section { padding: 120px 0; background-color: #fcfdfe; }
-
-        .benefit-pill {
+        .marquee-track {
+            display: flex;
+            gap: 60px;
+            white-space: nowrap;
+            animation: marqueeScroll 40s linear infinite;
+            width: max-content;
+        }
+        .marquee-item {
             display: inline-flex;
             align-items: center;
-            background: white;
-            padding: 18px 25px;
-            border-radius: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
-            width: 100%;
-            border-left: 5px solid var(--primary);
+            gap: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.55);
+            letter-spacing: 0.3px;
+        }
+        .marquee-item i { color: var(--accent); }
+        @keyframes marqueeScroll {
+            0%   { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
         }
 
-        /* Contact Section */
-        .contact-section {
-            padding: 120px 0;
-            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
-            color: white;
+        /* ─────────────────────────────────────────────
+           WORKLOAD / SPLIT SECTION
+           ───────────────────────────────────────────── */
+        .work-section {
+            padding: 130px 0;
+            background: var(--bg-1);
             position: relative;
             overflow: hidden;
         }
-
-        .contact-section::before {
+        .work-section::before {
             content: '';
             position: absolute;
-            top: -100px;
-            right: -100px;
-            width: 400px;
-            height: 400px;
-            background: radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, transparent 70%);
+            inset: 0;
+            background: radial-gradient(ellipse 60% 50% at 80% 50%, rgba(79, 138, 244, 0.15), transparent 60%);
             pointer-events: none;
         }
 
-        .contact-card {
+        .benefit-pill {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 18px 22px;
+            border-radius: 18px;
+            margin-bottom: 14px;
+            border: 1px solid var(--line);
+            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                        background 0.35s ease,
+                        border-color 0.35s ease;
+        }
+        .benefit-pill:hover {
+            transform: translateX(10px);
+            background: rgba(56, 189, 248, 0.06);
+            border-color: rgba(56, 189, 248, 0.3);
+        }
+        .benefit-pill .check {
+            width: 38px; height: 38px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #10b981, #34d399);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 14px;
+            flex-shrink: 0;
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.35);
+        }
+        .benefit-pill span {
+            color: rgba(255, 255, 255, 0.85);
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .work-img-wrapper {
+            position: relative;
+            display: inline-block;
+            padding: 12px;
+            border-radius: 28px;
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.18), rgba(167, 139, 250, 0.18));
+            box-shadow: 0 40px 90px rgba(0, 0, 0, 0.45);
+        }
+        .work-img-wrapper img {
+            border-radius: 18px;
+            display: block;
+            max-height: 600px;
+        }
+
+        /* ─────────────────────────────────────────────
+           COMPARISON SECTION
+           ───────────────────────────────────────────── */
+        .compare-section {
+            padding: 130px 0;
+            background: var(--bg-0);
+            position: relative;
+            overflow: hidden;
+        }
+        .compare-section::before {
+            content: '';
+            position: absolute;
+            top: -200px; left: 50%;
+            transform: translateX(-50%);
+            width: 800px; height: 800px;
+            background: radial-gradient(circle, rgba(167, 139, 250, 0.15), transparent 70%);
+            pointer-events: none;
+        }
+        .compare-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            position: relative;
+            z-index: 2;
+        }
+        .compare-col {
+            padding: 40px 36px;
+            border-radius: 28px;
+            border: 1px solid var(--line);
+            position: relative;
+            overflow: hidden;
+        }
+        .compare-col.old {
+            background: rgba(255, 255, 255, 0.025);
+        }
+        .compare-col.new {
+            background: linear-gradient(180deg, rgba(56, 189, 248, 0.08), rgba(79, 138, 244, 0.05));
+            border-color: rgba(56, 189, 248, 0.3);
+            box-shadow: 0 20px 60px rgba(56, 189, 248, 0.12);
+        }
+        .compare-col h3 {
+            font-size: 22px;
+            font-weight: 800;
+            color: #fff;
+            margin: 0 0 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            letter-spacing: -0.5px;
+        }
+        .compare-col h3 .badge-tag {
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            text-transform: uppercase;
+        }
+        .compare-col.old h3 .badge-tag {
+            background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+        }
+        .compare-col.new h3 .badge-tag {
+            background: linear-gradient(135deg, #38bdf8, #a78bfa);
+            color: #fff;
+        }
+        .compare-list { list-style: none; margin: 0; padding: 0; }
+        .compare-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 14px 0;
+            border-top: 1px solid var(--line);
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 15px;
+            line-height: 1.5;
+        }
+        .compare-list li:first-child { border-top: none; padding-top: 0; }
+        .compare-list li i {
+            margin-top: 3px;
+            flex-shrink: 0;
+            font-size: 14px;
+        }
+        .compare-col.old i { color: #ef4444; }
+        .compare-col.new i { color: #34d399; }
+
+        /* ─────────────────────────────────────────────
+           FAQ
+           ───────────────────────────────────────────── */
+        .faq-section {
+            padding: 130px 0;
+            background: var(--bg-1);
+            position: relative;
+            overflow: hidden;
+        }
+        .faq-section::before {
+            content: '';
+            position: absolute;
+            top: 20%; right: -200px;
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.1), transparent 70%);
+            pointer-events: none;
+        }
+        .faq-list {
+            max-width: 780px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+        .faq-item {
+            margin-bottom: 14px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.025);
+            border: 1px solid var(--line);
+            overflow: hidden;
+            transition: border-color 0.3s ease, background 0.3s ease;
+        }
+        .faq-item.is-open {
+            border-color: rgba(56, 189, 248, 0.4);
+            background: rgba(56, 189, 248, 0.04);
+        }
+        .accordion-trigger {
+            width: 100%;
+            background: transparent;
+            border: none;
+            padding: 22px 26px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 700;
+            text-align: left;
+            font-family: inherit;
+        }
+        .accordion-trigger .icon {
+            width: 32px; height: 32px;
+            border-radius: 10px;
             background: rgba(255, 255, 255, 0.06);
-            -webkit-backdrop-filter: blur(20px);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent);
+            font-size: 12px;
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            flex-shrink: 0;
+        }
+        .faq-item.is-open .accordion-trigger .icon {
+            transform: rotate(45deg);
+            background: linear-gradient(135deg, #38bdf8, #a78bfa);
+            color: #fff;
+        }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .accordion-content-inner {
+            padding: 0 26px 22px;
+            color: rgba(255, 255, 255, 0.65);
+            font-size: 15px;
+            line-height: 1.65;
+        }
+
+        /* ─────────────────────────────────────────────
+           FINAL CTA
+           ───────────────────────────────────────────── */
+        .final-cta {
+            padding: 100px 0;
+            background: var(--bg-0);
+            position: relative;
+        }
+        .cta-card {
+            position: relative;
+            padding: 70px 50px;
             border-radius: 32px;
-            padding: 60px 50px;
+            background:
+                radial-gradient(ellipse 60% 80% at 0% 0%, rgba(79, 138, 244, 0.4), transparent 60%),
+                radial-gradient(ellipse 60% 80% at 100% 100%, rgba(167, 139, 250, 0.35), transparent 60%),
+                linear-gradient(135deg, #0c1230, #1e293b);
+            border: 1px solid var(--line-strong);
+            overflow: hidden;
+            text-align: center;
+            box-shadow: 0 50px 120px rgba(0, 0, 0, 0.5);
+        }
+        .cta-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+            background-size: 40px 40px;
+            mask-image: radial-gradient(ellipse 60% 80% at 50% 50%, #000, transparent 80%);
+            -webkit-mask-image: radial-gradient(ellipse 60% 80% at 50% 50%, #000, transparent 80%);
+            pointer-events: none;
+        }
+        .cta-card > * { position: relative; z-index: 2; }
+
+        .cta-card h2 {
+            font-size: clamp(2rem, 4vw, 3.2rem);
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: -1.5px;
+            margin-bottom: 16px;
+            line-height: 1.1;
+        }
+        .cta-card h2 .serif {
+            font-family: var(--serif);
+            font-weight: 400;
+            font-style: italic;
+            background: var(--grad-text);
+            background-size: 250% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            animation: textShimmer 8s linear infinite;
+            padding: 0 6px;
+        }
+        .cta-card p {
+            color: rgba(255, 255, 255, 0.65);
+            font-size: 1.1rem;
+            max-width: 560px;
+            margin: 0 auto 32px;
+            line-height: 1.6;
+        }
+        .cta-card .cta-row {
+            display: inline-flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        /* ─────────────────────────────────────────────
+           CONTACT
+           ───────────────────────────────────────────── */
+        .contact-section {
+            padding: 100px 0;
+            background: var(--bg-0);
+            position: relative;
+            overflow: hidden;
+        }
+        .contact-card {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--line);
+            border-radius: 28px;
+            padding: 50px 40px;
             text-align: center;
             position: relative;
             z-index: 2;
         }
-
         .contact-icon {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-            border-radius: 24px;
+            width: 70px; height: 70px;
+            background: linear-gradient(135deg, var(--primary-deep), var(--accent));
+            border-radius: 20px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 30px;
-            font-size: 32px;
+            margin-bottom: 24px;
+            font-size: 26px;
             color: white;
-            box-shadow: 0 15px 35px rgba(37, 99, 235, 0.3);
+            box-shadow: 0 15px 35px rgba(56, 189, 248, 0.35);
+            animation: contactIconFloat 4s ease-in-out infinite;
         }
-
+        @keyframes contactIconFloat {
+            0%, 100% { transform: translateY(0); }
+            50%      { transform: translateY(-10px); }
+        }
         .email-link {
             display: inline-flex;
             align-items: center;
             gap: 12px;
-            background: white;
-            color: var(--primary);
-            padding: 18px 35px;
+            background: #fff;
+            color: var(--primary-deep);
+            padding: 16px 30px;
             border-radius: 50px;
             font-weight: 700;
-            font-size: 18px;
+            font-size: 16px;
             text-decoration: none;
-            transition: 0.3s;
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
-            margin-top: 20px;
+            transition: color 0.35s ease, box-shadow 0.35s ease, transform 0.3s ease;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+            margin-top: 12px;
+            position: relative;
+            overflow: hidden;
+            isolation: isolate;
+            will-change: transform;
         }
-
+        .email-link::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, var(--primary-deep), var(--accent));
+            transform: translateY(100%);
+            transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: -1;
+        }
+        .email-link:hover::before { transform: translateY(0); }
         .email-link:hover {
-            transform: translateY(-3px);
-            background: var(--accent);
-            color: white;
-            box-shadow: 0 20px 40px rgba(56, 189, 248, 0.3);
+            color: #fff;
+            box-shadow: 0 22px 45px rgba(56, 189, 248, 0.45);
         }
 
-        footer { background: var(--dark); color: white; padding: 80px 0 40px; }
-
-        .cta-btn {
-            background: #fff;
-            color: var(--primary);
-            font-weight: 800;
-            padding: 18px 45px;
-            border-radius: 50px;
-            text-decoration: none;
-            transition: 0.3s;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        /* ─────────────────────────────────────────────
+           FOOTER
+           ───────────────────────────────────────────── */
+        footer {
+            background: var(--bg-0);
+            color: #fff;
+            padding: 80px 0 40px;
+            border-top: 1px solid var(--line);
+            position: relative;
+        }
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr 1fr 1fr;
+            gap: 50px;
+            margin-bottom: 60px;
+        }
+        .footer-brand h3 {
+            font-family: var(--serif);
+            font-style: italic;
+            font-size: 32px;
+            background: linear-gradient(120deg, #fff 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            margin-bottom: 16px;
+        }
+        .footer-brand p {
+            color: rgba(255, 255, 255, 0.55);
+            font-size: 14px;
+            line-height: 1.6;
+            max-width: 320px;
+        }
+        .footer-col h6 {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.45);
+            margin-bottom: 18px;
+        }
+        .footer-col a {
+            display: block;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+            font-weight: 500;
+            padding: 6px 0;
+            transition: color 0.3s ease;
+        }
+        .footer-col a:hover { color: var(--accent); }
+        .footer-bottom {
+            border-top: 1px solid var(--line);
+            padding-top: 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 13px;
         }
 
-        .cta-btn:hover { background: var(--accent); color: white; transform: translateY(-3px); }
+        /* ─────────────────────────────────────────────
+           SCROLL REVEAL
+           ───────────────────────────────────────────── */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+                        transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+            will-change: opacity, transform;
+        }
+        .reveal.is-in { opacity: 1; transform: none; }
+        .reveal[data-delay="1"] { transition-delay: 0.08s; }
+        .reveal[data-delay="2"] { transition-delay: 0.16s; }
+        .reveal[data-delay="3"] { transition-delay: 0.24s; }
+        .reveal[data-delay="4"] { transition-delay: 0.32s; }
+        .reveal[data-delay="5"] { transition-delay: 0.40s; }
+        .reveal[data-delay="6"] { transition-delay: 0.48s; }
 
-        /* ============================================
-           RESPONSIVE BREAKPOINTS
-           ============================================ */
-
-        /* Large desktops: keep defaults */
-
-        /* Tablets & small laptops (≤ 1199px) */
+        /* ─────────────────────────────────────────────
+           RESPONSIVE
+           ───────────────────────────────────────────── */
         @media (max-width: 1199.98px) {
-            .hero-section { padding: 100px 0 150px; }
-            .phone-wrapper { max-width: 280px; margin: -120px auto 50px; }
-            .feature-card { padding: 38px; }
-            .showcase-section,
-            .work-section,
-            .contact-section { padding: 100px 0; }
+            .hero { padding: 160px 0 80px; }
+            .hero-grid { gap: 40px; }
+            .bento-1 { grid-column: span 6; }
+            .bento-2, .bento-3 { grid-column: span 3; }
+            .bento-4, .bento-5 { grid-column: span 3; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 40px 30px; }
+            .stat-item + .stat-item::before { display: none; }
+            .footer-grid { grid-template-columns: 1.5fr 1fr 1fr; }
+            .footer-col.hide-md { display: none; }
         }
 
-        /* Tablets (≤ 991px) */
         @media (max-width: 991.98px) {
-            .hero-section { padding: 90px 20px 130px; }
-            .hero-section h1 { font-size: 2.5rem; }
-            .hero-section .lead { font-size: 1.05rem; }
-            .phone-wrapper { max-width: 260px; margin: -110px auto 40px; }
-            .phone-frame { border-width: 10px; border-radius: 42px; }
-            .feature-card { padding: 32px; border-radius: 26px; }
-            .icon-circle { width: 60px; height: 60px; font-size: 24px; margin-bottom: 22px; }
-            .showcase-section,
-            .work-section,
-            .contact-section { padding: 80px 0; }
+            .top-nav .nav-links { display: none; }
+            .hero { padding: 140px 0 60px; }
+            .hero-grid { grid-template-columns: 1fr; gap: 80px; }
+            .hero-phone-stage { min-height: 540px; }
+            .hero-phone { width: 250px; border-width: 10px; border-radius: 38px; }
+            .features-section, .showcase-section, .work-section,
+            .compare-section, .faq-section { padding: 90px 0; }
+            .bento { grid-template-columns: repeat(2, 1fr); }
+            .bento-1, .bento-2, .bento-3, .bento-4, .bento-5 { grid-column: span 2; }
+            .compare-grid { grid-template-columns: 1fr; }
             .mini-phone { border-width: 7px; border-radius: 30px; max-width: 220px; margin: 0 auto; }
-            .screen-caption h5 { font-size: 1rem; }
-            .screen-caption p { font-size: 13px; }
             .stagger-up { transform: none; }
-            .contact-card { padding: 50px 35px; border-radius: 26px; }
-            .contact-icon { width: 70px; height: 70px; font-size: 28px; }
+            .work-img-wrapper img { max-height: 480px; }
         }
 
-        /* Phones (≤ 767px) */
         @media (max-width: 767.98px) {
-            .lang-nav { top: 15px; right: 15px; padding: 5px; }
-            .lang-btn { padding: 7px 14px; font-size: 11px; }
-
-            .hero-section { padding: 80px 16px 130px; }
-            .hero-section h1 { font-size: 2rem; line-height: 1.2; }
-            .hero-section .lead { font-size: 0.95rem; padding: 0 10px; }
-            .hero-section::after { height: 60px; }
-            .cta-btn { padding: 14px 30px; font-size: 0.95rem; }
-
-            .phone-wrapper { max-width: 220px; margin: -80px auto 30px; perspective: none; }
-            .phone-frame {
-                border-width: 8px;
-                border-radius: 36px;
-                -webkit-transform: none;
-                transform: none;
-            }
-
-            section.container.py-5 { padding-left: 15px; padding-right: 15px; }
-            .feature-card { padding: 28px; border-radius: 22px; }
-
-            .showcase-section,
-            .work-section,
-            .contact-section { padding: 60px 0; }
-            .showcase-section .row > [class*="col-"] { margin-bottom: 30px; }
-            .mini-phone { max-width: 200px; border-width: 6px; border-radius: 26px; }
-            .mini-phone::before { width: 45px; height: 5px; }
-            .screen-caption { margin-top: 20px; }
-
-            .work-section .pr-lg-5 { padding-right: 12px; }
-            .benefit-pill { padding: 14px 18px; border-radius: 16px; font-size: 14px; }
-
-            .contact-card { padding: 40px 24px; border-radius: 22px; }
-            .contact-icon { width: 64px; height: 64px; font-size: 26px; margin-bottom: 22px; }
-            .contact-section h2 { font-size: 1.75rem; }
-            .email-link { padding: 14px 22px; font-size: 15px; gap: 8px; }
-
-            footer { padding: 50px 0 30px; }
-            footer h2 { font-size: 1.6rem; }
+            .lang-nav { top: 12px; right: 12px; padding: 4px; }
+            .lang-btn { padding: 6px 11px; font-size: 11px; }
+            .top-nav { top: 12px; padding: 6px 8px 6px 12px; }
+            .nav-brand { font-size: 12px; padding-right: 10px; gap: 8px; }
+            .nav-brand .brand-mark { width: 24px; height: 24px; }
+            .nav-cta { padding: 7px 14px; font-size: 12px; margin-left: 4px; }
+            .hero { padding: 110px 0 40px; }
+            .hero-eyebrow { font-size: 11px; }
+            .hero-eyebrow .pill { font-size: 10px; }
+            .hero-title { letter-spacing: -1px; }
+            .hero-sub { font-size: 1rem; }
+            .cta-btn, .ghost-btn { padding: 14px 22px; font-size: 14px; }
+            .hero-phone-stage { min-height: 460px; }
+            .hero-phone { width: 220px; }
+            .float-card { padding: 10px 14px; }
+            .float-card .fc-value { font-size: 14px; }
+            .float-card .fc-label { font-size: 10px; }
+            .float-card .fc-icon { width: 32px; height: 32px; font-size: 13px; }
+            .float-card.fc-stock { top: 4%; left: -5%; }
+            .float-card.fc-profit { top: 38%; right: -8%; }
+            .float-card.fc-invoice { bottom: 10%; left: -4%; }
+            .features-section, .showcase-section, .work-section,
+            .compare-section, .faq-section { padding: 70px 0; }
+            .bento { grid-template-columns: 1fr; }
+            .bento-1, .bento-2, .bento-3, .bento-4, .bento-5 { grid-column: span 1; }
+            .bento-card { padding: 26px; }
+            .bento-1 .bento-title { font-size: 22px; }
+            .compare-col { padding: 30px 24px; }
+            .footer-grid { grid-template-columns: 1fr 1fr; gap: 30px; }
+            .footer-col.hide-md { display: block; }
+            .cta-card { padding: 50px 28px; }
+            .stats-grid { gap: 30px 20px; }
         }
 
-        /* Small phones (≤ 480px) */
         @media (max-width: 480px) {
-            .lang-btn { padding: 5px 10px; font-size: 10px; }
-            .hero-section h1 { font-size: 1.7rem; }
-            .hero-section .lead { font-size: 0.9rem; }
-            .phone-wrapper { max-width: 200px; }
-            .mini-phone { max-width: 180px; }
-            .feature-card { padding: 24px; }
-            .email-link { font-size: 14px; word-break: break-all; }
+            .lang-btn { padding: 5px 9px; font-size: 10px; }
+            .hero-phone { width: 200px; border-width: 8px; border-radius: 32px; }
+            .float-card.fc-profit { right: -4%; padding: 8px 12px; }
+            .float-card.fc-profit .float-spark { display: none; }
+            .footer-grid { grid-template-columns: 1fr; }
         }
 
-        /* Reduced motion accessibility */
+        @media (hover: none), (pointer: coarse) {
+            .cursor-dot, .cursor-ring { display: none !important; }
+        }
+
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
                 animation-duration: 0.01ms !important;
                 animation-iteration-count: 1 !important;
                 transition-duration: 0.01ms !important;
             }
-            .phone-frame { transform: none; }
+            .reveal { opacity: 1 !important; transform: none !important; }
+            .aurora, .hero-particles { display: none !important; }
         }
     </style>
 </head>
 <body>
 
-    <nav class="lang-nav">
-        <button class="lang-btn active" onclick="setLang('en', this)">English</button>
-        <button class="lang-btn" onclick="setLang('hi', this)">हिन्दी</button>
-        <button class="lang-btn" onclick="setLang('gu', this)">ગુજરાતી</button>
+    <!-- Custom cursor (desktop only) -->
+    <div class="cursor-ring" aria-hidden="true"></div>
+    <div class="cursor-dot" aria-hidden="true"></div>
+
+    <!-- Top navigation -->
+    <nav class="top-nav" id="topNav">
+        <a href="#top" class="nav-brand">
+            <span class="brand-mark"><i class="fas fa-gem"></i></span>
+            <span>CARAT ONE</span>
+        </a>
+        <div class="nav-links">
+            <a href="#features" id="nav-features" class="nav-link">Features</a>
+            <a href="#tour" id="nav-tour" class="nav-link">Tour</a>
+            <a href="#why" id="nav-why" class="nav-link">Why Us</a>
+            <a href="#faq" id="nav-faq" class="nav-link">FAQ</a>
+        </div>
+        <a href="#cta" class="nav-cta" id="nav-cta">Get Started</a>
     </nav>
 
-    <header class="hero-section text-center">
+    <!-- Language switch -->
+    <nav class="lang-nav">
+        <button class="lang-btn active" onclick="setLang('en', this)">EN</button>
+        <button class="lang-btn" onclick="setLang('hi', this)">हिं</button>
+        <button class="lang-btn" onclick="setLang('gu', this)">ગુ</button>
+    </nav>
+
+    <!-- HERO -->
+    <header id="top" class="hero noise">
+        <div class="aurora" aria-hidden="true">
+            <div class="blob blob-1"></div>
+            <div class="blob blob-2"></div>
+            <div class="blob blob-3"></div>
+            <div class="blob blob-4"></div>
+        </div>
+        <div class="hero-spotlight" aria-hidden="true"></div>
+        <div class="hero-particles" aria-hidden="true"></div>
+
         <div class="container">
-            <h1 id="h-title" class="display-3 fw-800 mb-4">Diamond Trading, <span style="color: var(--accent);">Simplified.</span></h1>
-            <p id="h-sub" class="lead mb-5 opacity-90 px-md-5">Modernize your business with Carat One. Track inventory, carats, and invoices in one secure digital vault.</p>
-            <a href="#" class="cta-btn" id="h-btn">CaratOne - Coming Soon</a>
+            <div class="hero-grid">
+                <div>
+                    <div class="hero-eyebrow reveal">
+                        <span class="pill">NEW</span>
+                        <span id="h-eyebrow">Built for India's diamond merchants</span>
+                    </div>
+                    <h1 id="h-title" class="hero-title reveal" data-delay="1">
+                        Diamond trading,<br>
+                        <span class="serif">reimagined</span> for the modern desk.
+                    </h1>
+                    <p id="h-sub" class="hero-sub reveal" data-delay="2">
+                        Replace dusty registers with a precision ledger. Track inventory, generate GST invoices, and manage brokers — all in one secure, beautifully designed app.
+                    </p>
+                    <div class="hero-ctas reveal" data-delay="3">
+                        <a href="#cta" class="cta-btn" id="h-btn" data-magnetic>
+                            <span>Get Early Access</span>
+                            <i class="fas fa-arrow-right arrow"></i>
+                        </a>
+                        <a href="#tour" class="ghost-btn" id="h-btn-2">
+                            <i class="fas fa-play-circle"></i>
+                            <span>Take the tour</span>
+                        </a>
+                    </div>
+                    <div class="hero-trust reveal" data-delay="4">
+                        <span><i class="fas fa-shield-halved"></i> <span id="h-trust-1">Bank-grade security</span></span>
+                        <span><i class="fas fa-file-invoice"></i> <span id="h-trust-2">GST-ready invoicing</span></span>
+                        <span><i class="fas fa-globe"></i> <span id="h-trust-3">3 languages supported</span></span>
+                    </div>
+                </div>
+
+                <div class="hero-phone-stage reveal" data-delay="2" data-tilt>
+                    <div class="hero-phone">
+                        <img src="assets/img/dashboard.jpeg" alt="App Dashboard" onerror="this.src='https://via.placeholder.com/290x630/2563eb/ffffff?text=Dashboard'">
+                    </div>
+
+                    <div class="float-card fc-stock up">
+                        <div class="fc-row">
+                            <div class="fc-icon"><i class="fas fa-gem"></i></div>
+                            <div>
+                                <div class="fc-label" id="hc-1-l">Live Stock</div>
+                                <div class="fc-value">1,284.50 ct</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="float-card fc-profit down">
+                        <div class="fc-row">
+                            <div class="fc-icon"><i class="fas fa-arrow-trend-up"></i></div>
+                            <div>
+                                <div class="fc-label" id="hc-2-l">Net Profit</div>
+                                <div class="fc-value">+ ₹4.82 L</div>
+                            </div>
+                        </div>
+                        <div class="float-spark">
+                            <span></span><span></span><span></span>
+                            <span></span><span></span><span></span>
+                        </div>
+                    </div>
+
+                    <div class="float-card fc-invoice up">
+                        <div class="fc-row">
+                            <div class="fc-icon"><i class="fas fa-file-invoice-dollar"></i></div>
+                            <div>
+                                <div class="fc-label" id="hc-3-l">GST Invoice</div>
+                                <div class="fc-value">Generated · PDF</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </header>
 
-    <div class="phone-wrapper">
-        <div class="phone-frame">
-            <img src="assets/img/dashboard.jpeg" alt="App Dashboard" onerror="this.src='https://via.placeholder.com/320x680/2563eb/ffffff?text=Image+Missing'">
-        </div>
-    </div>
-
-    <section class="container py-5">
-        <div class="text-center mb-5 pb-4">
-            <h2 id="f-heading" class="fw-800 display-5">Built for Diamond Traders</h2>
-            <p id="f-sub" class="text-muted lead">Eliminate manual registers and manage your entire stock with 100% accuracy.</p>
-        </div>
-        <div class="row g-4">
-            <div class="col-lg-4">
-                <div class="feature-card">
-                    <div class="icon-circle"><i class="fas fa-gem"></i></div>
-                    <h4 id="f1-t" class="fw-700">Stock Management</h4>
-                    <p id="f1-d" class="text-muted">Live tracking of Opening Carats, Sold Carats, and Inventory Valuation. Know your business health in seconds.</p>
+    <!-- STATS BAND -->
+    <section class="stats-band noise">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat-item reveal">
+                    <div class="stat-num" data-counter="1284" data-suffix=" ct">0</div>
+                    <div class="stat-label" id="stat-1-l">Live Stock Tracking</div>
                 </div>
-            </div>
-            <div class="col-lg-4">
-                <div class="feature-card">
-                    <div class="icon-circle"><i class="fas fa-file-invoice-dollar"></i></div>
-                    <h4 id="f2-t" class="fw-700">Digital Invoicing</h4>
-                    <p id="f2-d" class="text-muted">Generate GST invoices or quick Cash Sell entries. Professional PDF reports ready to share instantly.</p>
+                <div class="stat-item reveal" data-delay="1">
+                    <div class="stat-num" data-counter="100" data-suffix="%">0</div>
+                    <div class="stat-label" id="stat-2-l">Accuracy Guaranteed</div>
                 </div>
-            </div>
-            <div class="col-lg-4">
-                <div class="feature-card">
-                    <div class="icon-circle"><i class="fas fa-users"></i></div>
-                    <h4 id="f3-t" class="fw-700">Brokerage & Parties</h4>
-                    <p id="f3-d" class="text-muted">Detailed broker performance reports. Manage commissions and track due payments effortlessly.</p>
+                <div class="stat-item reveal" data-delay="2">
+                    <div class="stat-num" data-counter="3" data-suffix="">0</div>
+                    <div class="stat-label" id="stat-3-l">Indian Languages</div>
+                </div>
+                <div class="stat-item reveal" data-delay="3">
+                    <div class="stat-num" data-counter="24" data-suffix="/7">0</div>
+                    <div class="stat-label" id="stat-4-l">Always-on Ledger</div>
                 </div>
             </div>
         </div>
     </section>
 
-    <section class="showcase-section">
-        <div class="container position-relative">
-            <div class="text-center mb-5 pb-4">
-                <h2 id="s-heading" class="fw-800 display-5">Take a Tour Inside</h2>
-                <p id="s-sub" class="text-muted lead">Every screen is crafted for speed, clarity, and total control.</p>
+    <!-- FEATURES (BENTO) -->
+    <section id="features" class="features-section">
+        <div class="container">
+            <div class="text-center" style="max-width: 760px; margin: 0 auto 60px;">
+                <div class="section-eyebrow reveal"><span class="dot"></span><span id="f-eyebrow">Features</span></div>
+                <h2 id="f-heading" class="section-title reveal" data-delay="1">
+                    Everything a diamond desk needs.<br>
+                    <span class="serif">Nothing it doesn't.</span>
+                </h2>
+                <p id="f-sub" class="section-sub reveal mx-auto" data-delay="2">
+                    Eliminate manual registers and manage your entire stock with 100% accuracy — across inventory, invoicing, brokerage and finance.
+                </p>
             </div>
+
+            <div class="bento">
+                <div class="bento-card bento-1 reveal" data-delay="1" data-spotlight>
+                    <div class="bento-icon"><i class="fas fa-gem"></i></div>
+                    <h3 id="f1-t" class="bento-title">Stock Management</h3>
+                    <p id="f1-d" class="bento-desc">Live tracking of Opening Carats, Sold Carats, and Inventory Valuation. Know your business health in seconds.</p>
+                    <div class="bento-mini-vis">
+                        <div class="vis-row">
+                            <span>Rough · 0.30 - 0.50ct</span>
+                            <span class="vis-amt">428.40 ct</span>
+                            <span class="vis-tag">In stock</span>
+                        </div>
+                        <div class="vis-row">
+                            <span>Polished · VVS</span>
+                            <span class="vis-amt">186.20 ct</span>
+                            <span class="vis-tag">In stock</span>
+                        </div>
+                        <div class="vis-row">
+                            <span>Melee · SI1</span>
+                            <span class="vis-amt">12.80 ct</span>
+                            <span class="vis-tag warn">Low</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bento-card bento-2 reveal" data-delay="2" data-spotlight>
+                    <div class="bento-icon"><i class="fas fa-file-invoice-dollar"></i></div>
+                    <h3 id="f2-t" class="bento-title">Digital Invoicing</h3>
+                    <p id="f2-d" class="bento-desc">Generate GST invoices or quick Cash Sell entries. Professional PDF reports ready to share instantly.</p>
+                </div>
+
+                <div class="bento-card bento-3 reveal" data-delay="3" data-spotlight>
+                    <div class="bento-icon"><i class="fas fa-users"></i></div>
+                    <h3 id="f3-t" class="bento-title">Brokerage & Parties</h3>
+                    <p id="f3-d" class="bento-desc">Detailed broker performance reports. Manage commissions and track due payments effortlessly.</p>
+                </div>
+
+                <div class="bento-card bento-4 reveal" data-delay="2" data-spotlight>
+                    <div class="bento-icon"><i class="fas fa-chart-line"></i></div>
+                    <h3 id="f4-t" class="bento-title">Finance & Reports</h3>
+                    <p id="f4-d" class="bento-desc">Daily ledger for credits, debits and expenses. One-tap year-end summaries and tax reports.</p>
+                </div>
+
+                <div class="bento-card bento-5 reveal" data-delay="3" data-spotlight>
+                    <div class="bento-icon"><i class="fas fa-shield-halved"></i></div>
+                    <h3 id="f5-t" class="bento-title">Private & Secure</h3>
+                    <p id="f5-d" class="bento-desc">Your data is encrypted end-to-end and synced across your devices. Only you ever see your books.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SHOWCASE TOUR -->
+    <section id="tour" class="showcase-section">
+        <div class="container">
+            <div class="text-center" style="max-width: 720px; margin: 0 auto 60px;">
+                <div class="section-eyebrow reveal"><span class="dot"></span><span id="t-eyebrow">The Tour</span></div>
+                <h2 id="s-heading" class="section-title reveal" data-delay="1">
+                    Crafted screen-by-screen.<br>
+                    <span class="serif">Built for speed.</span>
+                </h2>
+                <p id="s-sub" class="section-sub reveal mx-auto" data-delay="2">Every screen is engineered for clarity and total control of your trade.</p>
+            </div>
+
             <div class="row g-5 justify-content-center align-items-center">
-                <div class="col-md-6 col-lg-3">
-                    <div class="mini-phone">
-                        <img src="assets/img/inventory.jpeg" alt="Inventory Screen" onerror="this.src='https://via.placeholder.com/280x600/2563eb/ffffff?text=Inventory'">
-                    </div>
-                    <div class="screen-caption">
-                        <h5 id="s1-t">Inventory at a Glance</h5>
-                        <p id="s1-d">Real-time carat stock with valuation breakdowns.</p>
-                    </div>
+                <div class="col-md-6 col-lg-3 reveal" data-delay="1">
+                    <div class="mini-phone"><img src="assets/img/inventory.jpeg" alt="Inventory" onerror="this.src='https://via.placeholder.com/280x600/2563eb/ffffff?text=Inventory'"></div>
+                    <div class="screen-caption"><h5 id="s1-t">Inventory at a Glance</h5><p id="s1-d">Real-time carat stock with valuation breakdowns.</p></div>
                 </div>
-                <div class="col-md-6 col-lg-3 stagger-up">
-                    <div class="mini-phone">
-                        <img src="assets/img/invoice.jpeg" alt="Invoice Screen" onerror="this.src='https://via.placeholder.com/280x600/1e3a8a/ffffff?text=Invoice'">
-                    </div>
-                    <div class="screen-caption">
-                        <h5 id="s2-t">Smart Invoicing</h5>
-                        <p id="s2-d">Generate GST or Cash Sell invoices in seconds.</p>
-                    </div>
+                <div class="col-md-6 col-lg-3 stagger-up reveal" data-delay="2">
+                    <div class="mini-phone"><img src="assets/img/invoice.jpeg" alt="Invoice" onerror="this.src='https://via.placeholder.com/280x600/1e3a8a/ffffff?text=Invoice'"></div>
+                    <div class="screen-caption"><h5 id="s2-t">Smart Invoicing</h5><p id="s2-d">Generate GST or Cash Sell invoices in seconds.</p></div>
                 </div>
-                <div class="col-md-6 col-lg-3">
-                    <div class="mini-phone">
-                        <img src="assets/img/expenses.jpeg" alt="Expenses Screen" onerror="this.src='https://via.placeholder.com/280x600/38bdf8/ffffff?text=Expenses'">
-                    </div>
-                    <div class="screen-caption">
-                        <h5 id="s3-t">Daily Expense Ledger</h5>
-                        <p id="s3-d">Track every rupee with categorized expense logs.</p>
-                    </div>
+                <div class="col-md-6 col-lg-3 reveal" data-delay="3">
+                    <div class="mini-phone"><img src="assets/img/expenses.jpeg" alt="Expenses" onerror="this.src='https://via.placeholder.com/280x600/38bdf8/ffffff?text=Expenses'"></div>
+                    <div class="screen-caption"><h5 id="s3-t">Daily Expense Ledger</h5><p id="s3-d">Track every rupee with categorized expense logs.</p></div>
                 </div>
-                <div class="col-md-6 col-lg-3 stagger-up">
-                    <div class="mini-phone">
-                        <img src="assets/img/brokers.jpeg" alt="Brokers Screen" onerror="this.src='https://via.placeholder.com/280x600/0f172a/ffffff?text=Brokers'">
-                    </div>
-                    <div class="screen-caption">
-                        <h5 id="s4-t">Broker Insights</h5>
-                        <p id="s4-d">Performance reports and commission tracking, simplified.</p>
-                    </div>
+                <div class="col-md-6 col-lg-3 stagger-up reveal" data-delay="4">
+                    <div class="mini-phone"><img src="assets/img/brokers.jpeg" alt="Brokers" onerror="this.src='https://via.placeholder.com/280x600/0f172a/ffffff?text=Brokers'"></div>
+                    <div class="screen-caption"><h5 id="s4-t">Broker Insights</h5><p id="s4-d">Performance reports and commission tracking, simplified.</p></div>
                 </div>
-                <div class="col-md-6 col-lg-3">
-                    <div class="mini-phone">
-                        <img src="assets/img/purchase.jpeg" alt="Add Purchase Screen" onerror="this.src='https://via.placeholder.com/280x600/2563eb/ffffff?text=Purchase'">
-                    </div>
-                    <div class="screen-caption">
-                        <h5 id="s5-t">Quick Purchase Entry</h5>
-                        <p id="s5-d">Auto-calculated amounts with party and broker details.</p>
-                    </div>
+                <div class="col-md-6 col-lg-3 reveal" data-delay="1">
+                    <div class="mini-phone"><img src="assets/img/purchase.jpeg" alt="Purchase" onerror="this.src='https://via.placeholder.com/280x600/2563eb/ffffff?text=Purchase'"></div>
+                    <div class="screen-caption"><h5 id="s5-t">Quick Purchase Entry</h5><p id="s5-d">Auto-calculated amounts with party and broker details.</p></div>
                 </div>
-                <div class="col-md-6 col-lg-3 stagger-up">
-                    <div class="mini-phone">
-                        <img src="assets/img/sell_mode.jpeg" alt="Sell Mode Screen" onerror="this.src='https://via.placeholder.com/280x600/1e3a8a/ffffff?text=Sell+Mode'">
-                    </div>
-                    <div class="screen-caption">
-                        <h5 id="s6-t">Flexible Sell Modes</h5>
-                        <p id="s6-d">Pick a Cash sell or full GST invoice in one tap.</p>
-                    </div>
+                <div class="col-md-6 col-lg-3 stagger-up reveal" data-delay="2">
+                    <div class="mini-phone"><img src="assets/img/sell_mode.jpeg" alt="Sell Mode" onerror="this.src='https://via.placeholder.com/280x600/1e3a8a/ffffff?text=Sell+Mode'"></div>
+                    <div class="screen-caption"><h5 id="s6-t">Flexible Sell Modes</h5><p id="s6-d">Pick a Cash sell or full GST invoice in one tap.</p></div>
                 </div>
-                <div class="col-md-6 col-lg-3">
-                    <div class="mini-phone">
-                        <img src="assets/img/cash_sell.jpeg" alt="Cash Sell Screen" onerror="this.src='https://via.placeholder.com/280x600/38bdf8/ffffff?text=Cash+Sell'">
-                    </div>
-                    <div class="screen-caption">
-                        <h5 id="s7-t">Cash Sell, Streamlined</h5>
-                        <p id="s7-d">Add items, apply discounts, save in seconds.</p>
-                    </div>
+                <div class="col-md-6 col-lg-3 reveal" data-delay="3">
+                    <div class="mini-phone"><img src="assets/img/cash_sell.jpeg" alt="Cash Sell" onerror="this.src='https://via.placeholder.com/280x600/38bdf8/ffffff?text=Cash+Sell'"></div>
+                    <div class="screen-caption"><h5 id="s7-t">Cash Sell, Streamlined</h5><p id="s7-d">Add items, apply discounts, save in seconds.</p></div>
+                </div>
+            </div>
+
+            <div class="marquee-strip" aria-hidden="true">
+                <div class="marquee-track">
+                    <div class="marquee-item"><i class="fas fa-gem"></i> Stock Valuation</div>
+                    <div class="marquee-item"><i class="fas fa-file-invoice"></i> GST Invoicing</div>
+                    <div class="marquee-item"><i class="fas fa-handshake"></i> Broker Reports</div>
+                    <div class="marquee-item"><i class="fas fa-coins"></i> Expense Ledger</div>
+                    <div class="marquee-item"><i class="fas fa-chart-bar"></i> Year-End Summary</div>
+                    <div class="marquee-item"><i class="fas fa-shield-halved"></i> End-to-end Encrypted</div>
+                    <div class="marquee-item"><i class="fas fa-cloud"></i> Cloud Sync</div>
+                    <!-- duplicate for seamless loop -->
+                    <div class="marquee-item"><i class="fas fa-gem"></i> Stock Valuation</div>
+                    <div class="marquee-item"><i class="fas fa-file-invoice"></i> GST Invoicing</div>
+                    <div class="marquee-item"><i class="fas fa-handshake"></i> Broker Reports</div>
+                    <div class="marquee-item"><i class="fas fa-coins"></i> Expense Ledger</div>
+                    <div class="marquee-item"><i class="fas fa-chart-bar"></i> Year-End Summary</div>
+                    <div class="marquee-item"><i class="fas fa-shield-halved"></i> End-to-end Encrypted</div>
+                    <div class="marquee-item"><i class="fas fa-cloud"></i> Cloud Sync</div>
                 </div>
             </div>
         </div>
     </section>
 
+    <!-- WORKLOAD -->
     <section class="work-section">
         <div class="container">
-            <div class="row align-items-center">
-                <div class="col-lg-6 pr-lg-5">
-                    <h2 id="w-title" class="fw-800 display-5 mb-4">Reduce Your Workload</h2>
-                    <p id="w-sub" class="lead text-muted mb-5">Stop wasting hours on manual math. Carat One automates your entire trading workflow.</p>
+            <div class="row align-items-center g-5">
+                <div class="col-lg-6">
+                    <div class="section-eyebrow reveal"><span class="dot"></span><span id="w-eyebrow">Workflow</span></div>
+                    <h2 id="w-title" class="section-title reveal" data-delay="1">
+                        Reduce your workload by <span class="serif">90%</span>.
+                    </h2>
+                    <p id="w-sub" class="section-sub mb-4 reveal" data-delay="2">Stop wasting hours on manual math. Carat One automates your entire trading workflow — so you can focus on dealing diamonds.</p>
 
-                    <div class="benefit-pill">
-                        <i class="fas fa-check-circle text-success me-3"></i>
-                        <span id="c1-t" class="fw-600">Auto-calculated Profit, Loss & Valuation</span>
+                    <div class="benefit-pill reveal" data-delay="2">
+                        <span class="check"><i class="fas fa-check"></i></span>
+                        <span id="c1-t">Auto-calculated Profit, Loss & Valuation</span>
                     </div>
-                    <div class="benefit-pill">
-                        <i class="fas fa-check-circle text-success me-3"></i>
-                        <span id="c2-t" class="fw-600">One-Tap Year-End Reports & Tax Summaries</span>
+                    <div class="benefit-pill reveal" data-delay="3">
+                        <span class="check"><i class="fas fa-check"></i></span>
+                        <span id="c2-t">One-Tap Year-End Reports & Tax Summaries</span>
                     </div>
-                    <div class="benefit-pill">
-                        <i class="fas fa-check-circle text-success me-3"></i>
-                        <span id="c3-t" class="fw-600">Secure Digital Ledger for Daily Expenses</span>
+                    <div class="benefit-pill reveal" data-delay="4">
+                        <span class="check"><i class="fas fa-check"></i></span>
+                        <span id="c3-t">Secure Digital Ledger for Daily Expenses</span>
                     </div>
                 </div>
-                <div class="col-lg-6 text-center mt-5 mt-lg-0">
-                    <img src="assets/img/reports.jpeg" class="img-fluid rounded-4 shadow-lg" style="max-height: 550px;" alt="Reports" onerror="this.src='https://via.placeholder.com/400x550/1e3a8a/ffffff?text=Image+Missing'">
+                <div class="col-lg-6 text-center">
+                    <div class="work-img-wrapper reveal" data-delay="2">
+                        <img src="assets/img/reports.jpeg" alt="Reports" onerror="this.src='https://via.placeholder.com/400x550/1e3a8a/ffffff?text=Reports'">
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
+    <!-- COMPARE -->
+    <section id="why" class="compare-section noise">
+        <div class="container">
+            <div class="text-center" style="max-width: 720px; margin: 0 auto 60px;">
+                <div class="section-eyebrow reveal"><span class="dot"></span><span id="cmp-eyebrow">Why Carat One</span></div>
+                <h2 id="cmp-title" class="section-title reveal" data-delay="1">
+                    The old way is <span class="serif">tiring</span>.<br>
+                    The new way is here.
+                </h2>
+            </div>
+
+            <div class="compare-grid">
+                <div class="compare-col old reveal" data-delay="1">
+                    <h3><span id="cmp-old-t">The Old Way</span><span class="badge-tag" id="cmp-old-b">Manual</span></h3>
+                    <ul class="compare-list">
+                        <li><i class="fas fa-xmark"></i><span id="cmp-old-1">Dusty registers and torn pages that go missing</span></li>
+                        <li><i class="fas fa-xmark"></i><span id="cmp-old-2">Hours wasted on calculator math every evening</span></li>
+                        <li><i class="fas fa-xmark"></i><span id="cmp-old-3">Brokerage and commission errors that hurt margins</span></li>
+                        <li><i class="fas fa-xmark"></i><span id="cmp-old-4">Year-end chaos: reconciling stock and bills by hand</span></li>
+                        <li><i class="fas fa-xmark"></i><span id="cmp-old-5">No backup — one flood, one fire, one lost book</span></li>
+                    </ul>
+                </div>
+                <div class="compare-col new reveal" data-delay="2">
+                    <h3><span id="cmp-new-t">With Carat One</span><span class="badge-tag" id="cmp-new-b">Modern</span></h3>
+                    <ul class="compare-list">
+                        <li><i class="fas fa-check"></i><span id="cmp-new-1">Every entry saved, searchable, and synced in real time</span></li>
+                        <li><i class="fas fa-check"></i><span id="cmp-new-2">All math done automatically — close books in minutes</span></li>
+                        <li><i class="fas fa-check"></i><span id="cmp-new-3">Brokerage tracked per party with precision reports</span></li>
+                        <li><i class="fas fa-check"></i><span id="cmp-new-4">Year-end summary in one tap, GST-ready</span></li>
+                        <li><i class="fas fa-check"></i><span id="cmp-new-5">Encrypted cloud backup — your books, always safe</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq" class="faq-section">
+        <div class="container">
+            <div class="text-center" style="max-width: 720px; margin: 0 auto 60px;">
+                <div class="section-eyebrow reveal"><span class="dot"></span><span id="faq-eyebrow">FAQ</span></div>
+                <h2 id="faq-title" class="section-title reveal" data-delay="1">
+                    Frequently asked, <span class="serif">honestly</span> answered.
+                </h2>
+            </div>
+
+            <div class="faq-list">
+                <div class="faq-item reveal" data-delay="1">
+                    <button class="accordion-trigger">
+                        <span id="faq1-q">Is my business data really private?</span>
+                        <span class="icon"><i class="fas fa-plus"></i></span>
+                    </button>
+                    <div class="accordion-content">
+                        <div class="accordion-content-inner" id="faq1-a">
+                            Absolutely. Your ledger is encrypted end-to-end and synced only to your account. No one — not even our team — can read your stock or invoice data.
+                        </div>
+                    </div>
+                </div>
+                <div class="faq-item reveal" data-delay="2">
+                    <button class="accordion-trigger">
+                        <span id="faq2-q">Does Carat One support GST invoicing?</span>
+                        <span class="icon"><i class="fas fa-plus"></i></span>
+                    </button>
+                    <div class="accordion-content">
+                        <div class="accordion-content-inner" id="faq2-a">
+                            Yes. Carat One generates fully-formatted GST invoices with HSN codes and tax breakdowns, ready to email or share as a PDF.
+                        </div>
+                    </div>
+                </div>
+                <div class="faq-item reveal" data-delay="3">
+                    <button class="accordion-trigger">
+                        <span id="faq3-q">Will it work in Hindi or Gujarati?</span>
+                        <span class="icon"><i class="fas fa-plus"></i></span>
+                    </button>
+                    <div class="accordion-content">
+                        <div class="accordion-content-inner" id="faq3-a">
+                            Yes — the entire app, including labels, reports and invoices, can be switched between English, Hindi and Gujarati from your settings.
+                        </div>
+                    </div>
+                </div>
+                <div class="faq-item reveal" data-delay="4">
+                    <button class="accordion-trigger">
+                        <span id="faq4-q">Can I use it on multiple devices?</span>
+                        <span class="icon"><i class="fas fa-plus"></i></span>
+                    </button>
+                    <div class="accordion-content">
+                        <div class="accordion-content-inner" id="faq4-a">
+                            Yes. Sign in on any phone, tablet or browser and your books stay perfectly in sync — no manual exports, no email backups.
+                        </div>
+                    </div>
+                </div>
+                <div class="faq-item reveal" data-delay="5">
+                    <button class="accordion-trigger">
+                        <span id="faq5-q">When will it be available?</span>
+                        <span class="icon"><i class="fas fa-plus"></i></span>
+                    </button>
+                    <div class="accordion-content">
+                        <div class="accordion-content-inner" id="faq5-a">
+                            Carat One is launching soon. Drop us a line on the form below to be the first to know — and to lock in early-access pricing.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FINAL CTA -->
+    <section id="cta" class="final-cta">
+        <div class="container">
+            <div class="cta-card reveal noise">
+                <h2 id="cta-title">
+                    Ready to <span class="serif">modernize</span><br>
+                    your diamond business?
+                </h2>
+                <p id="cta-sub">Join the early-access list and we'll send you a private invitation when Carat One opens its doors.</p>
+                <div class="cta-row">
+                    <a href="mailto:caratone62@gmail.com" class="cta-btn" data-magnetic>
+                        <span id="cta-btn">Get Early Access</span>
+                        <i class="fas fa-arrow-right arrow"></i>
+                    </a>
+                    <a href="#tour" class="ghost-btn">
+                        <i class="fas fa-play-circle"></i>
+                        <span id="cta-btn-2">See the tour</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CONTACT -->
     <section class="contact-section">
         <div class="container">
             <div class="row justify-content-center">
                 <div class="col-lg-8">
-                    <div class="contact-card">
+                    <div class="contact-card reveal">
                         <div class="contact-icon"><i class="fas fa-envelope-open-text"></i></div>
-                        <h2 id="contact-title" class="fw-800 display-5 mb-3">Get in Touch</h2>
-                        <p id="contact-sub" class="lead opacity-75 mb-2">Have questions, feedback, or partnership ideas?</p>
-                        <p id="contact-desc" class="opacity-75 mb-2">We'd love to hear from you. Drop us an email and we'll get back to you shortly.</p>
-                        <a href="mailto:caratone62@gmail.com" class="email-link">
+                        <h2 id="contact-title" class="fw-800 mb-3" style="color:#fff; font-size: 2rem; letter-spacing: -1px;">Get in Touch</h2>
+                        <p id="contact-sub" style="color: rgba(255,255,255,0.6); margin-bottom: 6px;">Have questions, feedback, or partnership ideas?</p>
+                        <p id="contact-desc" style="color: rgba(255,255,255,0.5);">We'd love to hear from you. Drop us an email and we'll get back to you shortly.</p>
+                        <a href="mailto:caratone62@gmail.com" class="email-link" data-magnetic>
                             <i class="fas fa-envelope"></i> caratone62@gmail.com
                         </a>
                     </div>
@@ -619,153 +1917,451 @@
         </div>
     </section>
 
-    <footer class="text-center">
+    <!-- FOOTER -->
+    <footer>
         <div class="container">
-            <h2 class="text-white fw-800 mb-4">Carat One</h2>
-            <p id="footer-text" class="opacity-75">The Professional Ledger for Modern Diamond Merchants.</p>
-            <div class="mt-4">
-                <a href="privacy.html" id="footer-privacy" class="text-white opacity-75 mx-3 text-decoration-none fw-600">Privacy Policy</a>
-                <a href="terms.html" id="footer-terms" class="text-white opacity-75 mx-3 text-decoration-none fw-600">Terms &amp; Conditions</a>
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <h3>Carat One</h3>
+                    <p id="footer-text">The Professional Ledger for Modern Diamond Merchants. Built in India.</p>
+                </div>
+                <div class="footer-col">
+                    <h6 id="footer-h-product">Product</h6>
+                    <a href="#features" id="footer-a-features">Features</a>
+                    <a href="#tour" id="footer-a-tour">Tour</a>
+                    <a href="#why" id="footer-a-why">Why Carat One</a>
+                    <a href="#faq" id="footer-a-faq">FAQ</a>
+                </div>
+                <div class="footer-col hide-md">
+                    <h6 id="footer-h-company">Company</h6>
+                    <a href="mailto:caratone62@gmail.com">caratone62@gmail.com</a>
+                    <a href="#cta" id="footer-a-cta">Early Access</a>
+                </div>
+                <div class="footer-col">
+                    <h6 id="footer-h-legal">Legal</h6>
+                    <a href="privacy.html" id="footer-privacy">Privacy Policy</a>
+                    <a href="terms.html" id="footer-terms">Terms &amp; Conditions</a>
+                </div>
             </div>
-            <div class="mt-5 pt-4 border-top border-secondary">
-                <p class="small opacity-50">&copy; 2026 Carat One. All Rights Reserved.</p>
+            <div class="footer-bottom">
+                <span>&copy; 2026 Carat One. All Rights Reserved.</span>
+                <span id="footer-craft">Crafted with care for India's diamond desks.</span>
             </div>
         </div>
     </footer>
 
     <script>
+        // ─────────────────────────────────────────────
+        // Translations
+        // ─────────────────────────────────────────────
         const translations = {
             en: {
-                "h-title": "Diamond Trading, Simplified.",
-                "h-sub": "Modernize your business with Carat One. Track inventory, carats, and invoices in one secure digital vault.",
-                "h-btn": "CaratOne - Coming Soon",
-                "f-heading": "Built for Diamond Traders",
-                "f-sub": "Eliminate manual registers and manage your entire stock with 100% accuracy.",
-                "f1-t": "Stock Management",
-                "f1-d": "Live tracking of Opening Carats, Sold Carats, and Inventory Valuation. Know your business health in seconds.",
-                "f2-t": "Digital Invoicing",
-                "f2-d": "Generate GST invoices or quick Cash Sell entries. Professional PDF reports ready to share instantly.",
-                "f3-t": "Brokerage & Parties",
-                "f3-d": "Detailed broker performance reports. Manage commissions and track due payments effortlessly.",
-                "s-heading": "Take a Tour Inside",
-                "s-sub": "Every screen is crafted for speed, clarity, and total control.",
-                "s1-t": "Inventory at a Glance",
-                "s1-d": "Real-time carat stock with valuation breakdowns.",
-                "s2-t": "Smart Invoicing",
-                "s2-d": "Generate GST or Cash Sell invoices in seconds.",
-                "s3-t": "Daily Expense Ledger",
-                "s3-d": "Track every rupee with categorized expense logs.",
-                "s4-t": "Broker Insights",
-                "s4-d": "Performance reports and commission tracking, simplified.",
-                "s5-t": "Quick Purchase Entry",
-                "s5-d": "Auto-calculated amounts with party and broker details.",
-                "s6-t": "Flexible Sell Modes",
-                "s6-d": "Pick a Cash sell or full GST invoice in one tap.",
-                "s7-t": "Cash Sell, Streamlined",
-                "s7-d": "Add items, apply discounts, save in seconds.",
-                "w-title": "Reduce Your Workload",
-                "w-sub": "Stop wasting hours on manual math. Carat One automates your entire trading workflow.",
+                "nav-features": "Features", "nav-tour": "Tour", "nav-why": "Why Us", "nav-faq": "FAQ", "nav-cta": "Get Started",
+                "h-eyebrow": "Built for India's diamond merchants",
+                "h-title-html": "Diamond trading,<br><span class='serif'>reimagined</span> for the modern desk.",
+                "h-sub": "Replace dusty registers with a precision ledger. Track inventory, generate GST invoices, and manage brokers — all in one secure, beautifully designed app.",
+                "h-btn": "Get Early Access",
+                "h-btn-2": "Take the tour",
+                "h-trust-1": "Bank-grade security", "h-trust-2": "GST-ready invoicing", "h-trust-3": "3 languages supported",
+                "hc-1-l": "Live Stock", "hc-2-l": "Net Profit", "hc-3-l": "GST Invoice",
+                "stat-1-l": "Live Stock Tracking", "stat-2-l": "Accuracy Guaranteed", "stat-3-l": "Indian Languages", "stat-4-l": "Always-on Ledger",
+                "f-eyebrow": "Features",
+                "f-heading-html": "Everything a diamond desk needs.<br><span class='serif'>Nothing it doesn't.</span>",
+                "f-sub": "Eliminate manual registers and manage your entire stock with 100% accuracy — across inventory, invoicing, brokerage and finance.",
+                "f1-t": "Stock Management", "f1-d": "Live tracking of Opening Carats, Sold Carats, and Inventory Valuation. Know your business health in seconds.",
+                "f2-t": "Digital Invoicing", "f2-d": "Generate GST invoices or quick Cash Sell entries. Professional PDF reports ready to share instantly.",
+                "f3-t": "Brokerage & Parties", "f3-d": "Detailed broker performance reports. Manage commissions and track due payments effortlessly.",
+                "f4-t": "Finance & Reports", "f4-d": "Daily ledger for credits, debits and expenses. One-tap year-end summaries and tax reports.",
+                "f5-t": "Private & Secure", "f5-d": "Your data is encrypted end-to-end and synced across your devices. Only you ever see your books.",
+                "t-eyebrow": "The Tour",
+                "s-heading-html": "Crafted screen-by-screen.<br><span class='serif'>Built for speed.</span>",
+                "s-sub": "Every screen is engineered for clarity and total control of your trade.",
+                "s1-t": "Inventory at a Glance", "s1-d": "Real-time carat stock with valuation breakdowns.",
+                "s2-t": "Smart Invoicing", "s2-d": "Generate GST or Cash Sell invoices in seconds.",
+                "s3-t": "Daily Expense Ledger", "s3-d": "Track every rupee with categorized expense logs.",
+                "s4-t": "Broker Insights", "s4-d": "Performance reports and commission tracking, simplified.",
+                "s5-t": "Quick Purchase Entry", "s5-d": "Auto-calculated amounts with party and broker details.",
+                "s6-t": "Flexible Sell Modes", "s6-d": "Pick a Cash sell or full GST invoice in one tap.",
+                "s7-t": "Cash Sell, Streamlined", "s7-d": "Add items, apply discounts, save in seconds.",
+                "w-eyebrow": "Workflow",
+                "w-title-html": "Reduce your workload by <span class='serif'>90%</span>.",
+                "w-sub": "Stop wasting hours on manual math. Carat One automates your entire trading workflow — so you can focus on dealing diamonds.",
                 "c1-t": "Auto-calculated Profit, Loss & Valuation",
                 "c2-t": "One-Tap Year-End Reports & Tax Summaries",
                 "c3-t": "Secure Digital Ledger for Daily Expenses",
+                "cmp-eyebrow": "Why Carat One",
+                "cmp-title-html": "The old way is <span class='serif'>tiring</span>.<br>The new way is here.",
+                "cmp-old-t": "The Old Way", "cmp-old-b": "Manual",
+                "cmp-old-1": "Dusty registers and torn pages that go missing",
+                "cmp-old-2": "Hours wasted on calculator math every evening",
+                "cmp-old-3": "Brokerage and commission errors that hurt margins",
+                "cmp-old-4": "Year-end chaos: reconciling stock and bills by hand",
+                "cmp-old-5": "No backup — one flood, one fire, one lost book",
+                "cmp-new-t": "With Carat One", "cmp-new-b": "Modern",
+                "cmp-new-1": "Every entry saved, searchable, and synced in real time",
+                "cmp-new-2": "All math done automatically — close books in minutes",
+                "cmp-new-3": "Brokerage tracked per party with precision reports",
+                "cmp-new-4": "Year-end summary in one tap, GST-ready",
+                "cmp-new-5": "Encrypted cloud backup — your books, always safe",
+                "faq-eyebrow": "FAQ",
+                "faq-title-html": "Frequently asked, <span class='serif'>honestly</span> answered.",
+                "faq1-q": "Is my business data really private?",
+                "faq1-a": "Absolutely. Your ledger is encrypted end-to-end and synced only to your account. No one — not even our team — can read your stock or invoice data.",
+                "faq2-q": "Does Carat One support GST invoicing?",
+                "faq2-a": "Yes. Carat One generates fully-formatted GST invoices with HSN codes and tax breakdowns, ready to email or share as a PDF.",
+                "faq3-q": "Will it work in Hindi or Gujarati?",
+                "faq3-a": "Yes — the entire app, including labels, reports and invoices, can be switched between English, Hindi and Gujarati from your settings.",
+                "faq4-q": "Can I use it on multiple devices?",
+                "faq4-a": "Yes. Sign in on any phone, tablet or browser and your books stay perfectly in sync — no manual exports, no email backups.",
+                "faq5-q": "When will it be available?",
+                "faq5-a": "Carat One is launching soon. Drop us a line on the form below to be the first to know — and to lock in early-access pricing.",
+                "cta-title-html": "Ready to <span class='serif'>modernize</span><br>your diamond business?",
+                "cta-sub": "Join the early-access list and we'll send you a private invitation when Carat One opens its doors.",
+                "cta-btn": "Get Early Access", "cta-btn-2": "See the tour",
                 "contact-title": "Get in Touch",
                 "contact-sub": "Have questions, feedback, or partnership ideas?",
                 "contact-desc": "We'd love to hear from you. Drop us an email and we'll get back to you shortly.",
-                "footer-text": "The Professional Ledger for Modern Diamond Merchants.",
-                "footer-privacy": "Privacy Policy",
-                "footer-terms": "Terms & Conditions"
+                "footer-text": "The Professional Ledger for Modern Diamond Merchants. Built in India.",
+                "footer-h-product": "Product", "footer-a-features": "Features", "footer-a-tour": "Tour", "footer-a-why": "Why Carat One", "footer-a-faq": "FAQ",
+                "footer-h-company": "Company", "footer-a-cta": "Early Access",
+                "footer-h-legal": "Legal", "footer-privacy": "Privacy Policy", "footer-terms": "Terms & Conditions",
+                "footer-craft": "Crafted with care for India's diamond desks."
             },
             hi: {
-                "h-title": "हीरा व्यापार, अब और भी आसान।",
-                "h-sub": "कैरेट वन के साथ अपने व्यवसाय को आधुनिक बनाएं। इन्वेंट्री, कैरेट और इनवॉइस को एक ही सुरक्षित डिजिटल वॉल्ट में ट्रैक करें।",
-                "h-btn": "कैरेट वन - जल्द आ रहा है",
-                "f-heading": "हीरा व्यापारियों के लिए निर्मित",
-                "f-sub": "मैन्युअल रजिस्टर खत्म करें और 100% सटीकता के साथ अपने पूरे स्टॉक को प्रबंधित करें।",
-                "f1-t": "स्टॉक प्रबंधन",
-                "f1-d": "ओपनिंग कैरेट, बेचे गए कैरेट और स्टॉक मूल्यांकन की रीयल-टाइम ट्रैकिंग। सेकंडों में अपने व्यवसाय की स्थिति जानें।",
-                "f2-t": "डिजिटल इनवॉइसिंग",
-                "f2-d": "पेशेवर GST इनवॉइस या त्वरित नकद बिक्री प्रविष्टियां बनाएं। पेशेवर PDF रिपोर्ट तुरंत साझा करें।",
-                "f3-t": "ब्रोकरेज और पार्टियां",
-                "f3-d": "विस्तृत ब्रोकर प्रदर्शन रिपोर्ट। कमीशन प्रबंधित करें और बकाया भुगतान को आसानी से ट्रैक करें।",
-                "s-heading": "ऐप के अंदर एक नज़र",
-                "s-sub": "हर स्क्रीन गति, स्पष्टता और पूर्ण नियंत्रण के लिए तैयार की गई है।",
-                "s1-t": "एक नज़र में इन्वेंट्री",
-                "s1-d": "मूल्यांकन विवरण के साथ रीयल-टाइम कैरेट स्टॉक।",
-                "s2-t": "स्मार्ट इनवॉइसिंग",
-                "s2-d": "सेकंडों में GST या नकद बिक्री इनवॉइस बनाएं।",
-                "s3-t": "दैनिक खर्च लेजर",
-                "s3-d": "श्रेणीबद्ध खर्च लॉग के साथ हर रुपये को ट्रैक करें।",
-                "s4-t": "ब्रोकर इनसाइट्स",
-                "s4-d": "प्रदर्शन रिपोर्ट और कमीशन ट्रैकिंग, सरल बनाए गए।",
-                "s5-t": "त्वरित खरीद प्रविष्टि",
-                "s5-d": "स्वचालित गणना की गई राशि, पार्टी और ब्रोकर विवरण के साथ।",
-                "s6-t": "लचीले बिक्री मोड",
-                "s6-d": "एक टैप में नकद बिक्री या पूर्ण GST इनवॉइस चुनें।",
-                "s7-t": "नकद बिक्री, सरल बनाई गई",
-                "s7-d": "आइटम जोड़ें, छूट लागू करें, सेकंडों में सहेजें।",
-                "w-title": "अपना कार्यभार कम करें",
+                "nav-features": "विशेषताएँ", "nav-tour": "टूर", "nav-why": "क्यों चुनें", "nav-faq": "FAQ", "nav-cta": "शुरू करें",
+                "h-eyebrow": "भारत के हीरा व्यापारियों के लिए",
+                "h-title-html": "हीरा व्यापार,<br>आधुनिक डेस्क के लिए <span class='serif'>नए सिरे से</span>.",
+                "h-sub": "पुराने रजिस्टरों को सटीक डिजिटल लेजर से बदलें। एक ही सुरक्षित ऐप में स्टॉक ट्रैक करें, GST इनवॉइस बनाएं, और ब्रोकरों को मैनेज करें।",
+                "h-btn": "अर्ली एक्सेस पाएं", "h-btn-2": "टूर देखें",
+                "h-trust-1": "बैंक-स्तरीय सुरक्षा", "h-trust-2": "GST-तैयार इनवॉइसिंग", "h-trust-3": "3 भाषाएँ समर्थित",
+                "hc-1-l": "लाइव स्टॉक", "hc-2-l": "शुद्ध लाभ", "hc-3-l": "GST इनवॉइस",
+                "stat-1-l": "लाइव स्टॉक ट्रैकिंग", "stat-2-l": "सटीकता की गारंटी", "stat-3-l": "भारतीय भाषाएँ", "stat-4-l": "हमेशा चालू लेजर",
+                "f-eyebrow": "विशेषताएँ",
+                "f-heading-html": "हीरा डेस्क के लिए जरूरी सब कुछ।<br><span class='serif'>जो जरूरी नहीं, वो कुछ नहीं।</span>",
+                "f-sub": "मैन्युअल रजिस्टर खत्म करें और इन्वेंट्री, इनवॉइसिंग, ब्रोकरेज और फाइनेंस — पूरे स्टॉक को 100% सटीकता से मैनेज करें।",
+                "f1-t": "स्टॉक प्रबंधन", "f1-d": "ओपनिंग कैरेट, बेचे गए कैरेट और स्टॉक मूल्यांकन की रीयल-टाइम ट्रैकिंग। सेकंडों में अपने व्यवसाय की स्थिति जानें।",
+                "f2-t": "डिजिटल इनवॉइसिंग", "f2-d": "पेशेवर GST इनवॉइस या त्वरित नकद बिक्री प्रविष्टियां बनाएं। पेशेवर PDF रिपोर्ट तुरंत साझा करें।",
+                "f3-t": "ब्रोकरेज और पार्टियां", "f3-d": "विस्तृत ब्रोकर प्रदर्शन रिपोर्ट। कमीशन प्रबंधित करें और बकाया भुगतान को आसानी से ट्रैक करें।",
+                "f4-t": "फाइनेंस और रिपोर्ट्स", "f4-d": "क्रेडिट, डेबिट और खर्चों के लिए दैनिक लेजर। एक टैप में वर्ष-अंत सारांश और टैक्स रिपोर्ट।",
+                "f5-t": "निजी और सुरक्षित", "f5-d": "आपका डेटा एंड-टू-एंड एन्क्रिप्टेड है और सभी डिवाइसों में सिंक होता है। केवल आप ही अपनी बही देख सकते हैं।",
+                "t-eyebrow": "टूर",
+                "s-heading-html": "हर स्क्रीन ध्यान से बनाई गई।<br><span class='serif'>गति के लिए तैयार।</span>",
+                "s-sub": "हर स्क्रीन स्पष्टता और आपके व्यापार के पूर्ण नियंत्रण के लिए तैयार की गई है।",
+                "s1-t": "एक नज़र में इन्वेंट्री", "s1-d": "मूल्यांकन विवरण के साथ रीयल-टाइम कैरेट स्टॉक।",
+                "s2-t": "स्मार्ट इनवॉइसिंग", "s2-d": "सेकंडों में GST या नकद बिक्री इनवॉइस बनाएं।",
+                "s3-t": "दैनिक खर्च लेजर", "s3-d": "श्रेणीबद्ध खर्च लॉग के साथ हर रुपये को ट्रैक करें।",
+                "s4-t": "ब्रोकर इनसाइट्स", "s4-d": "प्रदर्शन रिपोर्ट और कमीशन ट्रैकिंग, सरल बनाए गए।",
+                "s5-t": "त्वरित खरीद प्रविष्टि", "s5-d": "स्वचालित गणना की गई राशि, पार्टी और ब्रोकर विवरण के साथ।",
+                "s6-t": "लचीले बिक्री मोड", "s6-d": "एक टैप में नकद बिक्री या पूर्ण GST इनवॉइस चुनें।",
+                "s7-t": "नकद बिक्री, सरल बनाई गई", "s7-d": "आइटम जोड़ें, छूट लागू करें, सेकंडों में सहेजें।",
+                "w-eyebrow": "वर्कफ़्लो",
+                "w-title-html": "अपना कार्यभार <span class='serif'>90%</span> तक कम करें।",
                 "w-sub": "मैन्युअल गणित पर समय बर्बाद करना बंद करें। कैरेट वन आपके संपूर्ण व्यापार वर्कफ़्लो को स्वचालित करता है।",
                 "c1-t": "स्वचालित लाभ, हानि और मूल्यांकन गणना",
                 "c2-t": "एक-टैप वर्ष-अंत रिपोर्ट और टैक्स सारांश",
                 "c3-t": "दैनिक खर्चों के लिए सुरक्षित डिजिटल लेजर",
+                "cmp-eyebrow": "कैरेट वन क्यों",
+                "cmp-title-html": "पुराना तरीका <span class='serif'>थकाने वाला</span> है।<br>नया तरीका यहाँ है।",
+                "cmp-old-t": "पुराना तरीका", "cmp-old-b": "मैन्युअल",
+                "cmp-old-1": "गुम होने वाले धूल भरे रजिस्टर और फटे पन्ने",
+                "cmp-old-2": "हर शाम कैलकुलेटर पर बर्बाद होते घंटे",
+                "cmp-old-3": "ब्रोकरेज और कमीशन की गलतियाँ जो मार्जिन घटाती हैं",
+                "cmp-old-4": "वर्ष के अंत में अराजकता: स्टॉक और बिल हाथ से मिलाना",
+                "cmp-old-5": "कोई बैकअप नहीं — एक बाढ़, एक आग, एक खोई हुई किताब",
+                "cmp-new-t": "कैरेट वन के साथ", "cmp-new-b": "आधुनिक",
+                "cmp-new-1": "हर एंट्री सहेजी, खोज योग्य, और रीयल-टाइम में सिंक",
+                "cmp-new-2": "सारा गणित स्वचालित — मिनटों में बही बंद करें",
+                "cmp-new-3": "प्रति पार्टी ब्रोकरेज की सटीक रिपोर्ट",
+                "cmp-new-4": "एक टैप में वर्ष-अंत सारांश, GST-तैयार",
+                "cmp-new-5": "एन्क्रिप्टेड क्लाउड बैकअप — आपकी बही, हमेशा सुरक्षित",
+                "faq-eyebrow": "FAQ",
+                "faq-title-html": "अक्सर पूछे जाते हैं, <span class='serif'>ईमानदारी</span> से उत्तर दिए जाते हैं।",
+                "faq1-q": "क्या मेरा व्यापारिक डेटा वास्तव में निजी है?",
+                "faq1-a": "बिल्कुल। आपका लेजर एंड-टू-एंड एन्क्रिप्टेड है और केवल आपके खाते के साथ सिंक होता है। कोई भी — हमारी टीम भी नहीं — आपका डेटा नहीं पढ़ सकता।",
+                "faq2-q": "क्या कैरेट वन GST इनवॉइसिंग का समर्थन करता है?",
+                "faq2-a": "हाँ। कैरेट वन HSN कोड और टैक्स ब्रेकडाउन के साथ पूरी तरह से फ़ॉर्मेट किए गए GST इनवॉइस बनाता है, जो PDF के रूप में ईमेल या साझा करने के लिए तैयार होते हैं।",
+                "faq3-q": "क्या यह हिंदी या गुजराती में काम करेगा?",
+                "faq3-a": "हाँ — पूरा ऐप, जिसमें लेबल, रिपोर्ट और इनवॉइस शामिल हैं, सेटिंग्स से अंग्रेजी, हिंदी और गुजराती के बीच स्विच किया जा सकता है।",
+                "faq4-q": "क्या मैं इसे कई डिवाइसों पर उपयोग कर सकता हूँ?",
+                "faq4-a": "हाँ। किसी भी फोन, टैबलेट या ब्राउज़र में साइन इन करें और आपकी बही पूरी तरह से सिंक रहती है — कोई मैन्युअल एक्सपोर्ट नहीं, कोई ईमेल बैकअप नहीं।",
+                "faq5-q": "यह कब उपलब्ध होगा?",
+                "faq5-a": "कैरेट वन जल्द ही लॉन्च हो रहा है। नीचे दिए गए फ़ॉर्म पर हमें एक संदेश दें ताकि आप सबसे पहले जानें — और अर्ली-एक्सेस मूल्य निर्धारण लॉक करें।",
+                "cta-title-html": "अपने हीरा व्यवसाय को <span class='serif'>आधुनिक</span><br>बनाने के लिए तैयार हैं?",
+                "cta-sub": "अर्ली-एक्सेस सूची में शामिल हों और जब कैरेट वन अपने दरवाजे खोलेगा तो हम आपको एक निजी निमंत्रण भेजेंगे।",
+                "cta-btn": "अर्ली एक्सेस पाएं", "cta-btn-2": "टूर देखें",
                 "contact-title": "संपर्क करें",
                 "contact-sub": "कोई प्रश्न, प्रतिक्रिया या साझेदारी का विचार है?",
                 "contact-desc": "हमें आपसे बात करके खुशी होगी। हमें ईमेल करें और हम जल्द ही आपसे संपर्क करेंगे।",
-                "footer-text": "आधुनिक हीरा व्यापारियों के लिए पेशेवर लेजर।",
-                "footer-privacy": "गोपनीयता नीति",
-                "footer-terms": "नियम और शर्तें"
+                "footer-text": "आधुनिक हीरा व्यापारियों के लिए पेशेवर लेजर। भारत में निर्मित।",
+                "footer-h-product": "उत्पाद", "footer-a-features": "विशेषताएँ", "footer-a-tour": "टूर", "footer-a-why": "क्यों कैरेट वन", "footer-a-faq": "FAQ",
+                "footer-h-company": "कंपनी", "footer-a-cta": "अर्ली एक्सेस",
+                "footer-h-legal": "कानूनी", "footer-privacy": "गोपनीयता नीति", "footer-terms": "नियम और शर्तें",
+                "footer-craft": "भारत के हीरा डेस्कों के लिए ध्यान से बनाया गया।"
             },
             gu: {
-                "h-title": "હીરાનો વેપાર, હવે થયો સરળ.",
-                "h-sub": "કેરેટ વન સાથે તમારા વ્યવસાયને આધુનિક બનાવો. ઇન્વેન્ટરી, કેરેટ અને ઇનવોઇસ એક જ સુરક્ષિત ડિજિટલ વૉલ્ટમાં ટ્રૅક કરો.",
-                "h-btn": "કેરેટ વન - જલ્દી આવી રહ્યું છે",
-                "f-heading": "હીરાના વેપારીઓ માટે બનાવેલ",
-                "f-sub": "મેન્યુઅલ રજિસ્ટર દૂર કરો અને 100% ચોકસાઈ સાથે તમારા આખા સ્ટોકને મેનેજ કરો.",
-                "f1-t": "સ્ટોક મેનેજમેન્ટ",
-                "f1-d": "ઓપનિંગ કેરેટ, વેચાયેલા કેરેટ અને ઇન્વેન્ટરી મૂલ્યાંકનનું રીઅલ-ટાઇમ ટ્રેકિંગ. સેકન્ડોમાં તમારા વ્યવસાયની સ્થિતિ જાણો.",
-                "f2-t": "ડિજિટલ ઇનવોઇસિંગ",
-                "f2-d": "પ્રોફેશનલ GST ઇનવોઇસ અથવા ઝડપી રોકડ વેચાણ એન્ટ્રીઓ બનાવો. પ્રોફેશનલ PDF રિપોર્ટ્સ તરત જ શેર કરો.",
-                "f3-t": "બ્રોકરેજ અને પાર્ટીઓ",
-                "f3-d": "વિગતવાર બ્રોકર પ્રદર્શન અહેવાલો. કમિશન મેનેજ કરો અને બાકી ચુકવણીઓને વિના પ્રયાસે ટ્રૅક કરો.",
-                "s-heading": "ઍપની અંદર એક ટૂર",
-                "s-sub": "દરેક સ્ક્રીન ગતિ, સ્પષ્ટતા અને સંપૂર્ણ નિયંત્રણ માટે તૈયાર કરેલી છે.",
-                "s1-t": "એક નજરમાં ઇન્વેન્ટરી",
-                "s1-d": "મૂલ્યાંકન વિગતો સાથે રીઅલ-ટાઇમ કેરેટ સ્ટોક.",
-                "s2-t": "સ્માર્ટ ઇનવોઇસિંગ",
-                "s2-d": "સેકન્ડોમાં GST અથવા રોકડ વેચાણ ઇનવોઇસ બનાવો.",
-                "s3-t": "દૈનિક ખર્ચ લેજર",
-                "s3-d": "વર્ગીકૃત ખર્ચ લોગ સાથે દરેક રૂપિયાને ટ્રૅક કરો.",
-                "s4-t": "બ્રોકર ઇનસાઇટ્સ",
-                "s4-d": "પ્રદર્શન અહેવાલો અને કમિશન ટ્રેકિંગ, સરળ બનાવ્યું.",
-                "s5-t": "ઝડપી ખરીદ એન્ટ્રી",
-                "s5-d": "પાર્ટી અને બ્રોકર વિગતો સાથે સ્વયંસંચાલિત રકમ.",
-                "s6-t": "લવચીક વેચાણ મોડ્સ",
-                "s6-d": "એક ટેપમાં રોકડ વેચાણ અથવા સંપૂર્ણ GST ઇનવોઇસ પસંદ કરો.",
-                "s7-t": "રોકડ વેચાણ, સરળ બનાવ્યું",
-                "s7-d": "આઇટમ્સ ઉમેરો, ડિસ્કાઉન્ટ લાગુ કરો, સેકન્ડોમાં સાચવો.",
-                "w-title": "તમારા કામનું ભારણ ઘટાડો",
+                "nav-features": "વિશેષતાઓ", "nav-tour": "ટૂર", "nav-why": "શા માટે", "nav-faq": "FAQ", "nav-cta": "શરૂ કરો",
+                "h-eyebrow": "ભારતના હીરા વેપારીઓ માટે",
+                "h-title-html": "હીરાનો વેપાર,<br>આધુનિક ડેસ્ક માટે <span class='serif'>નવેસરથી</span>.",
+                "h-sub": "જૂના રજિસ્ટરોને ચોકસાઈભર્યા ડિજિટલ લેજરથી બદલો. એક જ સુરક્ષિત ઍપમાં સ્ટોક ટ્રૅક કરો, GST ઇનવોઇસ બનાવો, અને બ્રોકરો મેનેજ કરો.",
+                "h-btn": "અર્લી ઍક્સેસ મેળવો", "h-btn-2": "ટૂર જુઓ",
+                "h-trust-1": "બેંક-સ્તરની સુરક્ષા", "h-trust-2": "GST-તૈયાર ઇનવોઇસિંગ", "h-trust-3": "3 ભાષાઓ સપોર્ટેડ",
+                "hc-1-l": "લાઈવ સ્ટોક", "hc-2-l": "ચોખ્ખો નફો", "hc-3-l": "GST ઇનવોઇસ",
+                "stat-1-l": "લાઈવ સ્ટોક ટ્રેકિંગ", "stat-2-l": "ચોકસાઈની ગેરંટી", "stat-3-l": "ભારતીય ભાષાઓ", "stat-4-l": "હંમેશા ચાલુ લેજર",
+                "f-eyebrow": "વિશેષતાઓ",
+                "f-heading-html": "હીરા ડેસ્ક માટે જરૂરી બધું.<br><span class='serif'>જે જરૂરી નથી, એ કંઈ નહીં.</span>",
+                "f-sub": "મેન્યુઅલ રજિસ્ટર દૂર કરો અને ઇન્વેન્ટરી, ઇનવોઇસિંગ, બ્રોકરેજ અને ફાઇનાન્સ — આખા સ્ટોકને 100% ચોકસાઈથી મેનેજ કરો.",
+                "f1-t": "સ્ટોક મેનેજમેન્ટ", "f1-d": "ઓપનિંગ કેરેટ, વેચાયેલા કેરેટ અને ઇન્વેન્ટરી મૂલ્યાંકનનું રીઅલ-ટાઇમ ટ્રેકિંગ. સેકન્ડોમાં તમારા વ્યવસાયની સ્થિતિ જાણો.",
+                "f2-t": "ડિજિટલ ઇનવોઇસિંગ", "f2-d": "પ્રોફેશનલ GST ઇનવોઇસ અથવા ઝડપી રોકડ વેચાણ એન્ટ્રીઓ બનાવો. પ્રોફેશનલ PDF રિપોર્ટ્સ તરત જ શેર કરો.",
+                "f3-t": "બ્રોકરેજ અને પાર્ટીઓ", "f3-d": "વિગતવાર બ્રોકર પ્રદર્શન અહેવાલો. કમિશન મેનેજ કરો અને બાકી ચુકવણીઓને વિના પ્રયાસે ટ્રૅક કરો.",
+                "f4-t": "ફાઇનાન્સ અને રિપોર્ટ્સ", "f4-d": "ક્રેડિટ, ડેબિટ અને ખર્ચ માટે દૈનિક લેજર. એક ટેપમાં વર્ષ-અંતનો સારાંશ અને ટેક્સ રિપોર્ટ.",
+                "f5-t": "ખાનગી અને સુરક્ષિત", "f5-d": "તમારો ડેટા એન્ડ-ટુ-એન્ડ એન્ક્રિપ્ટેડ છે અને બધાં ડિવાઇસમાં સિંક થાય છે. માત્ર તમે જ તમારી બહી જોઈ શકો છો.",
+                "t-eyebrow": "ટૂર",
+                "s-heading-html": "દરેક સ્ક્રીન ધ્યાનથી બનાવેલી.<br><span class='serif'>ગતિ માટે તૈયાર.</span>",
+                "s-sub": "દરેક સ્ક્રીન સ્પષ્ટતા અને તમારા વેપારના સંપૂર્ણ નિયંત્રણ માટે તૈયાર કરેલી છે.",
+                "s1-t": "એક નજરમાં ઇન્વેન્ટરી", "s1-d": "મૂલ્યાંકન વિગતો સાથે રીઅલ-ટાઇમ કેરેટ સ્ટોક.",
+                "s2-t": "સ્માર્ટ ઇનવોઇસિંગ", "s2-d": "સેકન્ડોમાં GST અથવા રોકડ વેચાણ ઇનવોઇસ બનાવો.",
+                "s3-t": "દૈનિક ખર્ચ લેજર", "s3-d": "વર્ગીકૃત ખર્ચ લોગ સાથે દરેક રૂપિયાને ટ્રૅક કરો.",
+                "s4-t": "બ્રોકર ઇનસાઇટ્સ", "s4-d": "પ્રદર્શન અહેવાલો અને કમિશન ટ્રેકિંગ, સરળ બનાવ્યું.",
+                "s5-t": "ઝડપી ખરીદ એન્ટ્રી", "s5-d": "પાર્ટી અને બ્રોકર વિગતો સાથે સ્વયંસંચાલિત રકમ.",
+                "s6-t": "લવચીક વેચાણ મોડ્સ", "s6-d": "એક ટેપમાં રોકડ વેચાણ અથવા સંપૂર્ણ GST ઇનવોઇસ પસંદ કરો.",
+                "s7-t": "રોકડ વેચાણ, સરળ બનાવ્યું", "s7-d": "આઇટમ્સ ઉમેરો, ડિસ્કાઉન્ટ લાગુ કરો, સેકન્ડોમાં સાચવો.",
+                "w-eyebrow": "વર્કફ્લો",
+                "w-title-html": "તમારા કામનો બોજ <span class='serif'>90%</span> સુધી ઘટાડો.",
                 "w-sub": "મેન્યુઅલ ગણતરીમાં કલાકો બગાડવાનું બંધ કરો. કેરેટ વન તમારા આખા ટ્રેડિંગ વર્કફ્લોને ઓટોમેટ કરે છે.",
                 "c1-t": "નફો, નુકસાન અને મૂલ્યાંકનની સ્વચાલિત ગણતરી",
                 "c2-t": "એક-ટેપ વર્ષ-અંતના રિપોર્ટ્સ અને ટેક્સ સારાંશ",
                 "c3-t": "દૈનિક ખર્ચ માટે સુરક્ષિત ડિજિટલ લેજર",
+                "cmp-eyebrow": "શા માટે કેરેટ વન",
+                "cmp-title-html": "જૂની રીત <span class='serif'>થકવનારી</span> છે.<br>નવી રીત અહીં છે.",
+                "cmp-old-t": "જૂની રીત", "cmp-old-b": "મેન્યુઅલ",
+                "cmp-old-1": "ગુમ થતા ધૂળભર્યા રજિસ્ટર અને ફાટેલા પાનાં",
+                "cmp-old-2": "દર સાંજે કેલ્ક્યુલેટર પર બગડતા કલાકો",
+                "cmp-old-3": "બ્રોકરેજ અને કમિશનની ભૂલો જે માર્જિન ઘટાડે છે",
+                "cmp-old-4": "વર્ષના અંતે અરાજકતા: સ્ટોક અને બિલ હાથેથી મેળવવા",
+                "cmp-old-5": "કોઈ બેકઅપ નહીં — એક પૂર, એક આગ, એક ખોવાયેલી ચોપડી",
+                "cmp-new-t": "કેરેટ વન સાથે", "cmp-new-b": "આધુનિક",
+                "cmp-new-1": "દરેક એન્ટ્રી સચવાય, શોધી શકાય, અને રીઅલ-ટાઇમમાં સિંક",
+                "cmp-new-2": "બધી ગણતરી આપોઆપ — મિનિટોમાં બહી બંધ કરો",
+                "cmp-new-3": "પ્રતિ પાર્ટી બ્રોકરેજ ચોકસાઈભર્યા રિપોર્ટ્સ સાથે",
+                "cmp-new-4": "એક ટેપમાં વર્ષ-અંતનો સારાંશ, GST-તૈયાર",
+                "cmp-new-5": "એન્ક્રિપ્ટેડ ક્લાઉડ બેકઅપ — તમારી બહી, હંમેશા સુરક્ષિત",
+                "faq-eyebrow": "FAQ",
+                "faq-title-html": "વારંવાર પૂછાય છે, <span class='serif'>પ્રામાણિક</span> રીતે જવાબ આપાય છે.",
+                "faq1-q": "શું મારો વ્યવસાય ડેટા ખરેખર ખાનગી છે?",
+                "faq1-a": "બિલકુલ. તમારું લેજર એન્ડ-ટુ-એન્ડ એન્ક્રિપ્ટેડ છે અને માત્ર તમારા ખાતા સાથે સિંક થાય છે. કોઈ પણ — અમારી ટીમ પણ નહીં — તમારો ડેટા વાંચી શકતું નથી.",
+                "faq2-q": "શું કેરેટ વન GST ઇનવોઇસિંગને સપોર્ટ કરે છે?",
+                "faq2-a": "હા. કેરેટ વન HSN કોડ અને ટેક્સ બ્રેકડાઉન સાથે સંપૂર્ણ રીતે ફોર્મેટ થયેલા GST ઇનવોઇસ બનાવે છે, જે PDF તરીકે ઇમેઇલ અથવા શેર કરવા તૈયાર છે.",
+                "faq3-q": "શું તે હિંદી અથવા ગુજરાતીમાં કામ કરશે?",
+                "faq3-a": "હા — આખી ઍપ, જેમાં લેબલ, રિપોર્ટ અને ઇનવોઇસ સામેલ છે, સેટિંગ્સમાંથી અંગ્રેજી, હિંદી અને ગુજરાતી વચ્ચે સ્વિચ કરી શકાય છે.",
+                "faq4-q": "શું હું તેને બહુવિધ ઉપકરણો પર વાપરી શકું?",
+                "faq4-a": "હા. કોઈ પણ ફોન, ટેબ્લેટ અથવા બ્રાઉઝરમાં સાઇન ઇન કરો અને તમારી બહી સંપૂર્ણ રીતે સિંક રહે છે — કોઈ મેન્યુઅલ એક્સપોર્ટ નહીં, કોઈ ઇમેઇલ બેકઅપ નહીં.",
+                "faq5-q": "તે ક્યારે ઉપલબ્ધ થશે?",
+                "faq5-a": "કેરેટ વન જલદી લોન્ચ થઈ રહ્યું છે. નીચે આપેલા ફોર્મ પર અમને સંદેશ આપો જેથી તમે પ્રથમ જાણો — અને અર્લી-ઍક્સેસ ભાવ લોક કરો.",
+                "cta-title-html": "તમારા હીરા વ્યવસાયને <span class='serif'>આધુનિક</span><br>બનાવવા તૈયાર છો?",
+                "cta-sub": "અર્લી-ઍક્સેસ યાદીમાં જોડાઓ અને જ્યારે કેરેટ વન તેના દરવાજા ખોલશે ત્યારે અમે તમને ખાનગી આમંત્રણ મોકલીશું.",
+                "cta-btn": "અર્લી ઍક્સેસ મેળવો", "cta-btn-2": "ટૂર જુઓ",
                 "contact-title": "સંપર્ક કરો",
                 "contact-sub": "કોઈ પ્રશ્નો, પ્રતિસાદ અથવા ભાગીદારીના વિચારો છે?",
                 "contact-desc": "અમને તમારી પાસેથી સાંભળવું ગમશે. અમને ઇમેઇલ કરો અને અમે જલ્દી જ તમારો સંપર્ક કરીશું.",
-                "footer-text": "આધુનિક હીરાના વેપારીઓ માટે વ્યાવસાયિક લેજર.",
-                "footer-privacy": "ગોપનીયતા નીતિ",
-                "footer-terms": "નિયમો અને શરતો"
+                "footer-text": "આધુનિક હીરાના વેપારીઓ માટે વ્યાવસાયિક લેજર. ભારતમાં બનાવેલ.",
+                "footer-h-product": "ઉત્પાદન", "footer-a-features": "વિશેષતાઓ", "footer-a-tour": "ટૂર", "footer-a-why": "શા માટે કેરેટ વન", "footer-a-faq": "FAQ",
+                "footer-h-company": "કંપની", "footer-a-cta": "અર્લી ઍક્સેસ",
+                "footer-h-legal": "કાનૂની", "footer-privacy": "ગોપનીયતા નીતિ", "footer-terms": "નિયમો અને શરતો",
+                "footer-craft": "ભારતના હીરા ડેસ્ક માટે ધ્યાનથી તૈયાર."
             }
         };
+
+        // IDs whose value should be rendered as HTML (because they contain serif span etc.)
+        const HTML_KEYS = ['h-title-html', 'f-heading-html', 's-heading-html', 'w-title-html', 'cmp-title-html', 'faq-title-html', 'cta-title-html'];
 
         function setLang(lang, btn) {
             document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             const data = translations[lang];
             for (let key in data) {
-                const el = document.getElementById(key);
-                if (el) el.innerText = data[key];
+                if (HTML_KEYS.includes(key)) {
+                    const targetId = key.replace('-html', '');
+                    const el = document.getElementById(targetId);
+                    if (el) el.innerHTML = data[key];
+                } else {
+                    const el = document.getElementById(key);
+                    if (el) el.innerText = data[key];
+                }
             }
         }
+
+        // ─────────────────────────────────────────────
+        // Premium UX layer
+        // ─────────────────────────────────────────────
+        (function () {
+            const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const isFinePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+            // 1. Custom cursor
+            if (isFinePointer && !prefersReducedMotion) {
+                const dot = document.querySelector('.cursor-dot');
+                const ring = document.querySelector('.cursor-ring');
+                let mx = window.innerWidth / 2, my = window.innerHeight / 2;
+                let rx = mx, ry = my;
+
+                window.addEventListener('mousemove', (e) => {
+                    mx = e.clientX; my = e.clientY;
+                    dot.style.transform = `translate3d(${mx}px, ${my}px, 0)`;
+                });
+                (function tick(){
+                    rx += (mx - rx) * 0.18;
+                    ry += (my - ry) * 0.18;
+                    ring.style.transform = `translate3d(${rx}px, ${ry}px, 0)`;
+                    requestAnimationFrame(tick);
+                })();
+
+                const sel = 'a, button, .bento-card, .mini-phone, .phone-frame, .benefit-pill, .accordion-trigger, .float-card';
+                document.querySelectorAll(sel).forEach(el => {
+                    el.addEventListener('mouseenter', () => { ring.classList.add('is-hover'); dot.classList.add('is-hover'); });
+                    el.addEventListener('mouseleave', () => { ring.classList.remove('is-hover'); dot.classList.remove('is-hover'); });
+                });
+
+                document.addEventListener('mouseleave', () => { dot.style.opacity='0'; ring.style.opacity='0'; });
+                document.addEventListener('mouseenter', () => { dot.style.opacity='1'; ring.style.opacity='1'; });
+            }
+
+            // 2. Hero spotlight
+            const hero = document.querySelector('.hero');
+            if (hero && !prefersReducedMotion) {
+                hero.addEventListener('mousemove', (e) => {
+                    const r = hero.getBoundingClientRect();
+                    hero.style.setProperty('--mouse-x', ((e.clientX - r.left) / r.width * 100) + '%');
+                    hero.style.setProperty('--mouse-y', ((e.clientY - r.top) / r.height * 100) + '%');
+                });
+            }
+
+            // 3. Drifting diamond particles
+            const particles = document.querySelector('.hero-particles');
+            if (particles && !prefersReducedMotion) {
+                const count = window.innerWidth < 600 ? 8 : 22;
+                for (let i = 0; i < count; i++) {
+                    const p = document.createElement('div');
+                    p.className = 'hero-particle';
+                    p.innerHTML = '<i class="fas fa-gem"></i>';
+                    p.style.left = (Math.random()*100) + '%';
+                    p.style.animationDuration = (18 + Math.random()*24) + 's';
+                    p.style.animationDelay = (-Math.random()*30) + 's';
+                    p.style.fontSize = (8 + Math.random()*11) + 'px';
+                    p.style.opacity = (0.18 + Math.random()*0.4).toFixed(2);
+                    particles.appendChild(p);
+                }
+            }
+
+            // 4. Phone tilt
+            if (isFinePointer && !prefersReducedMotion) {
+                document.querySelectorAll('[data-tilt]').forEach(wrap => {
+                    const frame = wrap.querySelector('.hero-phone, .phone-frame');
+                    if (!frame) return;
+                    wrap.addEventListener('mousemove', (e) => {
+                        const r = wrap.getBoundingClientRect();
+                        const x = (e.clientX - r.left) / r.width - 0.5;
+                        const y = (e.clientY - r.top) / r.height - 0.5;
+                        frame.style.setProperty('--ty', (-x*20).toFixed(2) + 'deg');
+                        frame.style.setProperty('--tx', (y*20).toFixed(2) + 'deg');
+                    });
+                    wrap.addEventListener('mouseleave', () => {
+                        frame.style.setProperty('--ty', '-8deg');
+                        frame.style.setProperty('--tx', '4deg');
+                    });
+                });
+            }
+
+            // 5. Magnetic buttons
+            if (isFinePointer && !prefersReducedMotion) {
+                document.querySelectorAll('[data-magnetic]').forEach(btn => {
+                    btn.addEventListener('mousemove', (e) => {
+                        const r = btn.getBoundingClientRect();
+                        const x = e.clientX - r.left - r.width / 2;
+                        const y = e.clientY - r.top - r.height / 2;
+                        btn.style.transform = `translate(${x * 0.3}px, ${y * 0.4}px)`;
+                    });
+                    btn.addEventListener('mouseleave', () => { btn.style.transform = ''; });
+                });
+            }
+
+            // 6. Bento card spotlight
+            if (isFinePointer && !prefersReducedMotion) {
+                document.querySelectorAll('[data-spotlight]').forEach(card => {
+                    card.addEventListener('mousemove', (e) => {
+                        const r = card.getBoundingClientRect();
+                        card.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100) + '%');
+                        card.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100) + '%');
+                    });
+                });
+            }
+
+            // 7. Scroll reveal
+            if ('IntersectionObserver' in window && !prefersReducedMotion) {
+                const io = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('is-in');
+                            io.unobserve(entry.target);
+                        }
+                    });
+                }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+                document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+            } else {
+                document.querySelectorAll('.reveal').forEach(el => el.classList.add('is-in'));
+            }
+
+            // 8. Animated number counters
+            if ('IntersectionObserver' in window) {
+                const cio = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (!entry.isIntersecting) return;
+                        const el = entry.target;
+                        const target = parseFloat(el.dataset.counter);
+                        const suffix = el.dataset.suffix || '';
+                        const dur = 1600;
+                        const start = performance.now();
+                        const fmt = (n) => (target >= 1000) ? Math.floor(n).toLocaleString() : (Number.isInteger(target) ? Math.floor(n) : n.toFixed(1));
+                        function step(now) {
+                            const t = Math.min(1, (now - start) / dur);
+                            const eased = 1 - Math.pow(1 - t, 3);
+                            el.textContent = fmt(target * eased) + suffix;
+                            if (t < 1) requestAnimationFrame(step);
+                            else el.textContent = fmt(target) + suffix;
+                        }
+                        requestAnimationFrame(step);
+                        cio.unobserve(el);
+                    });
+                }, { threshold: 0.4 });
+                document.querySelectorAll('[data-counter]').forEach(el => cio.observe(el));
+            }
+
+            // 9. FAQ accordion
+            document.querySelectorAll('.faq-item .accordion-trigger').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const item = btn.closest('.faq-item');
+                    const content = item.querySelector('.accordion-content');
+                    const isOpen = item.classList.contains('is-open');
+                    // Close all
+                    document.querySelectorAll('.faq-item.is-open').forEach(other => {
+                        other.classList.remove('is-open');
+                        other.querySelector('.accordion-content').style.maxHeight = '0';
+                    });
+                    if (!isOpen) {
+                        item.classList.add('is-open');
+                        content.style.maxHeight = content.scrollHeight + 'px';
+                    }
+                });
+            });
+
+            // 10. Scrolled nav state
+            const nav = document.getElementById('topNav');
+            if (nav) {
+                window.addEventListener('scroll', () => {
+                    if (window.scrollY > 30) nav.classList.add('is-scrolled');
+                    else nav.classList.remove('is-scrolled');
+                });
+            }
+        })();
     </script>
 </body>
 </html>
