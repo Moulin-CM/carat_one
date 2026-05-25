@@ -9,10 +9,6 @@
 
     <!-- Queries configuration for URL launcher (Android 11+) -->
     <queries>
-        <!-- If you know the package name of the app to launch -->
-        <package android:name="com.testfairy.app" />
-        
-        <!-- For http/https URLs -->
         <intent>
             <action android:name="android.intent.action.VIEW" />
             <data android:scheme="http" />
@@ -21,12 +17,18 @@
             <action android:name="android.intent.action.VIEW" />
             <data android:scheme="https" />
         </intent>
-        
-        <!-- For web browsers -->
         <intent>
             <action android:name="android.intent.action.VIEW" />
             <category android:name="android.intent.category.BROWSABLE" />
             <data android:scheme="https" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.SENDTO" />
+            <data android:scheme="mailto" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.DIAL" />
+            <data android:scheme="tel" />
         </intent>
     </queries>
     
@@ -63,9 +65,13 @@
             from https://apps.admob.com/ (format: ca-app-pub-XXXXXXXXXXXXXXXX~YYYYYYYYYY).
             Without a valid value the app will crash on launch.
         -->
+        <!--<meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-3940256099942544~3347511713" />-->
+
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713" />
+            android:value="ca-app-pub-1478394601995429~6354219614" />
 
         <!-- Optional: delay AdMob init so the splash is fast (we init manually). -->
         <meta-data

@@ -32,6 +32,8 @@ if (keystorePropertiesFile.exists()) {
 android {
     namespace "com.mobile.caratone"
     compileSdk 35
+    // NDK r27+ produces 16 KB page-aligned native libraries (required for Android 15+).
+    ndkVersion "27.0.12077973"
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17

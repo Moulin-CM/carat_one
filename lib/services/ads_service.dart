@@ -11,7 +11,8 @@ class AdsService {
   AdsService._();
   static final AdsService instance = AdsService._();
 
-  static const bool useTestAds = true;
+  // Test ads in debug/profile, real ads in release builds.
+  static const bool useTestAds = !kReleaseMode;
 
 
   static const _testInterstitialAndroid = 'ca-app-pub-3940256099942544/1033173712';
@@ -22,11 +23,11 @@ class AdsService {
   static const _testNativeIos           = 'ca-app-pub-3940256099942544/3986624511';
 
 
-  static const _prodInterstitialAndroid = 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX';
+  static const _prodInterstitialAndroid = 'ca-app-pub-1478394601995429/1613587309';
   static const _prodInterstitialIos     = 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX';
-  static const _prodRewardedAndroid     = 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX';
+  static const _prodRewardedAndroid     = 'ca-app-pub-1478394601995429/8547347078';
   static const _prodRewardedIos         = 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX';
-  static const _prodNativeAndroid       = 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX';
+  static const _prodNativeAndroid       = 'ca-app-pub-1478394601995429/1086973698';
   static const _prodNativeIos           = 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX';
 
   bool _initialized = false;
