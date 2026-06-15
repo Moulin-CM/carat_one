@@ -1,0 +1,26 @@
+{
+  "cgstRate": 0.75,
+  "sgstRate": 0.75,
+  "igstRate": 1.5,
+  "invoiceNumberPrefix": "",
+  "startingInvoiceNumber": 1,
+  "invoiceNumberFormat": "{prefix}{number}",
+  "defaultTerms": "",
+  "enableNotifications": true,
+  "autoSaveDraft": true,
+  "yearEndDate": null,
+  "manualOpeningCarat": 0,
+  "manualOpeningAmount": 0,
+  "manualOpeningSellCarat": 0,
+  "manualOpeningSellAmount": 0,
+  "manualOpeningExpenseAmount": 0,
+  "stockValuationItems": [
+    { "id": "1717000000000001", "itemName": "0.50",     "carats": 0.98,   "ratePerCarat": 3500, "discountPercent": 7, "brokeragePercent": 1 },
+    { "id": "1717000000000002", "itemName": "Rej",      "carats": 1.52,   "ratePerCarat": 1500, "discountPercent": 7, "brokeragePercent": 1 },
+    { "id": "1717000000000003", "itemName": "Blu",      "carats": 30.53,  "ratePerCarat": 1707, "discountPercent": 7, "brokeragePercent": 1 },
+    { "id": "1717000000000004", "itemName": "-+2 -6.5", "carats": 157.75, "ratePerCarat": 3700, "discountPercent": 7, "brokeragePercent": 1 },
+    { "id": "1717000000000005", "itemName": "+6.5",     "carats": 65.96,  "ratePerCarat": 3150, "discountPercent": 7, "brokeragePercent": 0.7 },
+    { "id": "1717000000000006", "itemName": "-2",       "carats": 10.82,  "ratePerCarat": 5000, "discountPercent": 7, "brokeragePercent": 1 },
+    { "id": "1717000000000007", "itemName": "Lab Mix",  "carats": 61.14,  "ratePerCarat": 3000, "discountPercent": 7, "brokeragePercent": 1 }
+  ]
+}
