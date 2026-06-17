@@ -64,34 +64,35 @@
     }
     @keyframes caratone-spin { to { transform: rotate(360deg); } }
   </style>
-
-  <script>
-    // The value below is injected by flutter build, do not touch.
-    const serviceWorkerVersion = "2955099384";
-  </script>
-  <!-- This script adds the flutter initialization JS code -->
-  <script src="flutter.js" defer></script>
 </head>
 <body>
   <div id="caratone-loading">
     <div class="spinner"></div>
-    <div class="label">Loading CaratOne…</div>
+    <div class="label">Loading CaratOne&hellip;</div>
   </div>
 
   <script>
     // ──────────────────────────────────────────────────────────────────────
-    // Safety net for the classic "Flutter web on GitHub Pages" bug:
+    // Safety net for the classic "Flutter web on a redeploy" bug:
     // the browser caches index.html / flutter_service_worker.js, then after
     // a redeploy the cached service worker tries to fetch chunks that no
     // longer exist and the app silently hangs on a blank page. Opening
-    // DevTools (with "Disable cache" enabled) sidesteps this — hence
-    // the "works only with inspect open" symptom.
+    // DevTools (with "Disable cache" enabled) sidesteps this — hence the
+    // "works only with inspect open" symptom on desktop.
     //
     // If the engine fails to render within the timeout, we wipe every
     // cache + unregister the service worker, then reload once.
     // ──────────────────────────────────────────────────────────────────────
-    var caratoneAppRendered = false;
+    window.caratoneAppRendered = false;
     var caratoneFallbackFired = false;
+
+    function caratoneRemoveSpinner() {
+      var loading = document.getElementById('caratone-loading');
+      if (!loading) return;
+      loading.style.opacity = '0';
+      setTimeout(function () { loading.remove(); }, 260);
+    }
+    window.caratoneRemoveSpinner = caratoneRemoveSpinner;
 
     function caratoneClearCachesAndReload() {
       if (caratoneFallbackFired) return;
@@ -122,11 +123,12 @@
 
       Promise.all([swPromise, cachePromise]).then(done, done);
     }
+    window.caratoneClearCachesAndReload = caratoneClearCachesAndReload;
 
     // 12s is generous for cold loads on slow networks but short enough that
     // users on a broken cache don't sit staring at the spinner.
-    var caratoneFallbackTimer = setTimeout(function () {
-      if (caratoneAppRendered) return;
+    setTimeout(function () {
+      if (window.caratoneAppRendered) return;
       console.warn('CaratOne: app did not render in time — clearing caches and retrying.');
       caratoneClearCachesAndReload();
     }, 12000);
@@ -135,36 +137,28 @@
     // is served by the fresh worker and references valid chunks.
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.addEventListener('controllerchange', function () {
-        if (caratoneAppRendered) return;
+        if (window.caratoneAppRendered) return;
         window.location.reload();
       });
     }
 
-    window.addEventListener('load', function () {
-      _flutter.loader.loadEntrypoint({
-        serviceWorker: {
-          serviceWorkerVersion: serviceWorkerVersion,
-        },
-        onEntrypointLoaded: function (engineInitializer) {
-          engineInitializer.initializeEngine().then(function (appRunner) {
-            return appRunner.runApp();
-          }).then(function () {
-            caratoneAppRendered = true;
-            clearTimeout(caratoneFallbackTimer);
-            sessionStorage.removeItem('caratoneReloaded');
-
-            var loading = document.getElementById('caratone-loading');
-            if (loading) {
-              loading.style.opacity = '0';
-              setTimeout(function () { loading.remove(); }, 260);
-            }
-          }).catch(function (err) {
-            console.error('CaratOne: engine init failed', err);
-            caratoneClearCachesAndReload();
-          });
-        }
-      });
+    // Detect when Flutter has actually painted the first frame and hide
+    // the loading overlay. The framework dispatches `flutter-first-frame`
+    // on `window` once the engine renders.
+    window.addEventListener('flutter-first-frame', function () {
+      window.caratoneAppRendered = true;
+      sessionStorage.removeItem('caratoneReloaded');
+      caratoneRemoveSpinner();
     });
   </script>
+
+  <!--
+    Modern Flutter web bootstrap (Flutter 3.22+). The tool generates
+    flutter_bootstrap.js automatically on `flutter run` / `flutter build web`
+    and it handles engine initialization, the service worker, and renderer
+    selection. Replaces the deprecated `flutter.js` + `loadEntrypoint` flow
+    that silently fails on newer Flutter SDKs.
+  -->
+  <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
