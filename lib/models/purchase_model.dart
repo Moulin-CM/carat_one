@@ -1,3 +1,5 @@
+import 'payment_installment.dart';
+
 class PurchaseModel {
   String id = DateTime.now().millisecondsSinceEpoch.toString();
 
@@ -48,6 +50,13 @@ class PurchaseModel {
   // stock, Sales Profit, and Net Profit calculations.
   bool isForOther = false;
 
+  // When the user clicks "Mark as Paid" — even if the cumulative payment
+  // (cashPaidCarat + accountPaidCarat) hasn't reached totalCarat — this
+  // flag flips on. From that point the entry is treated as fully paid:
+  // Pending Payment drops to 0, status badge says "Paid", and the
+  // Expense ledger debits the full netAmount (see [effectivePaidAmount]).
+  bool isManuallyMarkedPaid = false;
+
   // Sold tracking
   double cashSoldCarat = 0.0;
   double billSoldCarat = 0.0;
@@ -58,17 +67,119 @@ class PurchaseModel {
   double cashPaidCarat = 0.0;
   double accountPaidCarat = 0.0;
 
+  // When "Mark as Paid" is clicked with a negotiated/finalised amount that
+  // differs from carat × rate, the user-entered value is stored here. It
+  // drives the per-mode amount displays and the Expense ledger so we
+  // show what the user actually paid (e.g. ₹76,200 for the full 26.30 ct
+  // lot) instead of the back-calculated bill (₹76,217).
+  double? manuallyPaidAmount;
+
+  // Per-installment payment history. Each entry the user records via the
+  // "Paid Through" form appends one PaymentInstallment here. Legacy
+  // entries without this list fall back to the cashPaidCarat /
+  // accountPaidCarat fields below.
+  List<PaymentInstallment> installments = [];
+
   double get totalSoldCarat => cashSoldCarat + billSoldCarat;
   double get totalSoldAmount => cashSoldAmount + billSoldAmount;
   double get remainingCarat => (totalCarat - totalSoldCarat).clamp(0.0, double.infinity);
 
   // Payment helpers
   double get totalPaidCarat => cashPaidCarat + accountPaidCarat;
-  double get remainingPaymentCarat =>
-      (totalCarat - totalPaidCarat).clamp(0.0, double.infinity);
-  double get cashPaidAmount => cashPaidCarat * effectivePurchaseRate;
-  double get accountPaidAmount => accountPaidCarat * effectivePurchaseRate;
-  bool get isFullyPaid => totalCarat > 0 && remainingPaymentCarat <= 0.0001;
+  double get remainingPaymentCarat {
+    if (isManuallyMarkedPaid) return 0;
+    return (totalCarat - totalPaidCarat).clamp(0.0, double.infinity);
+  }
+
+  double get cashPaidAmount {
+    if (isManuallyMarkedPaid && manuallyPaidAmount != null) {
+      return manuallyPaidAmount!;
+    }
+    if (installments.isNotEmpty) {
+      return installments
+          .where((i) => i.isCash)
+          .fold(0.0, (sum, i) => sum + i.amount);
+    }
+    return cashPaidCarat * effectivePurchaseRate;
+  }
+
+  double get accountPaidAmount {
+    if (isManuallyMarkedPaid && manuallyPaidAmount != null) {
+      return 0.0;
+    }
+    if (installments.isNotEmpty) {
+      return installments
+          .where((i) => i.isAccount)
+          .fold(0.0, (sum, i) => sum + i.amount);
+    }
+    return accountPaidCarat * effectivePurchaseRate;
+  }
+
+  /// Installments to display in the Expense bottom-sheet. Returns the
+  /// real list when present; otherwise synthesizes one entry — using the
+  /// Mark-as-Paid override amount when set (so the sheet matches what
+  /// the user actually entered, not the back-calculated rate × carat).
+  List<PaymentInstallment> get effectiveInstallments {
+    if (installments.isNotEmpty) {
+      final sorted = List<PaymentInstallment>.from(installments);
+      sorted.sort((a, b) => a.date.compareTo(b.date));
+      return sorted;
+    }
+    if (isManuallyMarkedPaid && manuallyPaidAmount != null) {
+      return [
+        PaymentInstallment(
+          id: 'markpaid_$id',
+          date: paymentDate,
+          mode: 'cash',
+          carat: totalCarat,
+          amount: manuallyPaidAmount!,
+        ),
+      ];
+    }
+    final list = <PaymentInstallment>[];
+    if (cashPaidCarat > 0) {
+      list.add(PaymentInstallment(
+        id: 'legacy_cash_$id',
+        date: paymentDate,
+        mode: 'cash',
+        carat: cashPaidCarat,
+        amount: cashPaidCarat * effectivePurchaseRate,
+      ));
+    }
+    if (accountPaidCarat > 0) {
+      list.add(PaymentInstallment(
+        id: 'legacy_account_$id',
+        date: paymentDate,
+        mode: 'account',
+        carat: accountPaidCarat,
+        amount: accountPaidCarat * effectivePurchaseRate,
+      ));
+    }
+    return list;
+  }
+
+  /// Money actually moved to the seller across both channels.
+  double get totalPaidAmount => cashPaidAmount + accountPaidAmount;
+
+  /// Amount the Expense ledger should debit for this lot.
+  ///   - If any per-mode cash has been recorded (Cash + Account), use that
+  ///     [totalPaidAmount] verbatim — Mark-as-Paid simply absorbs the
+  ///     remaining ₹12-style difference without inflating what we report.
+  ///   - Else, when Mark-as-Paid was clicked with no per-mode amount
+  ///     entered, treat the whole bill as settled and debit [netAmount].
+  ///   - Else, 0 (entry doesn't appear in the ledger).
+  double get effectivePaidAmount {
+    if (totalPaidAmount > 0) return totalPaidAmount;
+    return isManuallyMarkedPaid ? netAmount : 0.0;
+  }
+
+  /// The original payable for this lot, before any discrepancy absorbed by
+  /// a manual "Mark as Paid".
+  double get originalAmount => netAmount;
+
+  bool get isFullyPaid =>
+      isManuallyMarkedPaid ||
+      (totalCarat > 0 && remainingPaymentCarat <= 0.0001);
 
   // Calculated getters
   double get grossAmount => totalCarat * amountPerCarat;
@@ -121,6 +232,15 @@ class PurchaseModel {
         accountPaidCarat = json.containsKey('accountPaidCarat')
             ? (json['accountPaidCarat'] ?? 0.0).toDouble()
             : (json['billSoldCarat'] ?? 0.0).toDouble(),
+        isManuallyMarkedPaid = json['isManuallyMarkedPaid'] ?? false,
+        manuallyPaidAmount = json['manuallyPaidAmount'] != null
+            ? (json['manuallyPaidAmount'] as num).toDouble()
+            : null,
+        installments = (json['installments'] as List<dynamic>?)
+                ?.map((e) =>
+                    PaymentInstallment.fromJson(e as Map<String, dynamic>))
+                .toList() ??
+            [],
         isForOther = json['isForOther'] ?? false,
         addedDate = _parseDate(json['addedDate']);
 
@@ -155,6 +275,9 @@ class PurchaseModel {
         'billSoldAmount': billSoldAmount,
         'cashPaidCarat': cashPaidCarat,
         'accountPaidCarat': accountPaidCarat,
+        'isManuallyMarkedPaid': isManuallyMarkedPaid,
+        'manuallyPaidAmount': manuallyPaidAmount,
+        'installments': installments.map((e) => e.toJson()).toList(),
         'isForOther': isForOther,
         'addedDate': addedDate.toIso8601String(),
       };
@@ -180,6 +303,7 @@ class PurchaseModel {
     double? billSoldAmount,
     double? cashPaidCarat,
     double? accountPaidCarat,
+    bool? isManuallyMarkedPaid,
     bool? isForOther,
   }) {
     final m = PurchaseModel()
@@ -203,6 +327,8 @@ class PurchaseModel {
       ..billSoldAmount = billSoldAmount ?? this.billSoldAmount
       ..cashPaidCarat = cashPaidCarat ?? this.cashPaidCarat
       ..accountPaidCarat = accountPaidCarat ?? this.accountPaidCarat
+      ..isManuallyMarkedPaid =
+          isManuallyMarkedPaid ?? this.isManuallyMarkedPaid
       ..isForOther = isForOther ?? this.isForOther
       ..addedDate = addedDate;
     return m;

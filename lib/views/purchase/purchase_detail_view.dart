@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import '../../models/payment_installment.dart';
 import '../../models/purchase_model.dart';
 import '../../services/purchase_storage_service.dart';
 import '../../widgets/custom_card.dart';
@@ -318,6 +319,9 @@ class _PurchaseDetailViewState extends State<PurchaseDetailView> {
                     final value = double.tryParse(v.trim());
                     if (value == null) return 'Invalid number'.tr;
                     if (value <= 0) return 'Must be greater than 0'.tr;
+                    if (value > remainingAmount + 0.005) {
+                      return '${'Cannot exceed remaining'.tr} (${_currencyFmt.format(remainingAmount)})';
+                    }
                     return null;
                   },
                 ),
@@ -346,11 +350,156 @@ class _PurchaseDetailViewState extends State<PurchaseDetailView> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: _savingPayment ? null : _markAsPaid,
+                    icon: const Icon(Icons.check_circle_outline_rounded),
+                    label: Text('Mark as Paid'.tr),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.green.shade700,
+                      side: BorderSide(color: Colors.green.shade400, width: 1.4),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
       ],
     );
+  }
+
+  Future<void> _markAsPaid() async {
+    final original = _purchase.originalAmount;
+    final currentPaid = _purchase.totalPaidAmount;
+    // Pre-fill with the actual entered amount if any, else with the full
+    // bill so a one-tap Mark-as-Paid still works.
+    final initial = currentPaid > 0 ? currentPaid : original;
+    final controller = TextEditingController(
+      text: initial.toStringAsFixed(0),
+    );
+
+    final result = await showDialog<double>(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setDialogState) {
+            final entered =
+                double.tryParse(controller.text.trim()) ?? 0;
+            final diff = original - entered;
+            return AlertDialog(
+              title: Text('Mark as Paid?'.tr),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${'Original Amount'.tr}: ${_currencyFmt.format(original)}',
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 14),
+                  Text('Paid Amount'.tr,
+                      style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[700],
+                          fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 4),
+                  TextField(
+                    controller: controller,
+                    autofocus: true,
+                    keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(
+                          RegExp(r'^\d*\.?\d{0,2}')),
+                    ],
+                    decoration: const InputDecoration(
+                      prefixText: '₹ ',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                    onChanged: (_) => setDialogState(() {}),
+                  ),
+                  const SizedBox(height: 10),
+                  if (diff > 0.005)
+                    Text(
+                      '${'Difference of'.tr} ${_currencyFmt.format(diff)} ${'will be absorbed.'.tr}',
+                      style: TextStyle(
+                          color: Colors.orange.shade800, fontSize: 12),
+                    )
+                  else if (diff < -0.005)
+                    Text(
+                      '${'Overpaid by'.tr} ${_currencyFmt.format(-diff)}',
+                      style: const TextStyle(
+                          color: Colors.red, fontSize: 12),
+                    ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    child: Text('Cancel'.tr)),
+                ElevatedButton(
+                  onPressed: entered > 0
+                      ? () => Navigator.pop(ctx, entered)
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green.shade600,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: Text('Mark Paid'.tr),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (result == null) return;
+
+    setState(() => _savingPayment = true);
+    try {
+      // Mark-as-Paid settles ALL carats of the lot at the user-entered
+      // amount, regardless of the back-calculated rate × carat figure.
+      // The carat split between Cash / Account is preserved if any
+      // payments were already recorded; otherwise everything is parked
+      // under Cash.
+      final currentCarat = _purchase.totalPaidCarat;
+      if (currentCarat > 0) {
+        final cashRatio = _purchase.cashPaidCarat / currentCarat;
+        _purchase.cashPaidCarat = _purchase.totalCarat * cashRatio;
+        _purchase.accountPaidCarat = _purchase.totalCarat * (1 - cashRatio);
+      } else {
+        _purchase.cashPaidCarat = _purchase.totalCarat;
+        _purchase.accountPaidCarat = 0;
+      }
+      _purchase.manuallyPaidAmount = result;
+      _purchase.isManuallyMarkedPaid = true;
+      await PurchaseStorageService.savePurchase(_purchase);
+      if (!mounted) return;
+      setState(() {});
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Marked as Paid'.tr),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text('${'Error saving payment'.tr}: $e'),
+            backgroundColor: Colors.red),
+      );
+    } finally {
+      if (mounted) setState(() => _savingPayment = false);
+    }
   }
 
   Widget _paidRow({
@@ -436,9 +585,17 @@ class _PurchaseDetailViewState extends State<PurchaseDetailView> {
     if (rate <= 0) return;
     final enteredCarat = enteredAmount / rate;
 
+    final isCash = _paidThroughMode == 'cash'.tr;
+    final mode = isCash ? 'cash' : 'account';
+
     setState(() => _savingPayment = true);
     try {
-      if (_paidThroughMode == 'cash'.tr) {
+      _purchase.installments.add(PaymentInstallment(
+        mode: mode,
+        amount: enteredAmount,
+        carat: enteredCarat,
+      ));
+      if (isCash) {
         _purchase.cashPaidCarat += enteredCarat;
       } else {
         _purchase.accountPaidCarat += enteredCarat;

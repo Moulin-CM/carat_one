@@ -95,7 +95,9 @@ android {
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.0"
+    // kotlin-stdlib is auto-injected by the Kotlin Gradle plugin; pinning it
+    // explicitly forces an outdated version on top of transitive deps and
+    // triggers metadata-version mismatch errors with newer plugins.
     implementation 'com.google.firebase:firebase-database:22.0.1'
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
 }

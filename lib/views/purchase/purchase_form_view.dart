@@ -52,7 +52,7 @@ class _PurchaseFormContentState extends State<_PurchaseFormContent> {
     super.initState();
     final vm = context.read<PurchaseFormViewModel>();
     final p = vm.item;
-    _netAmountCtrl   = TextEditingController(text: p.totalAmount > 0 ? p.totalAmount.toString() : '');
+    _netAmountCtrl   = TextEditingController(text: p.totalAmount > 0 ? p.totalAmount.toStringAsFixed(0) : '');
     _totalCaratCtrl  = TextEditingController(text: p.totalCarat > 0 ? p.totalCarat.toString() : '');
     _amtPerCaratCtrl = TextEditingController(text: p.amountPerCarat > 0 ? p.amountPerCarat.toString() : '');
     _discountCtrl    = TextEditingController(text: p.discount > 0 ? p.discount.toString() : '');
@@ -83,9 +83,13 @@ class _PurchaseFormContentState extends State<_PurchaseFormContent> {
     final vm = context.watch<PurchaseFormViewModel>();
     final dateFormat = DateFormat('dd MMM yyyy'.tr);
 
-    // Update net amount controller when values change
-    if (_netAmountCtrl.text != vm.item.totalAmount.toString()) {
-       _netAmountCtrl.text = vm.item.totalAmount > 0 ? vm.item.totalAmount.toString() : '';
+    // Update net amount controller when values change. The stored amount is
+    // already rounded to the nearest ₹10 by the viewmodel, so display it
+    // without trailing decimals.
+    final formattedTotal =
+        vm.item.totalAmount > 0 ? vm.item.totalAmount.toStringAsFixed(0) : '';
+    if (_netAmountCtrl.text != formattedTotal) {
+      _netAmountCtrl.text = formattedTotal;
     }
 
     return Scaffold(
@@ -130,7 +134,10 @@ class _PurchaseFormContentState extends State<_PurchaseFormContent> {
                             controller: _totalCaratCtrl,
                             hint: 'Enter carats (e.g. 10)'.tr,
                             onChanged: vm.updateTotalCarat,
-                            keyboardType: TextInputType.number,
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            inputFormatters: [
+                              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                            ],
                             validator: (v) => (v == null || v.isEmpty) ? 'Required'.tr : null,
                           ),
                         ]),
@@ -141,14 +148,20 @@ class _PurchaseFormContentState extends State<_PurchaseFormContent> {
                             controller: _amtPerCaratCtrl,
                             hint: 'Price per carat (e.g. 5000)'.tr,
                             onChanged: vm.updateAmountPerCarat,
-                            keyboardType: TextInputType.number,
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            inputFormatters: [
+                              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                            ],
                           ),
                           CustomTextField(
                             label: 'Discount (%)'.tr,
                             controller: _discountCtrl,
                             hint: 'Enter % (e.g. 1)'.tr,
                             onChanged: vm.updateDiscount,
-                            keyboardType: TextInputType.number,
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            inputFormatters: [
+                              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                            ],
                             suffixText: '%',
                           ),
                         ]),
@@ -187,7 +200,10 @@ class _PurchaseFormContentState extends State<_PurchaseFormContent> {
                           controller: _brokerChargeCtrl,
                           hint: 'Enter % (e.g. 1)'.tr,
                           onChanged: vm.updateBrokerChargeRate,
-                          keyboardType: TextInputType.number,
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                          ],
                           suffixText: '%',
                         ),
                       ],

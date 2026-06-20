@@ -81,6 +81,11 @@ class InvoiceListViewModel extends ChangeNotifier {
     return diff < 0 ? 0 : diff;
   }
 
+  double get totalUnreceivedAmount => _invoicesInCurrentYear.fold(
+        0.0,
+        (sum, inv) => sum + (inv.remainingCarat * inv.averageRate),
+      );
+
   Future<void> loadInvoices() async {
     // Only show the full skeleton shimmer on the very first load.
     // Subsequent refreshes (e.g. after returning from InvoiceFormView or

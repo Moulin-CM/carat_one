@@ -22,11 +22,14 @@ class PurchaseFormViewModel extends ChangeNotifier {
   // Gross Amount = Total Carat × Amt per Carat
   double get grossAmount => _item.totalCarat * _item.amountPerCarat;
 
-  // Auto-calc: Total Amount = Gross Amount - Discount
+  // Auto-calc: Total Amount = Gross Amount - Discount, rounded to the
+  // nearest ₹10 so the auto-filled Net Amount comes out as a clean "round
+  // figure" the user can hand over without coins.
   void _recalcTotalAmount() {
     double gross = grossAmount;
     double discountVal = (gross * _item.discount) / 100;
-    _item.totalAmount = gross - discountVal;
+    final raw = gross - discountVal;
+    _item.totalAmount = (raw / 10).roundToDouble() * 10;
   }
 
   // Auto-calc: Payment Date = Buy Date + Due Days

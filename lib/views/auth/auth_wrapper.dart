@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:firebase_auth/firebase_auth.dart';
-import '../../services/version_check_manager.dart';
-import '../../services/version_check_service.dart';
-import '../../widgets/dashboard_skeleton.dart';
+import '../../services/in_app_update_service.dart';
 import 'email_verification_gate.dart';
 import 'welcome_view.dart';
 import '../shell/main_shell.dart';
@@ -17,37 +14,16 @@ class AuthWrapper extends StatefulWidget {
 }
 
 class _AuthWrapperState extends State<AuthWrapper> {
-  bool _isCheckingVersion = true;
-
   @override
   void initState() {
     super.initState();
-    _checkVersionOnStartup();
-  }
-
-  Future<void> _checkVersionOnStartup() async {
-    // Run version check without blocking UI - show WelcomeView immediately
-    // and let the version check happen in the background
-    if (mounted) {
-      setState(() {
-        _isCheckingVersion = false;
-      });
-    }
-
-    // Do version check in background after UI is ready
-    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-      try {
-        await VersionCheckService.initialize();
-        if (mounted) {
-          await VersionCheckManager.checkAndShowUpdateDialog(
-            context,
-            showOnlyIfForceUpdate: true,
-          );
-        }
-      } catch (e) {
-        // Ignore errors - version check is optional
+    // Defer to first frame so that ScaffoldMessenger is mounted before the
+    // flexible-update flow tries to show a SnackBar.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        InAppUpdateService.checkForUpdates(context);
       }
-    }
+    });
   }
 
   @override

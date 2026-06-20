@@ -84,6 +84,28 @@ class DashboardViewModel extends ChangeNotifier {
   /// intentionally excluded — they only affect the Expenses screen itself.
   double get netProfitOrLoss => totalSalesProfit - outstandingWithdrawals;
 
+  /// Money still receivable from buyers across all in-FY invoices.
+  /// Each invoice's outstanding amount uses its own average rate, so mixed
+  /// invoices sum exactly.
+  double get pendingSellAmount => _invoicesInCurrentYear.fold(
+        0.0,
+        (sum, inv) => sum + (inv.remainingCarat * inv.averageRate),
+      );
+
+  /// Money still owed to sellers across all in-FY purchase lots. Each lot is
+  /// priced at its own effective purchase rate so mixed-rate inventory sums
+  /// accurately.
+  double get pendingPurchaseAmount => _purchasesInCurrentYear.fold(
+        0.0,
+        (sum, p) => sum + (p.remainingPaymentCarat * p.effectivePurchaseRate),
+      );
+
+  /// Net pending position: Pending from Buyers − Pending to Sellers.
+  /// Positive means buyers owe more than is owed to sellers (room to start
+  /// paying sellers); negative means more is owed to sellers than is
+  /// receivable from buyers (collect from buyers first).
+  double get netPositionAmount => pendingSellAmount - pendingPurchaseAmount;
+
   double get thisMonthRevenue {
     final now = DateTime.now();
     final firstDayOfMonth = DateTime(now.year, now.month, 1);

@@ -17,6 +17,7 @@ import '../../constants/app_translations.dart';
 import '../../widgets/sell_options_sheet.dart';
 import '../../widgets/dashboard_skeleton.dart';
 import '../../widgets/trial_banner.dart';
+import '../../widgets/subscription_badge.dart';
 import '../../services/quota_service.dart';
 
 
@@ -114,6 +115,12 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
             ],
           ),
         ),
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 12),
+            child: Center(child: SubscriptionBadge()),
+          ),
+        ],
       ),
       body: Stack(
         children: [
@@ -131,6 +138,8 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildStatsCards(context, viewModel, accent, deepAccent),
+                          const SizedBox(height: 20),
+                          _buildPaymentSummary(context, viewModel, accent, deepAccent),
                           const SizedBox(height: 20),
                           _buildFinanceCard(context, viewModel, accent, deepAccent),
                           const SizedBox(height: 20),
@@ -380,6 +389,17 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
+              ),
+
+              const SizedBox(height: 16),
+
+              // Subscription tier pill
+              Row(
+                children: [
+                  const SubscriptionBadge(
+                    size: SubscriptionBadgeSize.large,
+                  ),
+                ],
               ),
             ],
           ),
@@ -673,6 +693,206 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
           ],
         ),
       ],
+    );
+  }
+
+  Widget _buildPaymentSummary(
+      BuildContext context,
+      DashboardViewModel viewModel,
+      Color accent,
+      Color deepAccent) {
+    final currencyFormat =
+        NumberFormat.currency(symbol: '₹', decimalDigits: 0);
+    final pendingSell = viewModel.pendingSellAmount;
+    final pendingPurchase = viewModel.pendingPurchaseAmount;
+    final netPosition = viewModel.netPositionAmount;
+    final netPositionColor =
+        netPosition >= 0 ? const Color(0xFF1B8A4F) : Colors.red;
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
+        border: Border.all(color: Colors.white.withOpacity(0.8)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Color(0xFFF5F7FB),
+                ),
+                child: Icon(Icons.account_balance_wallet_rounded,
+                    color: accent),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Payment Status'.tr,
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.w700),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: _buildPendingTile(
+                  icon: Icons.south_west_rounded,
+                  label: 'Pending from Buyers'.tr,
+                  helper: 'Receivable (Sell)'.tr,
+                  amount: currencyFormat.format(pendingSell),
+                  color: Colors.orange,
+                  deepAccent: deepAccent,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildPendingTile(
+                  icon: Icons.north_east_rounded,
+                  label: 'Pending to Sellers'.tr,
+                  helper: 'Payable (Purchase)'.tr,
+                  amount: currencyFormat.format(pendingPurchase),
+                  color: Colors.red,
+                  deepAccent: deepAccent,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  netPositionColor.withOpacity(0.12),
+                  netPositionColor.withOpacity(0.04),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: netPositionColor.withOpacity(0.35)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: netPositionColor.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(Icons.savings_rounded,
+                      color: netPositionColor, size: 22),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Net Position'.tr,
+                        style: TextStyle(
+                            color: Colors.grey[700],
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Pending from Buyers − Pending to Sellers'.tr,
+                        style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 10,
+                            fontWeight: FontWeight.w500),
+                      ),
+                    ],
+                  ),
+                ),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    (netPosition >= 0 ? '' : '- ') +
+                        currencyFormat.format(netPosition.abs()),
+                    style: TextStyle(
+                        color: netPositionColor,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPendingTile({
+    required IconData icon,
+    required String label,
+    required String helper,
+    required String amount,
+    required Color color,
+    required Color deepAccent,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: color.withOpacity(0.25)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: color, size: 20),
+              const Spacer(),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1E3C72))),
+          const SizedBox(height: 2),
+          Text(helper,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                  color: Colors.grey[600],
+                  fontSize: 10,
+                  fontWeight: FontWeight.w500)),
+          const SizedBox(height: 8),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(amount,
+                style: TextStyle(
+                    color: color,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800)),
+          ),
+        ],
+      ),
     );
   }
 

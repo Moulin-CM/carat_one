@@ -4,10 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:printing/printing.dart';
+import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
-import '../../models/expense_model.dart';
+import '../../models/ledger_entry.dart';
 import '../../services/expense_report_pdf_service.dart';
-import '../../services/expense_storage_service.dart';
+import '../../viewmodels/purchase_viewmodel.dart';
 import '../../widgets/app_bar_factory.dart';
 import '../../constants/app_translations.dart';
 
@@ -18,14 +19,26 @@ import 'package:invoice_generator/constants/app_translations.dart';
 
 enum _PeriodMode { monthly, yearly, custom }
 
-class ExpenseReportView extends StatefulWidget {
+class ExpenseReportView extends StatelessWidget {
   const ExpenseReportView({super.key});
 
   @override
-  State<ExpenseReportView> createState() => _ExpenseReportViewState();
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (_) => PurchaseViewModel()..loadPurchases(),
+      child: const _ExpenseReportContent(),
+    );
+  }
 }
 
-class _ExpenseReportViewState extends State<ExpenseReportView> {
+class _ExpenseReportContent extends StatefulWidget {
+  const _ExpenseReportContent();
+
+  @override
+  State<_ExpenseReportContent> createState() => _ExpenseReportContentState();
+}
+
+class _ExpenseReportContentState extends State<_ExpenseReportContent> {
   static const _accent = Color(0xFF4F8AF4);
   static const _deep = Color(0xFF1E3C72);
 
@@ -42,25 +55,7 @@ class _ExpenseReportViewState extends State<ExpenseReportView> {
       DateTime.now().subtract(const Duration(days: 30));
   DateTime _customEnd = DateTime.now();
 
-  List<ExpenseModel> _all = [];
-  bool _loading = true;
   bool _exporting = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    setState(() => _loading = true);
-    final list = await ExpenseStorageService.getAllExpenses();
-    if (!mounted) return;
-    setState(() {
-      _all = list;
-      _loading = false;
-    });
-  }
 
   DateTime get _rangeStart {
     switch (_mode) {
@@ -98,30 +93,27 @@ class _ExpenseReportViewState extends State<ExpenseReportView> {
     }
   }
 
-  List<ExpenseModel> get _filtered {
+  List<LedgerEntry> _filteredFor(PurchaseViewModel vm) {
     final start = _rangeStart;
     final end = _rangeEnd;
-    return _all.where((e) {
-      return !e.expenseDate.isBefore(start) &&
-          !e.expenseDate.isAfter(end);
-    }).toList()
-      ..sort((a, b) => b.expenseDate.compareTo(a.expenseDate));
+    return vm.ledgerEntries
+        .where((e) => !e.date.isBefore(start) && !e.date.isAfter(end))
+        .toList()
+      ..sort((a, b) => b.date.compareTo(a.date));
   }
 
-  double get _creditTotal => _filtered
-      .where((e) => e.isCredit)
+  double _creditTotalOf(List<LedgerEntry> items) => items
+      .where((e) => !e.isDebit)
       .fold(0.0, (s, e) => s + e.amount);
 
-  double get _debitTotal => _filtered
-      .where((e) => !e.isCredit)
+  double _debitTotalOf(List<LedgerEntry> items) => items
+      .where((e) => e.isDebit)
       .fold(0.0, (s, e) => s + e.amount);
 
-  double get _net => _creditTotal - _debitTotal;
-
-  Map<String, List<ExpenseModel>> get _groupedByDay {
-    final map = <String, List<ExpenseModel>>{};
-    for (final e in _filtered) {
-      final key = _dayLabelFmt.format(e.expenseDate);
+  Map<String, List<LedgerEntry>> _groupByDay(List<LedgerEntry> items) {
+    final map = <String, List<LedgerEntry>>{};
+    for (final e in items) {
+      final key = _dayLabelFmt.format(e.date);
       map.putIfAbsent(key, () => []).add(e);
     }
     return map;
@@ -129,6 +121,8 @@ class _ExpenseReportViewState extends State<ExpenseReportView> {
 
   @override
   Widget build(BuildContext context) {
+    final vm = context.watch<PurchaseViewModel>();
+    final filtered = _filteredFor(vm);
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBarFactory.build(
@@ -138,12 +132,12 @@ class _ExpenseReportViewState extends State<ExpenseReportView> {
           IconButton(
             icon: const Icon(Icons.picture_as_pdf_rounded),
             tooltip: 'View / Print PDF'.tr,
-            onPressed: _exporting ? null : _printPdf,
+            onPressed: _exporting ? null : () => _printPdf(filtered),
           ),
           IconButton(
             icon: const Icon(Icons.share_rounded),
             tooltip: 'Share PDF'.tr,
-            onPressed: _exporting ? null : _sharePdf,
+            onPressed: _exporting ? null : () => _sharePdf(filtered),
           ),
         ],
       ),
@@ -155,13 +149,13 @@ class _ExpenseReportViewState extends State<ExpenseReportView> {
               children: [
                 _periodTabs(),
                 _periodSelector(),
-                _summaryCard(),
+                _summaryCard(filtered),
                 Expanded(
-                  child: _loading
+                  child: vm.isLoading
                       ? const ListSkeleton()
-                      : (_filtered.isEmpty
+                      : (filtered.isEmpty
                           ? _emptyState()
-                          : _transactionList()),
+                          : _transactionList(filtered, vm)),
                 ),
               ],
             ),
@@ -389,9 +383,11 @@ class _ExpenseReportViewState extends State<ExpenseReportView> {
     );
   }
 
-  Widget _summaryCard() {
-    final count = _filtered.length;
-    final net = _net;
+  Widget _summaryCard(List<LedgerEntry> filtered) {
+    final count = filtered.length;
+    final creditTotal = _creditTotalOf(filtered);
+    final debitTotal = _debitTotalOf(filtered);
+    final net = creditTotal - debitTotal;
     final netStr =
         '${net >= 0 ? '+' : '-'} ${_currencyFmt.format(net.abs())}';
     return Container(
@@ -412,14 +408,14 @@ class _ExpenseReportViewState extends State<ExpenseReportView> {
               Expanded(
                 child: _summaryStat(
                     'Credits'.tr,
-                    '+ ${_currencyFmt.format(_creditTotal)}',
+                    '+ ${_currencyFmt.format(creditTotal)}',
                     Colors.greenAccent),
               ),
               Container(width: 1, height: 30, color: Colors.white24),
               Expanded(
                 child: _summaryStat(
                     'Debits'.tr,
-                    '- ${_currencyFmt.format(_debitTotal)}',
+                    '- ${_currencyFmt.format(debitTotal)}',
                     Colors.redAccent),
               ),
               Container(width: 1, height: 30, color: Colors.white24),
@@ -454,11 +450,11 @@ class _ExpenseReportViewState extends State<ExpenseReportView> {
     );
   }
 
-  Widget _transactionList() {
-    final grouped = _groupedByDay;
+  Widget _transactionList(List<LedgerEntry> filtered, PurchaseViewModel vm) {
+    final grouped = _groupByDay(filtered);
     final sectionKeys = grouped.keys.toList();
     return RefreshIndicator(
-      onRefresh: _load,
+      onRefresh: () => vm.loadPurchases(),
       child: ListView.builder(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
         itemCount: sectionKeys.length,
@@ -466,7 +462,7 @@ class _ExpenseReportViewState extends State<ExpenseReportView> {
           final key = sectionKeys[i];
           final entries = grouped[key]!;
           final subtotal = entries.fold<double>(
-              0.0, (s, e) => s + (e.isCredit ? e.amount : -e.amount));
+              0.0, (s, e) => s + (e.isDebit ? -e.amount : e.amount));
           final subColor = subtotal >= 0 ? Colors.green : Colors.red;
           final subStr =
               '${subtotal >= 0 ? '+' : '-'} ${_currencyFmt.format(subtotal.abs())}';
@@ -492,7 +488,7 @@ class _ExpenseReportViewState extends State<ExpenseReportView> {
                   ],
                 ),
               ),
-              ...entries.map((e) => _expenseRow(e)),
+              ...entries.map(_entryRow),
             ],
           );
         },
@@ -500,13 +496,16 @@ class _ExpenseReportViewState extends State<ExpenseReportView> {
     );
   }
 
-  Widget _expenseRow(ExpenseModel e) {
-    final color = e.isCredit ? Colors.green : Colors.red;
-    final icon = e.isCredit
-        ? Icons.trending_up_rounded
-        : Icons.trending_down_rounded;
-    final sign = e.isCredit ? '+' : '-';
-    final name = e.personName.isNotEmpty ? e.personName : 'Entry'.tr;
+  Widget _entryRow(LedgerEntry e) {
+    final color = e.isDebit ? Colors.red : Colors.green;
+    final icon = e.isDebit
+        ? Icons.trending_down_rounded
+        : Icons.trending_up_rounded;
+    final sign = e.isDebit ? '-' : '+';
+    final name = e.title.isNotEmpty ? e.title : 'Entry'.tr;
+    final source = e.subtitle.isNotEmpty
+        ? e.subtitle
+        : (e.isDebit ? 'Debit'.tr : 'Credit'.tr);
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -545,7 +544,7 @@ class _ExpenseReportViewState extends State<ExpenseReportView> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  e.isCredit ? 'Credit'.tr : 'Debit'.tr,
+                  source,
                   style: TextStyle(color: Colors.grey[600], fontSize: 11),
                 ),
               ],
@@ -570,7 +569,7 @@ class _ExpenseReportViewState extends State<ExpenseReportView> {
             size: 64, color: Colors.grey[300]),
         const SizedBox(height: 16),
         Center(
-          child: Text('No expenses in this period'.tr,
+          child: Text('No entries in this period'.tr,
               style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
@@ -592,9 +591,9 @@ class _ExpenseReportViewState extends State<ExpenseReportView> {
     );
   }
 
-  Future<Uint8List> _buildPdfBytes() async {
+  Future<Uint8List> _buildPdfBytes(List<LedgerEntry> filtered) async {
     final pdf = await ExpenseReportPdfService.build(
-      items: _filtered,
+      items: filtered,
       periodLabel: _periodLabel,
       start: _rangeStart,
       end: _rangeEnd,
@@ -607,8 +606,6 @@ class _ExpenseReportViewState extends State<ExpenseReportView> {
     final safeLabel = _periodLabel
         .replaceAll(RegExp(r'[^A-Za-z0-9]+'), '_')
         .replaceAll(RegExp(r'_+'), '_');
-    // Unique name per generation so a file held open by a previous
-    // preview on Windows doesn't block the next write.
     final stamp = DateTime.now().millisecondsSinceEpoch;
     final file =
         File('${dir.path}/Expense_Statement_${safeLabel}_$stamp.pdf');
@@ -616,9 +613,9 @@ class _ExpenseReportViewState extends State<ExpenseReportView> {
     return file;
   }
 
-  Future<void> _printPdf() async {
+  Future<void> _printPdf(List<LedgerEntry> filtered) async {
     if (_exporting) return;
-    if (_filtered.isEmpty) {
+    if (filtered.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text('Nothing to print for this period'.tr)));
       return;
@@ -627,7 +624,7 @@ class _ExpenseReportViewState extends State<ExpenseReportView> {
 
     Uint8List bytes;
     try {
-      bytes = await _buildPdfBytes();
+      bytes = await _buildPdfBytes(filtered);
     } catch (e) {
       if (!mounted) return;
       setState(() => _exporting = false);
@@ -636,10 +633,6 @@ class _ExpenseReportViewState extends State<ExpenseReportView> {
       return;
     }
 
-    // Re-enable the button the moment the PDF is built. The preview
-    // dialog itself is a separate UI surface — we don't want the
-    // AppBar action stuck disabled if the dialog hangs or is dismissed
-    // without completing the underlying future (observed on Windows).
     if (mounted) setState(() => _exporting = false);
 
     try {
@@ -651,9 +644,9 @@ class _ExpenseReportViewState extends State<ExpenseReportView> {
     }
   }
 
-  Future<void> _sharePdf() async {
+  Future<void> _sharePdf(List<LedgerEntry> filtered) async {
     if (_exporting) return;
-    if (_filtered.isEmpty) {
+    if (filtered.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text('Nothing to share for this period'.tr)));
       return;
@@ -662,7 +655,7 @@ class _ExpenseReportViewState extends State<ExpenseReportView> {
 
     File file;
     try {
-      final bytes = await _buildPdfBytes();
+      final bytes = await _buildPdfBytes(filtered);
       file = await _buildPdfFile(bytes);
     } catch (e) {
       if (!mounted) return;

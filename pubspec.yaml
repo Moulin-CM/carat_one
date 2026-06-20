@@ -41,6 +41,9 @@ dependencies:
   # Billing
   in_app_purchase: ^3.2.0
 
+  # Google Play built-in update flow (Android only)
+  in_app_update: ^4.2.3
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -609,7 +609,7 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text('Amount'.tr, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-                Text('₹${(item.carat * item.rate).toStringAsFixed(2)}'.tr, style: const TextStyle(fontWeight: FontWeight.w800, color: _accent)),
+                Text('₹${item.amount.toStringAsFixed(0)}'.tr, style: const TextStyle(fontWeight: FontWeight.w800, color: _accent)),
               ],
             ),
           ),
@@ -799,7 +799,9 @@ class _InvoiceFormViewContentState extends State<_InvoiceFormViewContent> {
       final carat = double.tryParse(_caratControllers[i]?.text ?? '') ?? item.carat;
       final rate = double.tryParse(_rateControllers[i]?.text ?? '') ?? item.rate;
       totalCarat += carat;
-      totalAmount += carat * rate;
+      // Mirror InvoiceItem.amount: round per-line to nearest ₹10 so this
+      // live preview matches what InvoiceModel will compute on save.
+      totalAmount += ((carat * rate) / 10).roundToDouble() * 10;
     }
     final discount = totalAmount * (invoice.discountRate / 100);
     final taxable = totalAmount - discount;

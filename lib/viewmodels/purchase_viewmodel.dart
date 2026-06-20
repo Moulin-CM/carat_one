@@ -5,42 +5,14 @@ import '../models/withdrawal_model.dart';
 import '../models/invoice_model.dart';
 import '../models/app_settings_model.dart';
 import '../models/stock_valuation_item.dart';
+import '../models/ledger_entry.dart';
+export '../models/ledger_entry.dart';
 import '../services/purchase_storage_service.dart';
 import '../services/expense_storage_service.dart';
 import '../services/withdrawal_storage_service.dart';
 import '../services/invoice_storage_service.dart';
 import '../services/settings_service.dart';
 import '../services/import/import_event_bus.dart';
-
-enum LedgerEntryKind { expense, purchase, sale }
-
-enum LedgerPaymentStatus { notApplicable, paid, partial, unpaid }
-
-class LedgerEntry {
-  final String id;
-  final LedgerEntryKind kind;
-  final String title;
-  final String subtitle;
-  final DateTime date;
-  final double amount;
-  final double settledAmount;
-  final LedgerPaymentStatus paymentStatus;
-  final bool isDebit;
-  final bool isCashMode;
-
-  const LedgerEntry({
-    required this.id,
-    required this.kind,
-    required this.title,
-    required this.subtitle,
-    required this.date,
-    required this.amount,
-    required this.settledAmount,
-    required this.paymentStatus,
-    required this.isDebit,
-    required this.isCashMode,
-  });
-}
 
 class PurchaseViewModel extends ChangeNotifier {
   List<PurchaseModel> _purchases = [];
@@ -140,6 +112,18 @@ class PurchaseViewModel extends ChangeNotifier {
   double get totalSoldCarat =>
       _purchasesInCurrentYear.fold(0.0, (sum, p) => sum + p.totalSoldCarat);
 
+  /// Carats still owed to sellers across all in-FY purchases.
+  double get totalPendingPaymentCarat =>
+      _purchasesInCurrentYear.fold(0.0, (sum, p) => sum + p.remainingPaymentCarat);
+
+  /// Money still owed to sellers across all in-FY purchases. Each lot is
+  /// priced at its own effective purchase rate (post-discount per carat), so
+  /// mixed-rate inventory is summed accurately rather than averaged.
+  double get totalPendingPaymentAmount => _purchasesInCurrentYear.fold(
+        0.0,
+        (sum, p) => sum + (p.remainingPaymentCarat * p.effectivePurchaseRate),
+      );
+
   /// Total sell amount in the current year = manual carry-forward + grand
   /// totals of invoices in this year. Matches the Opening Amount tile on
   /// the Invoice tab. "For Other" invoices are excluded.
@@ -162,12 +146,13 @@ class PurchaseViewModel extends ChangeNotifier {
   /// screen's Final Amount and never roll up into business profitability.
   double get netProfitOrLoss => totalProfitOrLoss - outstandingWithdrawals;
 
-  /// Entries shown on the Expenses screen. Only expense records are listed —
-  /// purchases and sell invoices are NOT included. Each expense is either a
-  /// Credit (money in) or a Debit (money out), and only moves the Final
-  /// Amount on the Expenses screen itself.
+  /// Entries shown on the Expenses screen. Sourced exclusively from
+  /// user-entered expense records (Credit/Debit toggle). Sale/purchase
+  /// payments are tracked on their own screens and do not flow into the
+  /// Expense ledger.
   List<LedgerEntry> get ledgerEntries {
     final entries = <LedgerEntry>[];
+
     for (final e in _expenses) {
       entries.add(LedgerEntry(
         id: 'expense_${e.id}',
@@ -182,20 +167,23 @@ class PurchaseViewModel extends ChangeNotifier {
         isCashMode: true,
       ));
     }
+
     entries.sort((a, b) => b.date.compareTo(a.date));
     return entries;
   }
 
-  double get ledgerDebitsPaid =>
-      _expenses.where((e) => !e.isCredit).fold(0.0, (sum, e) => sum + e.amount);
+  double get ledgerDebitsPaid => _expenses
+      .where((e) => !e.isCredit)
+      .fold(0.0, (sum, e) => sum + e.amount);
 
-  double get ledgerCreditsPaid =>
-      _expenses.where((e) => e.isCredit).fold(0.0, (sum, e) => sum + e.amount);
+  double get ledgerCreditsPaid => _expenses
+      .where((e) => e.isCredit)
+      .fold(0.0, (sum, e) => sum + e.amount);
 
-  /// Banking-style available balance: every Debit must be backed by a Credit.
-  /// Opening Amount is shown for reference only and is intentionally NOT
-  /// part of this calculation — Debits cannot exceed the cash that has
-  /// actually been received as Credits.
+  /// Available balance shown in the Expenses summary. Computed strictly
+  /// from Credits received minus Debits paid out. The user-entered
+  /// Opening Amount is shown for reference only and does not affect the
+  /// spendable pool.
   double get ledgerFinalAmount =>
       ledgerCreditsPaid - ledgerDebitsPaid;
 

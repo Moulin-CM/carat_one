@@ -20,19 +20,40 @@ import 'services/localization_service.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Firebase must be ready before anything else (auth, db, etc.) — keep
-  // this awaited.
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  // Initialize Firebase with a timeout. On web the Firebase JS SDK is
+  // pulled from gstatic.com; if that's blocked (ad blockers, restrictive
+  // networks) the future never resolves and the spinner spins forever.
+  // The timeout guarantees we reach runApp() so the UI is at least
+  // visible — downstream auth/database calls will surface the failure
+  // contextually rather than hanging the whole bootstrap.
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    ).timeout(const Duration(seconds: 10));
+  } catch (e) {
+    debugPrint('Firebase init failed or timed out: $e');
+  }
 
-  // Initialize Subscriptions
-  final subService = SubscriptionService();
-  await subService.initialize();
-
-  // Initialize Localization
+  // Localization needs to run before runApp so the first frame uses the
+  // right language. SharedPreferences on web is just localStorage so this
+  // is fast — but we still guard with a timeout for safety.
   final locService = LocalizationService();
-  await locService.initialize();
+  try {
+    await locService.initialize().timeout(const Duration(seconds: 5));
+  } catch (e) {
+    debugPrint('Localization init failed or timed out: $e');
+  }
+
+  // Subscription init only wires up listeners (no awaitable network call),
+  // so it can run in the background without blocking the first frame.
+  // ignore: unawaited_futures
+  Future(() async {
+    try {
+      await SubscriptionService().initialize();
+    } catch (e) {
+      debugPrint('Subscription init failed: $e');
+    }
+  });
 
   // Set preferred orientations only on mobile platforms (not web). This
   // runs before runApp so the first frame is laid out correctly.

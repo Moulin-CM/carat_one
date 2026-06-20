@@ -3,16 +3,17 @@ import 'package:pdf/pdf.dart';
 
 import 'package:invoice_generator/constants/app_translations.dart';
 import 'package:pdf/widgets.dart' as pw;
-import '../models/expense_model.dart';
+import '../models/ledger_entry.dart';
 import 'pdf_service.dart';
 
 
 class ExpenseReportPdfService {
-  /// Builds a bank-style expense statement covering [items] in the given
+  /// Builds a bank-style statement covering [items] (any ledger entries —
+  /// user expenses, sell collections, and seller payments) in the given
   /// [periodLabel] / [start]–[end] range. Each entry is either a Credit
   /// (money in) or a Debit (money out).
   static Future<pw.Document> build({
-    required List<ExpenseModel> items,
+    required List<LedgerEntry> items,
     required String periodLabel,
     required DateTime start,
     required DateTime end,
@@ -25,14 +26,14 @@ class ExpenseReportPdfService {
     final displayHeading = heading ?? 'Expense Statement'.tr;
 
     final creditTotal =
-        items.where((e) => e.isCredit).fold<double>(0, (s, e) => s + e.amount);
+        items.where((e) => !e.isDebit).fold<double>(0, (s, e) => s + e.amount);
     final debitTotal =
-        items.where((e) => !e.isCredit).fold<double>(0, (s, e) => s + e.amount);
+        items.where((e) => e.isDebit).fold<double>(0, (s, e) => s + e.amount);
     final net = creditTotal - debitTotal;
 
-    final grouped = <String, List<ExpenseModel>>{};
+    final grouped = <String, List<LedgerEntry>>{};
     for (final e in items) {
-      final key = dateFmt.format(e.expenseDate);
+      final key = dateFmt.format(e.date);
       grouped.putIfAbsent(key, () => []).add(e);
     }
 
@@ -48,7 +49,7 @@ class ExpenseReportPdfService {
           _tableHeader(),
           ...grouped.entries.expand((group) {
             final groupNet = group.value.fold<double>(
-                0, (s, e) => s + (e.isCredit ? e.amount : -e.amount));
+                0, (s, e) => s + (e.isDebit ? -e.amount : e.amount));
             return [
               _dayHeader(group.key, groupNet, amountFmt),
               ...group.value.map((e) => _row(e, amountFmt)),
@@ -171,6 +172,11 @@ class ExpenseReportPdfService {
                   style: pw.TextStyle(
                       fontWeight: pw.FontWeight.bold, fontSize: 10))),
           pw.Expanded(
+              flex: 3,
+              child: pw.Text('Source'.tr,
+                  style: pw.TextStyle(
+                      fontWeight: pw.FontWeight.bold, fontSize: 10))),
+          pw.Expanded(
               flex: 2,
               child: pw.Text('Date'.tr,
                   style: pw.TextStyle(
@@ -219,11 +225,14 @@ class ExpenseReportPdfService {
     );
   }
 
-  static pw.Widget _row(ExpenseModel e, NumberFormat amountFmt) {
+  static pw.Widget _row(LedgerEntry e, NumberFormat amountFmt) {
     final dateFmt = DateFormat('dd MMM yyyy'.tr);
-    final color = e.isCredit ? PdfColors.green800 : PdfColors.red;
-    final sign = e.isCredit ? '+' : '-';
-    final name = e.personName.isNotEmpty ? e.personName : 'Entry'.tr;
+    final color = e.isDebit ? PdfColors.red : PdfColors.green800;
+    final sign = e.isDebit ? '-' : '+';
+    final name = e.title.isNotEmpty ? e.title : 'Entry'.tr;
+    final source = e.subtitle.isNotEmpty
+        ? e.subtitle
+        : (e.kind == LedgerEntryKind.expense ? 'Expense'.tr : '');
     return pw.Container(
       padding:
           const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -237,12 +246,17 @@ class ExpenseReportPdfService {
               child: pw.Text(name,
                   style: const pw.TextStyle(fontSize: 10))),
           pw.Expanded(
+              flex: 3,
+              child: pw.Text(source,
+                  style: const pw.TextStyle(
+                      fontSize: 9, color: PdfColors.grey700))),
+          pw.Expanded(
               flex: 2,
-              child: pw.Text(dateFmt.format(e.expenseDate),
+              child: pw.Text(dateFmt.format(e.date),
                   style: const pw.TextStyle(fontSize: 10))),
           pw.Expanded(
               flex: 1,
-              child: pw.Text(e.isCredit ? 'Cr' : 'Dr',
+              child: pw.Text(e.isDebit ? 'Dr' : 'Cr',
                   textAlign: pw.TextAlign.center,
                   style: pw.TextStyle(
                       fontSize: 10,

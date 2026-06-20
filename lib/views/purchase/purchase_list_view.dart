@@ -156,6 +156,32 @@ class _PurchaseListContentState extends State<_PurchaseListContent> {
                           ),
                         ],
                       ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                        child: Container(height: 1, color: Colors.white24),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.account_balance_wallet_rounded,
+                              color: Colors.white70, size: 14),
+                          const SizedBox(width: 6),
+                          Text(
+                            '${'Pending Payment'.tr}: ',
+                            style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500),
+                          ),
+                          Text(
+                            fmt.format(vm.totalPendingPaymentAmount),
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w800),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),

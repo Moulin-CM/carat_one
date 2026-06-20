@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -39,6 +39,14 @@ class _ExpensesContentState extends State<_ExpensesContent> {
 
   final _dateFmt = DateFormat('dd MMM yyyy'.tr);
   final _currencyFmt = NumberFormat.currency(symbol: '₹', decimalDigits: 0);
+  final _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,6 +79,7 @@ class _ExpensesContentState extends State<_ExpensesContent> {
             child: Column(
               children: [
                 _summaryBar(context, vm),
+                _searchBar(),
                 Expanded(
                   child: vm.isLoading
                       ? const ListSkeleton()
@@ -249,9 +258,49 @@ class _ExpensesContentState extends State<_ExpensesContent> {
     );
   }
 
+  Widget _searchBar() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+      child: TextField(
+        controller: _searchController,
+        onChanged: (v) => setState(() => _searchQuery = v.trim().toLowerCase()),
+        decoration: InputDecoration(
+          hintText: 'Search by name, invoice no, size...'.tr,
+          prefixIcon: const Icon(Icons.search_rounded, color: _accent),
+          suffixIcon: _searchController.text.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.clear_rounded),
+                  onPressed: () {
+                    _searchController.clear();
+                    setState(() => _searchQuery = '');
+                  },
+                )
+              : null,
+          filled: true,
+          fillColor: Colors.white,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide.none,
+          ),
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+        ),
+      ),
+    );
+  }
+
   Widget _expensesList(BuildContext context, PurchaseViewModel vm) {
-    final items = vm.ledgerEntries;
-    if (items.isEmpty) return _emptyState();
+    final all = vm.ledgerEntries;
+    final items = _searchQuery.isEmpty
+        ? all
+        : all.where((e) {
+            final q = _searchQuery;
+            return e.title.toLowerCase().contains(q) ||
+                e.subtitle.toLowerCase().contains(q);
+          }).toList();
+    if (items.isEmpty) {
+      return _emptyState(noMatch: _searchQuery.isNotEmpty);
+    }
 
     return RefreshIndicator(
       onRefresh: () => vm.loadPurchases(),
@@ -350,7 +399,9 @@ class _ExpensesContentState extends State<_ExpensesContent> {
                         color: _deep)),
                 const SizedBox(height: 2),
                 Text(
-                  '${isDebit ? 'Debit'.tr : 'Credit'.tr} • ${_dateFmt.format(entry.date)}',
+                  entry.subtitle.isNotEmpty
+                      ? '${entry.subtitle} • ${_dateFmt.format(entry.date)}'
+                      : '${isDebit ? 'Debit'.tr : 'Credit'.tr} • ${_dateFmt.format(entry.date)}',
                   style: TextStyle(color: Colors.grey[600], fontSize: 12),
                 ),
               ],
@@ -367,14 +418,20 @@ class _ExpensesContentState extends State<_ExpensesContent> {
     );
   }
 
-  Widget _emptyState() {
+  Widget _emptyState({bool noMatch = false}) {
     return ListView(
       children: [
         const SizedBox(height: 80),
-        Icon(Icons.receipt_long_outlined, size: 64, color: Colors.grey[300]),
+        Icon(
+          noMatch
+              ? Icons.search_off_rounded
+              : Icons.receipt_long_outlined,
+          size: 64,
+          color: Colors.grey[300],
+        ),
         const SizedBox(height: 16),
         Center(
-          child: Text('No entries yet'.tr,
+          child: Text(noMatch ? 'No matching entries'.tr : 'No entries yet'.tr,
               style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
@@ -383,7 +440,9 @@ class _ExpensesContentState extends State<_ExpensesContent> {
         const SizedBox(height: 8),
         Center(
           child: Text(
-              'Tap "Add Entry".tr to record a Credit or Debit. Debits cannot exceed the Available Balance.'.tr,
+              noMatch
+                  ? 'Try a different search term.'.tr
+                  : 'Tap "Add Entry".tr to record a Credit or Debit. Debits cannot exceed the Available Balance.'.tr,
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.grey[500])),
         ),
