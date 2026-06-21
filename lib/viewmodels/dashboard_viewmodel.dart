@@ -100,6 +100,27 @@ class DashboardViewModel extends ChangeNotifier {
         (sum, p) => sum + (p.remainingPaymentCarat * p.effectivePurchaseRate),
       );
 
+  /// In-FY invoices that still have an outstanding receivable from the buyer,
+  /// oldest invoice first. Drives the "Pending from Buyers" detail screen.
+  List<InvoiceModel> get pendingInvoices {
+    final list = _invoicesInCurrentYear
+        .where((inv) => inv.remainingCarat * inv.averageRate > 0.0001)
+        .toList();
+    list.sort((a, b) => a.invoiceDate.compareTo(b.invoiceDate));
+    return list;
+  }
+
+  /// In-FY purchase lots that still owe money to the seller, oldest lot
+  /// first. Drives the "Pending to Sellers" detail screen.
+  List<PurchaseModel> get pendingPurchases {
+    final list = _purchasesInCurrentYear
+        .where((p) =>
+            p.remainingPaymentCarat * p.effectivePurchaseRate > 0.0001)
+        .toList();
+    list.sort((a, b) => a.buyDate.compareTo(b.buyDate));
+    return list;
+  }
+
   /// Net pending position: Pending from Buyers − Pending to Sellers.
   /// Positive means buyers owe more than is owed to sellers (room to start
   /// paying sellers); negative means more is owed to sellers than is

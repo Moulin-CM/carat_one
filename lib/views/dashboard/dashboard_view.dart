@@ -13,6 +13,7 @@ import '../finance/buy_sell_report_view.dart';
 import '../finance/brokerage_report_view.dart';
 import '../subscription/subscription_plans_view.dart';
 import '../settings/language_selection_view.dart';
+import 'pending_payments_view.dart';
 import '../../constants/app_translations.dart';
 import '../../widgets/sell_options_sheet.dart';
 import '../../widgets/dashboard_skeleton.dart';
@@ -758,6 +759,8 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
                   amount: currencyFormat.format(pendingSell),
                   color: Colors.orange,
                   deepAccent: deepAccent,
+                  onTap: () => _openPendingPayments(
+                      context, viewModel, PendingPaymentsMode.fromBuyers),
                 ),
               ),
               const SizedBox(width: 12),
@@ -769,6 +772,8 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
                   amount: currencyFormat.format(pendingPurchase),
                   color: Colors.red,
                   deepAccent: deepAccent,
+                  onTap: () => _openPendingPayments(
+                      context, viewModel, PendingPaymentsMode.toSellers),
                 ),
               ),
             ],
@@ -848,52 +853,80 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
     required String amount,
     required Color color,
     required Color deepAccent,
+    VoidCallback? onTap,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: color.withOpacity(0.25)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: color.withOpacity(0.25)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(icon, color: color, size: 20),
-              const Spacer(),
+              Row(
+                children: [
+                  Icon(icon, color: color, size: 20),
+                  const Spacer(),
+                  if (onTap != null)
+                    Icon(Icons.chevron_right_rounded,
+                        color: color.withOpacity(0.7), size: 18),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Text(label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF1E3C72))),
+              const SizedBox(height: 2),
+              Text(helper,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500)),
+              const SizedBox(height: 8),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(amount,
+                    style: TextStyle(
+                        color: color,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800)),
+              ),
             ],
           ),
-          const SizedBox(height: 10),
-          Text(label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF1E3C72))),
-          const SizedBox(height: 2),
-          Text(helper,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                  color: Colors.grey[600],
-                  fontSize: 10,
-                  fontWeight: FontWeight.w500)),
-          const SizedBox(height: 8),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(amount,
-                style: TextStyle(
-                    color: color,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800)),
-          ),
-        ],
+        ),
       ),
     );
+  }
+
+  Future<void> _openPendingPayments(
+    BuildContext context,
+    DashboardViewModel viewModel,
+    PendingPaymentsMode mode,
+  ) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PendingPaymentsView(
+          mode: mode,
+          dashboardViewModel: viewModel,
+        ),
+      ),
+    );
+    await viewModel.loadInvoices();
   }
 
   Widget _buildFinanceCard(

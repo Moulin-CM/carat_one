@@ -68,7 +68,8 @@
       "PowerShell(robocopy build\\\\web docs\\\\app /MIR /NFL /NDL /NJH /NJS /NP 2>&1 | Select-Object -Last 20; \"ExitCode: $LASTEXITCODE\")",
       "Bash(flutter create *)",
       "Bash(gh api *)",
-      "Bash(gh auth *)"
+      "Bash(gh auth *)",
+      "Bash(flutter run *)"
     ]
   }
 }
