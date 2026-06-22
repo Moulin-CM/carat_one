@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:printing/printing.dart';
@@ -12,25 +13,40 @@ import '../../services/buy_sell_report_pdf_service.dart';
 import '../../services/invoice_storage_service.dart';
 import '../../services/purchase_storage_service.dart';
 import '../../services/subscription_service.dart';
+import '../../services/modern_ui_service.dart';
 import '../../widgets/app_bar_factory.dart';
 
 import '../../widgets/list_skeleton.dart';
 import '../subscription/subscription_plans_view.dart';
 import '../../constants/app_translations.dart';
+import 'modern_buy_sell_report_view.dart';
 
 
 import 'package:invoice_generator/constants/app_translations.dart';
 
 enum _PeriodMode { monthly, yearly, custom }
 
-class BuySellReportView extends StatefulWidget {
+class BuySellReportView extends StatelessWidget {
   const BuySellReportView({super.key});
 
   @override
-  State<BuySellReportView> createState() => _BuySellReportViewState();
+  Widget build(BuildContext context) {
+    final modernUiEnabled = context.watch<ModernUiService>().enabled;
+    return modernUiEnabled
+        ? const ModernBuySellReportView()
+        : const _ClassicBuySellReportView();
+  }
 }
 
-class _BuySellReportViewState extends State<BuySellReportView> {
+class _ClassicBuySellReportView extends StatefulWidget {
+  const _ClassicBuySellReportView();
+
+  @override
+  State<_ClassicBuySellReportView> createState() =>
+      _BuySellReportViewState();
+}
+
+class _BuySellReportViewState extends State<_ClassicBuySellReportView> {
   static const _accent = Color(0xFF4F8AF4);
   static const _deep = Color(0xFF1E3C72);
 

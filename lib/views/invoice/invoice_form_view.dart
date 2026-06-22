@@ -12,8 +12,10 @@ import '../../widgets/custom_card.dart';
 import '../../widgets/custom_info_row.dart';
 import '../../widgets/app_bar_factory.dart';
 import '../../services/ads_service.dart';
+import '../../services/modern_ui_service.dart';
 import '../../constants/app_translations.dart';
 import 'package:flutter/foundation.dart';
+import 'modern_invoice_form_view.dart';
 
 
 import 'package:invoice_generator/constants/app_translations.dart';
@@ -38,6 +40,7 @@ class InvoiceFormView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final modernUiEnabled = context.watch<ModernUiService>().enabled;
     return ChangeNotifierProvider(
       create: (_) => InvoiceFormViewModel(
           invoice: invoice,
@@ -46,7 +49,9 @@ class InvoiceFormView extends StatelessWidget {
           paymentTypeFromPurchase: paymentType,
           initialCarat: initialCarat,
           isCashSell: isCashSell),
-      child: const _InvoiceFormViewContent(),
+      child: modernUiEnabled
+          ? const ModernInvoiceFormContent()
+          : const _InvoiceFormViewContent(),
     );
   }
 }

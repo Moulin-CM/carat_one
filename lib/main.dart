@@ -15,6 +15,7 @@ import 'services/ads_service.dart';
 import 'services/subscription_service.dart';
 import 'viewmodels/subscription_viewmodel.dart';
 import 'services/localization_service.dart';
+import 'services/modern_ui_service.dart';
 
 
 Future<void> main() async {
@@ -42,6 +43,16 @@ Future<void> main() async {
     await locService.initialize().timeout(const Duration(seconds: 5));
   } catch (e) {
     debugPrint('Localization init failed or timed out: $e');
+  }
+
+  // Modern UI toggle is read off the same SharedPreferences instance — a
+  // single-key boolean read, but still gated behind a timeout so a stuck
+  // platform channel can't block startup.
+  final modernUiService = ModernUiService();
+  try {
+    await modernUiService.initialize().timeout(const Duration(seconds: 3));
+  } catch (e) {
+    debugPrint('Modern UI service init failed or timed out: $e');
   }
 
   // Subscription init only wires up listeners (no awaitable network call),
@@ -73,6 +84,7 @@ Future<void> main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => SubscriptionViewModel()),
         ChangeNotifierProvider.value(value: locService),
+        ChangeNotifierProvider.value(value: modernUiService),
         ChangeNotifierProvider(
           create: (_) => ShellViewModel(),
         ),

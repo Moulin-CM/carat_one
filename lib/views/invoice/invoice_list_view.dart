@@ -16,7 +16,9 @@ import '../../widgets/paywall_dialog.dart';
 import '../subscription/subscription_plans_view.dart';
 import 'invoice_form_view.dart';
 import 'invoice_details_view.dart';
+import 'modern_invoice_list_view.dart';
 import '../../constants/app_translations.dart';
+import '../../services/modern_ui_service.dart';
 import 'package:flutter/foundation.dart';
 
 
@@ -51,9 +53,13 @@ class _InvoiceListViewState extends State<InvoiceListView>
   Widget build(BuildContext context) {
     super.build(context);
 
+    final modernUiEnabled = context.watch<ModernUiService>().enabled;
+
     return ChangeNotifierProvider<InvoiceListViewModel>.value(
       value: _viewModel,
-      child: const _InvoiceListViewContent(),
+      child: modernUiEnabled
+          ? const ModernInvoiceListContent()
+          : const _InvoiceListViewContent(),
     );
   }
 }

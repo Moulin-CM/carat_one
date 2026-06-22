@@ -3,16 +3,21 @@ import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../viewmodels/export_import_viewmodel.dart';
 import '../../services/import/data_import_service.dart';
+import '../../services/modern_ui_service.dart';
 import '../../constants/app_translations.dart';
+import 'modern_export_import_view.dart';
 
 class ExportImportView extends StatelessWidget {
   const ExportImportView({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final modernUiEnabled = context.watch<ModernUiService>().enabled;
     return ChangeNotifierProvider(
       create: (_) => ExportImportViewModel(),
-      child: const _ExportImportViewContent(),
+      child: modernUiEnabled
+          ? const ModernExportImportContent()
+          : const _ExportImportViewContent(),
     );
   }
 }

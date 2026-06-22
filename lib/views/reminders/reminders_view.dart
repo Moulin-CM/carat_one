@@ -3,8 +3,10 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../viewmodels/reminder_viewmodel.dart';
 import '../../models/invoice_reminder_model.dart';
+import '../../services/modern_ui_service.dart';
 import '../../widgets/list_skeleton.dart';
 import '../../constants/app_translations.dart';
+import 'modern_reminders_view.dart';
 
 
 class RemindersView extends StatelessWidget {
@@ -12,9 +14,12 @@ class RemindersView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final modernUiEnabled = context.watch<ModernUiService>().enabled;
     return ChangeNotifierProvider(
       create: (_) => ReminderViewModel(),
-      child: const _RemindersViewContent(),
+      child: modernUiEnabled
+          ? const ModernRemindersContent()
+          : const _RemindersViewContent(),
     );
   }
 }

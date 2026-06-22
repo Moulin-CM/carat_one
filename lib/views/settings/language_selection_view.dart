@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../constants/app_translations.dart';
 import '../../services/localization_service.dart';
+import '../../services/modern_ui_service.dart';
 import '../onboarding/onboarding_view.dart';
 import '../auth/auth_wrapper.dart';
+import 'modern_language_selection_view.dart';
 
 
 class LanguageSelectionView extends StatefulWidget {
   final bool isFromDrawer;
-  
+
   const LanguageSelectionView({super.key, this.isFromDrawer = false});
 
   @override
@@ -44,6 +46,10 @@ class _LanguageSelectionViewState extends State<LanguageSelectionView> {
 
   @override
   Widget build(BuildContext context) {
+    final modernUiEnabled = context.watch<ModernUiService>().enabled;
+    if (modernUiEnabled) {
+      return ModernLanguageSelectionView(isFromDrawer: widget.isFromDrawer);
+    }
     // We don't watch the provider here directly so it doesn'.trt rebuild instantly and cause jumpiness,
     // we use our local state `_selectedLang`.
     final accent = const Color(0xFF4F8AF4);

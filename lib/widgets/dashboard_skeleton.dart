@@ -27,44 +27,40 @@ class DashboardSkeleton extends StatelessWidget {
   /// second one would stack on top.
   final bool showBottomNav;
 
+  /// When true, switch to the navy-toned modern shimmer palette so the
+  /// skeleton blends with the dark modern surfaces instead of flashing
+  /// the classic white shimmer.
+  final bool dark;
+
   const DashboardSkeleton({
     super.key,
     this.showAppBar = true,
     this.showBottomNav = false,
+    this.dark = false,
   });
 
   static const _accent = Color(0xFF4F8AF4);
   static const _deepAccent = Color(0xFF1E3C72);
 
+  // Shimmer palette: lighter on the classic surfaces, navy-toned on the
+  // modern dark surfaces.
+  Color get _shimmerBase =>
+      dark ? const Color(0xFF1A2238) : const Color(0xFFE7EAF1);
+  Color get _shimmerHighlight =>
+      dark ? const Color(0xFF2A3052) : const Color(0xFFF7F8FB);
+  Color get _boxColor =>
+      dark ? const Color(0xFF1A2238) : Colors.white;
+  Color get _appBarIconBg => dark
+      ? Colors.white.withOpacity(0.10)
+      : Colors.white.withOpacity(0.8);
+  Color get _titleColor => dark ? Colors.white : Colors.black87;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: dark ? const Color(0xFF07091C) : null,
       extendBodyBehindAppBar: true,
-      appBar: showAppBar
-          ? AppBar(
-              elevation: 0,
-              backgroundColor: Colors.transparent,
-              automaticallyImplyLeading: false,
-              title: Padding(
-                padding: const EdgeInsets.only(left: 16),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withOpacity(0.8),
-                      ),
-                      child:
-                          const Icon(Icons.dashboard_rounded, color: _accent),
-                    ),
-                    const SizedBox(width: 10),
-                    Text('Dashboard'.tr),
-                  ],
-                ),
-              ),
-            )
-          : null,
+      appBar: showAppBar ? _buildAppBar() : null,
       body: Stack(
         children: [
           _buildBackdrop(),
@@ -73,8 +69,8 @@ class DashboardSkeleton extends StatelessWidget {
               physics: const NeverScrollableScrollPhysics(),
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
               child: Shimmer.fromColors(
-                baseColor: const Color(0xFFE7EAF1),
-                highlightColor: const Color(0xFFF7F8FB),
+                baseColor: _shimmerBase,
+                highlightColor: _shimmerHighlight,
                 period: const Duration(milliseconds: 1400),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -97,9 +93,152 @@ class DashboardSkeleton extends StatelessWidget {
     );
   }
 
+  // ─── App Bar ──────────────────────────────────────────────────────────────
+
+  PreferredSizeWidget _buildAppBar() {
+    if (dark) {
+      // Mirror the modern dashboard's app bar so the skeleton flows
+      // seamlessly into the populated screen: gradient diamond chip +
+      // "Carat One" gradient wordmark, drawer-mock leading icon, and a
+      // subscription-badge placeholder on the right.
+      return AppBar(
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        automaticallyImplyLeading: false,
+        titleSpacing: 8,
+        leading: const Padding(
+          padding: EdgeInsets.only(left: 8),
+          child: IconButton(
+            icon: Icon(Icons.menu_rounded, color: Colors.white),
+            onPressed: null,
+          ),
+        ),
+        title: Row(
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFF4F8AF4),
+                    Color(0xFF38BDF8),
+                    Color(0xFFA78BFA),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: [
+                  BoxShadow(
+                    color:
+                        const Color(0xFF38BDF8).withOpacity(0.40),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: const Icon(Icons.diamond_rounded,
+                  color: Colors.white, size: 18),
+            ),
+            const SizedBox(width: 10),
+            ShaderMask(
+              shaderCallback: (rect) => const LinearGradient(
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+                colors: [Color(0xFFFFFFFF), Color(0xFFCBD5E1)],
+              ).createShader(rect),
+              child: Text(
+                'Carat One'.tr,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.3,
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          // Placeholder pill for the SubscriptionBadge slot — keeps the
+          // right-side density consistent with the modern dashboard.
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: Center(
+              child: Container(
+                width: 44,
+                height: 22,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(20),
+                  border:
+                      Border.all(color: Colors.white.withOpacity(0.10)),
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    // Classic light app bar — unchanged.
+    return AppBar(
+      elevation: 0,
+      backgroundColor: Colors.transparent,
+      automaticallyImplyLeading: false,
+      title: Padding(
+        padding: const EdgeInsets.only(left: 16),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: _appBarIconBg,
+              ),
+              child: const Icon(Icons.dashboard_rounded, color: _accent),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              'Dashboard'.tr,
+              style: TextStyle(color: _titleColor),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   // ─── Backdrop ─────────────────────────────────────────────────────────────
 
   Widget _buildBackdrop() {
+    if (dark) {
+      return Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF0C1230), Color(0xFF07091C)],
+          ),
+        ),
+        child: Stack(
+          children: [
+            Positioned(
+              top: -120,
+              right: -80,
+              child: _blurredCircle(280, _accent.withOpacity(0.22)),
+            ),
+            Positioned(
+              top: 200,
+              left: -100,
+              child: _blurredCircle(
+                  240, const Color(0xFFA78BFA).withOpacity(0.16)),
+            ),
+          ],
+        ),
+      );
+    }
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -138,14 +277,15 @@ class DashboardSkeleton extends StatelessWidget {
 
   // ─── Skeleton building blocks ─────────────────────────────────────────────
 
-  /// Solid grey rectangle of a fixed shape; the parent `Shimmer.fromColors`
-  /// animates the gradient sweep across all of these together.
+  /// Solid rectangle; the parent `Shimmer.fromColors` animates the
+  /// gradient sweep across all of these together. The colour itself
+  /// gets masked by the shader — what matters is opacity.
   Widget _box({double? width, double height = 14, double radius = 8}) {
     return Container(
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: _boxColor,
         borderRadius: BorderRadius.circular(radius),
       ),
     );

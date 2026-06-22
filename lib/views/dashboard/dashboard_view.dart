@@ -19,6 +19,8 @@ import '../../widgets/dashboard_skeleton.dart';
 import '../../widgets/trial_banner.dart';
 import '../../widgets/subscription_badge.dart';
 import '../../services/quota_service.dart';
+import '../../services/modern_ui_service.dart';
+import 'modern_dashboard_view.dart';
 
 
 import 'package:invoice_generator/constants/app_translations.dart';
@@ -75,8 +77,15 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<DashboardViewModel>();
+    final modernUiEnabled = context.watch<ModernUiService>().enabled;
     const accent = Color(0xFF4F8AF4);
     const deepAccent = Color(0xFF1E3C72);
+
+    if (modernUiEnabled) {
+      // Pilot: when Modern UI is on, render the redesigned dashboard.
+      // The classic ViewModel is reused so both surfaces stay in sync.
+      return const ModernDashboardView();
+    }
 
     if (viewModel.isLoading) {
       return const DashboardSkeleton();
@@ -255,6 +264,7 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
                           MaterialPageRoute(builder: (_) => const LanguageSelectionView(isFromDrawer: true)));
                     },
                   ),
+                  _buildModernUiToggleTile(context),
                 ],
               ),
             ),
@@ -402,6 +412,84 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
                 ],
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildModernUiToggleTile(BuildContext context) {
+    final modernUi = context.watch<ModernUiService>();
+    const accent = Color(0xFF6366F1); // indigo-violet, matches Modern UI accent
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 4),
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () => modernUi.setEnabled(!modernUi.enabled),
+          splashColor: accent.withOpacity(0.07),
+          highlightColor: accent.withOpacity(0.04),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: accent.withOpacity(0.30),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(Icons.auto_awesome_rounded,
+                      color: Colors.white, size: 20),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Modern UI'.tr,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF0D1B3E),
+                          letterSpacing: 0.1,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Premium experience'.tr,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w400,
+                          color: Color(0xFF8A94A6),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Switch.adaptive(
+                  value: modernUi.enabled,
+                  onChanged: (v) => modernUi.setEnabled(v),
+                  activeColor: accent,
+                ),
+              ],
+            ),
           ),
         ),
       ),

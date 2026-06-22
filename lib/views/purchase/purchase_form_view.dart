@@ -10,7 +10,9 @@ import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_card.dart';
 import '../../services/ads_service.dart';
+import '../../services/modern_ui_service.dart';
 import '../../constants/app_translations.dart';
+import 'modern_purchase_form_view.dart';
 
 
 class PurchaseFormView extends StatelessWidget {
@@ -19,9 +21,12 @@ class PurchaseFormView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final modernUiEnabled = context.watch<ModernUiService>().enabled;
     return ChangeNotifierProvider(
       create: (_) => PurchaseFormViewModel(item: purchase),
-      child: const _PurchaseFormContent(),
+      child: modernUiEnabled
+          ? const ModernPurchaseFormContent()
+          : const _PurchaseFormContent(),
     );
   }
 }

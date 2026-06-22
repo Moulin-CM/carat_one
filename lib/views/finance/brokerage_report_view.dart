@@ -11,10 +11,13 @@ import '../../services/brokerage_report_pdf_service.dart';
 import '../../services/invoice_storage_service.dart';
 import '../../services/purchase_storage_service.dart';
 import '../../viewmodels/brokerage_report_data.dart';
+import 'package:provider/provider.dart';
 import '../../widgets/app_bar_factory.dart';
+import '../../services/modern_ui_service.dart';
 
 import '../../widgets/list_skeleton.dart';
 import '../../constants/app_translations.dart';
+import 'modern_brokerage_report_view.dart';
 
 
 import 'package:invoice_generator/constants/app_translations.dart';
@@ -135,6 +138,10 @@ class _BrokerageReportViewState extends State<BrokerageReportView> {
 
   @override
   Widget build(BuildContext context) {
+    final modernUiEnabled = context.watch<ModernUiService>().enabled;
+    if (modernUiEnabled) {
+      return const ModernBrokerageReportView();
+    }
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBarFactory.build(

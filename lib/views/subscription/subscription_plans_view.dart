@@ -4,7 +4,9 @@ import 'package:shimmer/shimmer.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import '../../models/subscription_plan.dart';
 import '../../viewmodels/subscription_viewmodel.dart';
+import '../../services/modern_ui_service.dart';
 import 'subscription_success_view.dart';
+import 'modern_subscription_plans_view.dart';
 import '../../constants/app_translations.dart';
 
 
@@ -80,6 +82,10 @@ class _SubscriptionPlansViewState extends State<SubscriptionPlansView> {
 
   @override
   Widget build(BuildContext context) {
+    final modernUiEnabled = context.watch<ModernUiService>().enabled;
+    if (modernUiEnabled) {
+      return const ModernSubscriptionPlansView();
+    }
     return Consumer<SubscriptionViewModel>(
       builder: (context, vm, _) {
         // Side-effect: navigate on state change

@@ -12,6 +12,8 @@ import '../finance/buy_sell_report_view.dart';
 import 'purchase_form_view.dart';
 import 'purchase_detail_view.dart';
 import '../../constants/app_translations.dart';
+import '../../services/modern_ui_service.dart';
+import 'modern_purchase_list_view.dart';
 
 
 import 'package:invoice_generator/constants/app_translations.dart';
@@ -46,9 +48,13 @@ class _PurchaseListViewState extends State<PurchaseListView>
   Widget build(BuildContext context) {
     super.build(context);
 
+    final modernUiEnabled = context.watch<ModernUiService>().enabled;
+
     return ChangeNotifierProvider<PurchaseViewModel>.value(
       value: _viewModel,
-      child: const _PurchaseListContent(),
+      child: modernUiEnabled
+          ? const ModernPurchaseListContent()
+          : const _PurchaseListContent(),
     );
   }
 }

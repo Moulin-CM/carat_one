@@ -30,18 +30,33 @@ class ListSkeleton extends StatelessWidget {
   /// inventory) instead of the default two-line invoice/purchase row.
   final bool dense;
 
+  /// When true, switch to a dark-themed shimmer palette so the skeleton
+  /// reads correctly on the modern UI's navy backdrops (instead of the
+  /// glaring white shimmer that fits the classic light theme).
+  final bool dark;
+
   const ListSkeleton({
     super.key,
     this.itemCount = 8,
     this.padding = const EdgeInsets.fromLTRB(16, 8, 16, 100),
     this.dense = false,
+    this.dark = false,
   });
+
+  // Shimmer palette: lighter on the classic surfaces, navy-toned on
+  // the modern dark surfaces.
+  Color get _baseColor =>
+      dark ? const Color(0xFF1A2238) : const Color(0xFFE7EAF1);
+  Color get _highlightColor =>
+      dark ? const Color(0xFF2A3052) : const Color(0xFFF7F8FB);
+  Color get _surfaceColor =>
+      dark ? const Color(0xFF1A2238) : Colors.white;
 
   @override
   Widget build(BuildContext context) {
     return Shimmer.fromColors(
-      baseColor: const Color(0xFFE7EAF1),
-      highlightColor: const Color(0xFFF7F8FB),
+      baseColor: _baseColor,
+      highlightColor: _highlightColor,
       period: const Duration(milliseconds: 1400),
       child: ListView.separated(
         physics: const NeverScrollableScrollPhysics(),
@@ -53,14 +68,15 @@ class ListSkeleton extends StatelessWidget {
     );
   }
 
-  /// Solid white rectangle; the parent `Shimmer.fromColors` animates a
-  /// gradient sweep across all of them in unison.
+  /// Solid rectangle; the parent `Shimmer.fromColors` animates a gradient
+  /// sweep across all of them in unison. The colour itself is masked by
+  /// the shader — what matters is opacity.
   Widget _box({double? width, double height = 14, double radius = 8}) {
     return Container(
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: _surfaceColor,
         borderRadius: BorderRadius.circular(radius),
       ),
     );
@@ -70,7 +86,7 @@ class ListSkeleton extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: _surfaceColor,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -105,7 +121,7 @@ class ListSkeleton extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: _surfaceColor,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(

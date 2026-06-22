@@ -3,7 +3,9 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../viewmodels/profile_viewmodel.dart';
 import '../../models/user_profile_model.dart';
+import '../../services/modern_ui_service.dart';
 import '../../constants/app_translations.dart';
+import 'modern_profile_view.dart';
 
 
 class ProfileView extends StatelessWidget {
@@ -11,9 +13,12 @@ class ProfileView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final modernUiEnabled = context.watch<ModernUiService>().enabled;
     return ChangeNotifierProvider(
       create: (_) => ProfileViewModel()..loadProfile(),
-      child: const _ProfileViewContent(),
+      child: modernUiEnabled
+          ? const ModernProfileContent()
+          : const _ProfileViewContent(),
     );
   }
 }

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/ads_service.dart';
+import '../../services/modern_ui_service.dart';
 import '../../viewmodels/settings_viewmodel.dart';
 import '../export_import/export_import_view.dart';
 import '../../constants/app_translations.dart';
+import 'modern_settings_view.dart';
 
 
 import 'package:invoice_generator/constants/app_translations.dart';
@@ -13,9 +15,12 @@ class SettingsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final modernUiEnabled = context.watch<ModernUiService>().enabled;
     return ChangeNotifierProvider(
       create: (_) => SettingsViewModel()..loadSettings(),
-      child: const _SettingsViewContent(),
+      child: modernUiEnabled
+          ? const ModernSettingsContent()
+          : const _SettingsViewContent(),
     );
   }
 }

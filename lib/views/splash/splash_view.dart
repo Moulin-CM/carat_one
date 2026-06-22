@@ -155,11 +155,13 @@ class _SplashViewState extends State<SplashView>
               ),
             ),
           ),
-          // Bottom progress indicator + branding
+          // Bottom progress indicator + branding. Use MediaQuery padding
+          // so the content sits above the system gesture/nav bar on
+          // devices that use one.
           Positioned(
             left: 0,
             right: 0,
-            bottom: 36,
+            bottom: 36 + MediaQuery.of(context).padding.bottom,
             child: FadeTransition(
               opacity: _fade,
               child: Column(

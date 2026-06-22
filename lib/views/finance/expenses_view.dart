@@ -8,7 +8,9 @@ import '../../viewmodels/purchase_viewmodel.dart';
 import '../../widgets/app_bar_factory.dart';
 
 import '../../widgets/list_skeleton.dart';
+import '../../services/modern_ui_service.dart';
 import 'expense_report_view.dart';
+import 'modern_expenses_view.dart';
 import '../../constants/app_translations.dart';
 
 
@@ -19,9 +21,12 @@ class ExpensesView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final modernUiEnabled = context.watch<ModernUiService>().enabled;
     return ChangeNotifierProvider(
       create: (_) => PurchaseViewModel()..loadPurchases(),
-      child: const _ExpensesContent(),
+      child: modernUiEnabled
+          ? const ModernExpensesContent()
+          : const _ExpensesContent(),
     );
   }
 }

@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../models/withdrawal_model.dart';
 import '../../services/withdrawal_storage_service.dart';
+import '../../services/modern_ui_service.dart';
 import '../../widgets/app_bar_factory.dart';
 
 import '../../widgets/list_skeleton.dart';
 import '../../constants/app_translations.dart';
+import 'modern_withdrawals_view.dart';
 
 
 import 'package:invoice_generator/constants/app_translations.dart';
@@ -54,6 +57,10 @@ class _WithdrawalsViewState extends State<WithdrawalsView> {
 
   @override
   Widget build(BuildContext context) {
+    final modernUiEnabled = context.watch<ModernUiService>().enabled;
+    if (modernUiEnabled) {
+      return const ModernWithdrawalsView();
+    }
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBarFactory.build(
