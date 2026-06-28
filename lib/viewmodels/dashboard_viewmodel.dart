@@ -86,36 +86,42 @@ class DashboardViewModel extends ChangeNotifier {
 
   /// Money still receivable from buyers across all in-FY invoices.
   /// Each invoice's outstanding amount uses its own average rate, so mixed
-  /// invoices sum exactly.
-  double get pendingSellAmount => _invoicesInCurrentYear.fold(
-        0.0,
-        (sum, inv) => sum + (inv.remainingCarat * inv.averageRate),
-      );
+  /// invoices sum exactly. Mirrors the [pendingInvoices] filter so the
+  /// header total never includes invoices the list already hides.
+  double get pendingSellAmount => _invoicesInCurrentYear
+      .where((inv) => !inv.isFullyPaid)
+      .fold(0.0, (sum, inv) => sum + (inv.remainingCarat * inv.averageRate));
 
   /// Money still owed to sellers across all in-FY purchase lots. Each lot is
   /// priced at its own effective purchase rate so mixed-rate inventory sums
-  /// accurately.
-  double get pendingPurchaseAmount => _purchasesInCurrentYear.fold(
+  /// accurately. Mirrors the [pendingPurchases] filter so the header total
+  /// never includes lots the list already hides.
+  double get pendingPurchaseAmount => _purchasesInCurrentYear
+      .where((p) => !p.isFullyPaid)
+      .fold(
         0.0,
         (sum, p) => sum + (p.remainingPaymentCarat * p.effectivePurchaseRate),
       );
 
   /// In-FY invoices that still have an outstanding receivable from the buyer,
   /// oldest invoice first. Drives the "Pending from Buyers" detail screen.
+  /// Uses [InvoiceModel.isFullyPaid] so that Mark-as-Paid entries and
+  /// installment-settled entries (within the 0.0001 ct tolerance) drop out.
   List<InvoiceModel> get pendingInvoices {
     final list = _invoicesInCurrentYear
-        .where((inv) => inv.remainingCarat * inv.averageRate > 0.0001)
+        .where((inv) => !inv.isFullyPaid)
         .toList();
     list.sort((a, b) => a.invoiceDate.compareTo(b.invoiceDate));
     return list;
   }
 
   /// In-FY purchase lots that still owe money to the seller, oldest lot
-  /// first. Drives the "Pending to Sellers" detail screen.
+  /// first. Drives the "Pending to Sellers" detail screen. Uses
+  /// [PurchaseModel.isFullyPaid] so that Mark-as-Paid lots and
+  /// installment-settled lots (within the 0.0001 ct tolerance) drop out.
   List<PurchaseModel> get pendingPurchases {
     final list = _purchasesInCurrentYear
-        .where((p) =>
-            p.remainingPaymentCarat * p.effectivePurchaseRate > 0.0001)
+        .where((p) => !p.isFullyPaid)
         .toList();
     list.sort((a, b) => a.buyDate.compareTo(b.buyDate));
     return list;
