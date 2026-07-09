@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — Carat One Admin</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#0c1230">
+    <link rel="icon" type="image/png" sizes="48x48" href="../assets/img/favicon-48.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/admin.css">
+    <style>
+        .welcome-card {
+            position: relative;
+            overflow: hidden;
+            padding: 30px 32px;
+        }
+        .welcome-card h2 {
+            margin: 0 0 8px;
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.8px;
+            color: #fff;
+        }
+        .welcome-card h2 .accent {
+            font-family: var(--serif);
+            font-style: italic;
+            font-weight: 400;
+            background: var(--grad-text);
+            background-size: 220% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: shimmer 8s linear infinite;
+        }
+        .welcome-card p { margin: 0; color: rgba(255,255,255,0.62); font-size: 14px; max-width: 560px; }
+        .welcome-card .decor {
+            position: absolute;
+            right: -50px; top: -60px;
+            width: 240px; height: 240px;
+            background: radial-gradient(circle at 30% 30%, rgba(56,189,248,0.55), transparent 60%),
+                        radial-gradient(circle at 70% 70%, rgba(167,139,250,0.5), transparent 60%);
+            filter: blur(20px);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .welcome-card .decor i {
+            position: absolute; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 78px;
+            color: rgba(255,255,255,0.35);
+            filter: blur(0);
+        }
+
+        .activity-item {
+            display: flex; align-items: flex-start; gap: 12px;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--line);
+        }
+        .activity-item:last-child { border-bottom: none; }
+        .activity-item .ico {
+            width: 34px; height: 34px;
+            border-radius: 11px;
+            background: rgba(255,255,255,0.06);
+            display: inline-flex; align-items: center; justify-content: center;
+            color: #fff;
+            flex-shrink: 0;
+        }
+        .activity-item .ico.b { background: var(--grad-brand); }
+        .activity-item .ico.v { background: var(--grad-violet); }
+        .activity-item .ico.g { background: var(--grad-success); }
+        .activity-item .ico.w { background: var(--grad-warn); }
+        .activity-item .ico.r { background: var(--grad-danger); }
+        .activity-item .body { flex: 1; min-width: 0; }
+        .activity-item .body b { display: block; color: #fff; font-weight: 700; font-size: 13.5px; }
+        .activity-item .body span { display: block; color: rgba(255,255,255,0.55); font-size: 12.5px; }
+        .activity-item .time { color: rgba(255,255,255,0.45); font-size: 11.5px; white-space: nowrap; }
+
+        .breakdown {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+        .stat-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px dashed var(--line);
+            font-size: 13.5px;
+        }
+        .stat-row:last-child { border-bottom: none; }
+        .stat-row b { color: #fff; font-weight: 700; }
+        .stat-row .val { color: rgba(255,255,255,0.75); font-weight: 700; }
+
+        .quick-actions {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+        }
+        .qa-btn {
+            padding: 14px;
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            background: rgba(255,255,255,0.03);
+            color: #fff;
+            display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
+            transition: transform .3s, border-color .3s, background .3s;
+        }
+        .qa-btn:hover { transform: translateY(-2px); border-color: var(--line-hi); background: rgba(255,255,255,0.06); }
+        .qa-btn .ico {
+            width: 34px; height: 34px;
+            border-radius: 11px;
+            display: inline-flex; align-items: center; justify-content: center;
+            background: var(--grad-brand);
+            color: #fff;
+        }
+        .qa-btn.violet .ico { background: var(--grad-violet); }
+        .qa-btn.gold .ico { background: var(--grad-warn); }
+        .qa-btn b { font-weight: 700; font-size: 13.5px; }
+        .qa-btn span { font-size: 11.5px; color: rgba(255,255,255,0.55); }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar"></aside>
+        <main class="main">
+            <header class="topbar"></header>
+            <section class="content">
+                <div class="card welcome-card reveal">
+                    <div class="decor"><i class="fas fa-gem"></i></div>
+                    <h2>Good to see you, <span class="accent" id="wcName">Admin</span></h2>
+                    <p id="wcDate">Here's the health of Carat One right now — inquiries in queue, users signing up this week, and last week's ad income.</p>
+                </div>
+
+                <div class="kpi-grid">
+                    <div class="kpi-card tint-blue reveal">
+                        <div class="kpi-label"><span class="icon"><i class="fas fa-users"></i></span> Total users</div>
+                        <div class="kpi-value" id="kpiUsers">—</div>
+                        <span class="kpi-delta flat" id="kpiUsersDelta"><i class="fas fa-user-plus"></i> — this week</span>
+                    </div>
+                    <div class="kpi-card tint-violet reveal">
+                        <div class="kpi-label"><span class="icon"><i class="fas fa-envelope-open-text"></i></span> Unread inquiries</div>
+                        <div class="kpi-value" id="kpiInquiries">—</div>
+                        <span class="kpi-delta flat" id="kpiInquiriesDelta"><i class="fas fa-clock"></i> — awaiting reply</span>
+                    </div>
+                    <div class="kpi-card tint-cyan reveal">
+                        <div class="kpi-label"><span class="icon"><i class="fas fa-life-ring"></i></span> Open support tickets</div>
+                        <div class="kpi-value" id="kpiSupport">—</div>
+                        <span class="kpi-delta flat" id="kpiSupportDelta"><i class="fas fa-comments"></i> — needs attention</span>
+                    </div>
+                    <div class="kpi-card tint-gold reveal">
+                        <div class="kpi-label"><span class="icon"><i class="fas fa-sack-dollar"></i></span> Ad income (this month)</div>
+                        <div class="kpi-value" id="kpiIncome">—</div>
+                        <span class="kpi-delta flat" id="kpiIncomeDelta"><i class="fas fa-chart-line"></i> vs last month</span>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card reveal">
+                        <div class="card-head">
+                            <div>
+                                <h3>Weekly activity</h3>
+                                <span class="hint">Installs, sessions and active users over the last 7 days.</span>
+                            </div>
+                            <div class="chart-legend">
+                                <span><span class="dot" style="background:#38bdf8"></span> Installs</span>
+                                <span><span class="dot" style="background:#a78bfa"></span> Sessions</span>
+                            </div>
+                        </div>
+                        <div class="chart-box">
+                            <svg id="weekChart" width="100%" height="100%"></svg>
+                        </div>
+                    </div>
+                    <div class="card reveal">
+                        <div class="card-head">
+                            <h3>Recent activity</h3>
+                            <span class="hint">Live from Firebase</span>
+                        </div>
+                        <div id="activity">
+                            <div class="skeleton" style="height: 40px; margin-bottom: 10px;"></div>
+                            <div class="skeleton" style="height: 40px; margin-bottom: 10px;"></div>
+                            <div class="skeleton" style="height: 40px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card reveal">
+                        <div class="card-head">
+                            <h3>Quick actions</h3>
+                            <span class="hint">Jump to what needs your attention</span>
+                        </div>
+                        <div class="quick-actions">
+                            <a class="qa-btn" href="inquiries.html">
+                                <span class="ico"><i class="fas fa-envelope-open-text"></i></span>
+                                <b>Review inquiries</b>
+                                <span>Website contact requests</span>
+                            </a>
+                            <a class="qa-btn violet" href="support.html">
+                                <span class="ico"><i class="fas fa-life-ring"></i></span>
+                                <b>Handle support</b>
+                                <span>Open in-app tickets</span>
+                            </a>
+                            <a class="qa-btn gold" href="ad-income.html">
+                                <span class="ico"><i class="fas fa-sack-dollar"></i></span>
+                                <b>Log ad income</b>
+                                <span>Add this month's revenue</span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card reveal">
+                        <div class="card-head">
+                            <h3>Weekly snapshot</h3>
+                            <span class="hint">Last 7 days</span>
+                        </div>
+                        <div class="stat-row"><b>New signups</b><span class="val" id="ssSignups">—</span></div>
+                        <div class="stat-row"><b>Active users</b><span class="val" id="ssActive">—</span></div>
+                        <div class="stat-row"><b>Total sessions</b><span class="val" id="ssSessions">—</span></div>
+                        <div class="stat-row"><b>Reported crashes</b><span class="val" id="ssCrashes">—</span></div>
+                        <div class="stat-row"><b>Inquiries received</b><span class="val" id="ssInquiries">—</span></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script type="module">
+        import { renderSidebar, renderTopbar } from './assets/js/shell.js';
+        import { requireAdmin } from './assets/js/auth-guard.js';
+        import { bootChrome, toast, fmtNum, fmtInr, relTime, initials, pickAvatarClass } from './assets/js/ui.js';
+        import { lineChart } from './assets/js/charts.js';
+        import {
+            fetchUsers, fetchInquiries, fetchSupportTickets,
+            fetchAnalyticsRange, rollupDaily, fmtDay, fetchAdIncomeAll
+        } from './assets/js/data.js';
+
+        renderSidebar('dashboard');
+        renderTopbar({ title: 'Dashboard' });
+        bootChrome();
+
+        const session = await requireAdmin();
+        if (!session) throw new Error('unauthorized');
+
+        // Personalise
+        const name = session.admin.name || session.user.email.split('@')[0];
+        document.getElementById('wcName').textContent = name;
+        document.getElementById('wcDate').textContent =
+            `Today is ${new Date().toLocaleDateString('en-IN', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}. Here's what needs your attention.`;
+
+        // Kick off data loads in parallel.
+        try {
+            const now = new Date();
+            const start = new Date(now);
+            start.setDate(start.getDate() - 6);
+            const startPrev = new Date(now);
+            startPrev.setDate(startPrev.getDate() - 13);
+            const endPrev = new Date(now);
+            endPrev.setDate(endPrev.getDate() - 7);
+
+            const [users, inquiries, tickets, weekBuckets, prevBuckets, incomeRows] = await Promise.all([
+                fetchUsers(),
+                fetchInquiries(),
+                fetchSupportTickets(),
+                fetchAnalyticsRange(start, now),
+                fetchAnalyticsRange(startPrev, endPrev),
+                fetchAdIncomeAll(),
+            ]);
+
+            // ----- KPIs -----
+            document.getElementById('kpiUsers').textContent = fmtNum(users.length);
+            const oneWeekAgo = Date.now() - 7 * 24 * 3600 * 1000;
+            const newUsers = users.filter(u => {
+                const t = u.createdAt ? new Date(u.createdAt).getTime() : 0;
+                return t > oneWeekAgo;
+            }).length;
+            setDelta('kpiUsersDelta', newUsers, 'up',
+                `<i class="fas fa-user-plus"></i> +${fmtNum(newUsers)} this week`,
+                `<i class="fas fa-user-plus"></i> No new signups this week`);
+
+            const unread = inquiries.filter(i => (i.status || 'new') === 'new').length;
+            document.getElementById('kpiInquiries').textContent = fmtNum(unread);
+            document.getElementById('kpiInquiriesDelta').innerHTML =
+                unread === 0
+                    ? '<i class="fas fa-check"></i> Inbox zero'
+                    : `<i class="fas fa-clock"></i> ${fmtNum(unread)} awaiting reply`;
+            document.getElementById('kpiInquiriesDelta').className =
+                'kpi-delta ' + (unread === 0 ? 'up' : 'flat');
+
+            const openSupport = tickets.filter(t => (t.status || 'open') !== 'closed').length;
+            document.getElementById('kpiSupport').textContent = fmtNum(openSupport);
+            document.getElementById('kpiSupportDelta').innerHTML =
+                openSupport === 0
+                    ? '<i class="fas fa-check"></i> All caught up'
+                    : `<i class="fas fa-comments"></i> ${fmtNum(openSupport)} open ticket${openSupport === 1 ? '' : 's'}`;
+            document.getElementById('kpiSupportDelta').className =
+                'kpi-delta ' + (openSupport === 0 ? 'up' : 'flat');
+
+            const thisMonth = fmtDay(new Date()).slice(0, 7); // YYYY-MM
+            const prevMonthDate = new Date(); prevMonthDate.setMonth(prevMonthDate.getMonth() - 1);
+            const prevMonth = fmtDay(prevMonthDate).slice(0, 7);
+            const thisMonthEntry = incomeRows.find(r => r.id === thisMonth);
+            const prevMonthEntry = incomeRows.find(r => r.id === prevMonth);
+            const income = Number(thisMonthEntry?.total || 0);
+            const prevIncome = Number(prevMonthEntry?.total || 0);
+            document.getElementById('kpiIncome').textContent = fmtInr(income);
+            if (prevIncome > 0) {
+                const pct = ((income - prevIncome) / prevIncome) * 100;
+                const up = pct >= 0;
+                document.getElementById('kpiIncomeDelta').className = 'kpi-delta ' + (up ? 'up' : 'down');
+                document.getElementById('kpiIncomeDelta').innerHTML =
+                    `<i class="fas fa-arrow-trend-${up ? 'up' : 'down'}"></i> ${pct.toFixed(1)}% vs last month`;
+            } else {
+                document.getElementById('kpiIncomeDelta').className = 'kpi-delta flat';
+                document.getElementById('kpiIncomeDelta').innerHTML =
+                    '<i class="fas fa-chart-line"></i> Log a previous month to compare';
+            }
+
+            // ----- Weekly chart (installs) -----
+            const rollup = rollupDaily(weekBuckets);
+            const chartData = rollup.map(r => ({
+                label: new Date(r.day + 'T00:00').toLocaleDateString('en-IN', { weekday: 'short' }),
+                value: r.installs + r.sessions * 0.4, // synthetic mixed indicator
+            }));
+            lineChart('#weekChart', chartData, { stroke: '#38bdf8' });
+
+            // ----- Weekly snapshot -----
+            const totals = rollup.reduce((a, r) => ({
+                installs: a.installs + r.installs,
+                sessions: a.sessions + r.sessions,
+                crashes: a.crashes + r.crashes,
+                activeUsers: Math.max(a.activeUsers, r.activeUsers),
+            }), { installs: 0, sessions: 0, crashes: 0, activeUsers: 0 });
+            document.getElementById('ssSignups').textContent = fmtNum(newUsers);
+            document.getElementById('ssActive').textContent = fmtNum(totals.activeUsers);
+            document.getElementById('ssSessions').textContent = fmtNum(totals.sessions);
+            document.getElementById('ssCrashes').textContent = fmtNum(totals.crashes);
+            const weekInquiries = inquiries.filter(i =>
+                Number(i.createdAt || 0) > oneWeekAgo).length;
+            document.getElementById('ssInquiries').textContent = fmtNum(weekInquiries);
+
+            // ----- Recent activity feed -----
+            paintActivity(users, inquiries, tickets);
+        } catch (err) {
+            console.error(err);
+            toast('Failed to load dashboard data.', 'err');
+        }
+
+        function setDelta(id, n, kind, upHtml, zeroHtml) {
+            const el = document.getElementById(id);
+            if (!n || n <= 0) {
+                el.className = 'kpi-delta flat';
+                el.innerHTML = zeroHtml;
+            } else {
+                el.className = 'kpi-delta ' + kind;
+                el.innerHTML = upHtml;
+            }
+        }
+
+        function paintActivity(users, inquiries, tickets) {
+            const feed = [];
+            for (const u of users) {
+                const t = u.createdAt ? new Date(u.createdAt).getTime() : 0;
+                if (!t) continue;
+                feed.push({
+                    kind: 'signup', at: t,
+                    title: `${u.userName || u.email || 'A new user'} signed up`,
+                    sub: u.companyName || u.email || '',
+                    icon: 'fa-user-plus', tone: 'b',
+                });
+            }
+            for (const i of inquiries.slice(0, 15)) {
+                feed.push({
+                    kind: 'inquiry', at: Number(i.createdAt || 0),
+                    title: `New inquiry from ${i.name || 'a visitor'}`,
+                    sub: (i.subject || i.message || '').slice(0, 80),
+                    icon: 'fa-envelope-open-text', tone: 'v',
+                });
+            }
+            for (const t of tickets.slice(0, 15)) {
+                feed.push({
+                    kind: 'ticket', at: Number(t.createdAt || 0),
+                    title: `Support ticket: ${t.subject || 'no subject'}`,
+                    sub: t.userName || t.email || '',
+                    icon: 'fa-life-ring', tone: 'g',
+                });
+            }
+            feed.sort((a, b) => b.at - a.at);
+            const top = feed.slice(0, 8);
+            const el = document.getElementById('activity');
+            if (top.length === 0) {
+                el.innerHTML = `<div class="empty-state">
+                    <div class="icon"><i class="fas fa-inbox"></i></div>
+                    <h4>Nothing yet</h4>
+                    <p>Activity from users, inquiries and support will appear here.</p>
+                </div>`;
+                return;
+            }
+            el.innerHTML = top.map(a => `
+                <div class="activity-item">
+                    <span class="ico ${a.tone}"><i class="fas ${a.icon}"></i></span>
+                    <div class="body">
+                        <b>${escapeHtml(a.title)}</b>
+                        <span>${escapeHtml(a.sub || '')}</span>
+                    </div>
+                    <span class="time">${relTime(a.at)}</span>
+                </div>`).join('');
+        }
+
+        function escapeHtml(s) {
+            return String(s).replace(/[&<>"']/g, c =>
+                ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+    </script>
+</body>
+</html>

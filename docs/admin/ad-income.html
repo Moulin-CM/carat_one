@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ad Income — Carat One Admin</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#0c1230">
+    <link rel="icon" type="image/png" sizes="48x48" href="../assets/img/favicon-48.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/admin.css">
+    <style>
+        .split { display: grid; grid-template-columns: 1.4fr 1fr; gap: 22px; }
+        .format-list .format-row {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px dashed var(--line);
+        }
+        .format-list .format-row:last-child { border-bottom: none; }
+        .format-list .format-row .ico {
+            width: 34px; height: 34px; border-radius: 11px;
+            display: inline-flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 13px;
+        }
+        .format-list .ico.b { background: var(--grad-brand); }
+        .format-list .ico.v { background: var(--grad-violet); }
+        .format-list .ico.g { background: var(--grad-warn); }
+        .format-list .label { flex: 1; font-weight: 700; color: #fff; font-size: 13.5px; }
+        .format-list .amount { color: #fff; font-weight: 800; font-size: 15px; letter-spacing: -0.3px; }
+        .format-list .percent { color: rgba(255,255,255,0.55); font-size: 11.5px; text-align: right; }
+
+        @media (max-width: 900px) { .split { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar"></aside>
+        <main class="main">
+            <header class="topbar"></header>
+            <section class="content">
+                <div class="section-head reveal">
+                    <div>
+                        <h2>Ad income</h2>
+                        <div class="sub">Log AdMob revenue per month. Track trend and format mix.</div>
+                    </div>
+                    <button class="btn btn-primary" id="btnAdd"><i class="fas fa-plus"></i> Add / Edit month</button>
+                </div>
+
+                <div class="kpi-grid">
+                    <div class="kpi-card tint-gold reveal">
+                        <div class="kpi-label"><span class="icon"><i class="fas fa-sack-dollar"></i></span> This month</div>
+                        <div class="kpi-value" id="kThis">—</div>
+                        <span class="kpi-delta flat" id="dThis">—</span>
+                    </div>
+                    <div class="kpi-card tint-cyan reveal">
+                        <div class="kpi-label"><span class="icon"><i class="fas fa-calendar-days"></i></span> Last month</div>
+                        <div class="kpi-value" id="kLast">—</div>
+                        <span class="kpi-delta flat" id="dLast">Previous full month</span>
+                    </div>
+                    <div class="kpi-card tint-violet reveal">
+                        <div class="kpi-label"><span class="icon"><i class="fas fa-chart-column"></i></span> Last 12 months</div>
+                        <div class="kpi-value" id="k12">—</div>
+                        <span class="kpi-delta flat" id="d12">Trailing revenue</span>
+                    </div>
+                    <div class="kpi-card tint-green reveal">
+                        <div class="kpi-label"><span class="icon"><i class="fas fa-infinity"></i></span> All-time</div>
+                        <div class="kpi-value" id="kAll">—</div>
+                        <span class="kpi-delta flat" id="dAll">Since first entry</span>
+                    </div>
+                </div>
+
+                <div class="split">
+                    <div class="card reveal">
+                        <div class="card-head">
+                            <div>
+                                <h3>Monthly revenue</h3>
+                                <span class="hint">Last 12 months</span>
+                            </div>
+                        </div>
+                        <div class="chart-box" style="height: 300px;"><svg id="revChart" width="100%" height="100%"></svg></div>
+                    </div>
+                    <div class="card reveal">
+                        <div class="card-head">
+                            <h3>This month's format mix</h3>
+                            <span class="hint">Banner · Interstitial · Rewarded</span>
+                        </div>
+                        <div class="format-list" id="formatList">
+                            <div class="skeleton" style="height: 40px; margin: 10px 0;"></div>
+                            <div class="skeleton" style="height: 40px; margin: 10px 0;"></div>
+                            <div class="skeleton" style="height: 40px; margin: 10px 0;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card reveal" style="padding: 0;">
+                    <div class="card-head" style="padding: 22px 22px 0;">
+                        <h3>All entries</h3>
+                        <button class="btn btn-sm" id="btnExport"><i class="fas fa-download"></i> Export CSV</button>
+                    </div>
+                    <div class="table-wrap" style="border: none;">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Month</th>
+                                    <th>Banner</th>
+                                    <th>Interstitial</th>
+                                    <th>Rewarded</th>
+                                    <th>Total</th>
+                                    <th>Updated</th>
+                                    <th style="text-align:right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="entriesBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div class="modal-backdrop" id="entryModal">
+        <div class="modal">
+            <div class="modal-head">
+                <div>
+                    <h3 id="emTitle">Log month revenue</h3>
+                    <p id="emSub">Enter your AdMob totals for a given month.</p>
+                </div>
+                <button class="row-action" data-close><i class="fas fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="field">
+                    <label for="fMonth">Month</label>
+                    <input id="fMonth" type="month" required>
+                </div>
+                <div class="field-row">
+                    <div class="field">
+                        <label for="fBanner">Banner (₹)</label>
+                        <input id="fBanner" type="number" min="0" step="0.01" placeholder="0.00">
+                    </div>
+                    <div class="field">
+                        <label for="fInterstitial">Interstitial (₹)</label>
+                        <input id="fInterstitial" type="number" min="0" step="0.01" placeholder="0.00">
+                    </div>
+                </div>
+                <div class="field-row">
+                    <div class="field">
+                        <label for="fRewarded">Rewarded (₹)</label>
+                        <input id="fRewarded" type="number" min="0" step="0.01" placeholder="0.00">
+                    </div>
+                    <div class="field">
+                        <label for="fOther">Other (₹)</label>
+                        <input id="fOther" type="number" min="0" step="0.01" placeholder="0.00">
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="fNotes">Notes (optional)</label>
+                    <textarea id="fNotes" placeholder="Anything worth remembering (campaign, holiday, etc.)"></textarea>
+                </div>
+            </div>
+            <div class="modal-foot">
+                <button class="btn" data-close>Cancel</button>
+                <button class="btn btn-primary" id="emSave"><i class="fas fa-check"></i> Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { renderSidebar, renderTopbar } from './assets/js/shell.js';
+        import { requireAdmin } from './assets/js/auth-guard.js';
+        import { bootChrome, toast, fmtInr, fmtDate, openModal, closeModal, wireModal } from './assets/js/ui.js';
+        import { barChart } from './assets/js/charts.js';
+        import { fetchAdIncomeAll, saveAdIncome, deleteAdIncome } from './assets/js/data.js';
+
+        renderSidebar('ad-income');
+        renderTopbar({ title: 'Ad Income' });
+        bootChrome();
+        wireModal('entryModal');
+
+        const session = await requireAdmin();
+        if (!session) throw new Error('unauthorized');
+
+        let entries = [];
+        try { entries = await fetchAdIncomeAll(); }
+        catch (e) { console.error(e); toast('Failed to load ad income.', 'err'); }
+
+        document.getElementById('btnAdd').addEventListener('click', () => openEditor());
+        document.getElementById('btnExport').addEventListener('click', exportCsv);
+        document.getElementById('emSave').addEventListener('click', saveEntry);
+
+        render();
+
+        function render() {
+            const now = new Date();
+            const thisMonth = monthKey(now);
+            const lastDate = new Date(now); lastDate.setMonth(lastDate.getMonth() - 1);
+            const lastMonth = monthKey(lastDate);
+
+            const thisE = entries.find(e => e.id === thisMonth);
+            const lastE = entries.find(e => e.id === lastMonth);
+            const thisTotal = totalOf(thisE);
+            const lastTotal = totalOf(lastE);
+
+            document.getElementById('kThis').textContent = fmtInr(thisTotal);
+            document.getElementById('kLast').textContent = fmtInr(lastTotal);
+            const trailing12 = trailingSum(12, now);
+            const trailing24 = trailingSum(24, now);
+            document.getElementById('k12').textContent  = fmtInr(trailing12);
+            const allTotal = entries.reduce((a, e) => a + totalOf(e), 0);
+            document.getElementById('kAll').textContent = fmtInr(allTotal);
+
+            const dThis = document.getElementById('dThis');
+            if (lastTotal > 0) {
+                const pct = ((thisTotal - lastTotal) / lastTotal) * 100;
+                const up = pct >= 0;
+                dThis.className = 'kpi-delta ' + (up ? 'up' : 'down');
+                dThis.innerHTML = `<i class="fas fa-arrow-trend-${up ? 'up' : 'down'}"></i> ${pct.toFixed(1)}% vs last month`;
+            } else {
+                dThis.className = 'kpi-delta flat';
+                dThis.innerHTML = '<i class="fas fa-chart-line"></i> Log last month to compare';
+            }
+            const d12 = document.getElementById('d12');
+            if (trailing24 > trailing12) {
+                const pct = ((trailing12 - (trailing24 - trailing12)) / (trailing24 - trailing12)) * 100;
+                d12.innerHTML = `<i class="fas fa-arrow-trend-${pct >= 0 ? 'up' : 'down'}"></i> ${pct.toFixed(1)}% vs prior 12`;
+                d12.className = 'kpi-delta ' + (pct >= 0 ? 'up' : 'down');
+            }
+
+            // Chart last 12 months
+            const chartData = last12Months(now).map(m => {
+                const rec = entries.find(e => e.id === m);
+                return { label: monthLabel(m), value: totalOf(rec) };
+            });
+            barChart('#revChart', chartData, {
+                stroke: '#fbbf24',
+                fillTop: 'rgba(251,191,36,0.85)',
+                fillBot: 'rgba(251,191,36,0.15)',
+            });
+
+            // Format mix
+            const parts = [
+                { key: 'banner',       label: 'Banner ads',        cls: 'b' },
+                { key: 'interstitial', label: 'Interstitial ads',  cls: 'v' },
+                { key: 'rewarded',     label: 'Rewarded ads',      cls: 'g' },
+                { key: 'other',        label: 'Other formats',     cls: 'b' },
+            ];
+            const total = thisTotal || 1;
+            const fl = document.getElementById('formatList');
+            if (!thisE) {
+                fl.innerHTML = `<div class="empty-state">
+                    <div class="icon"><i class="fas fa-plus"></i></div>
+                    <h4>Log this month</h4>
+                    <p>Add today's month using the button above to see the breakdown.</p>
+                </div>`;
+            } else {
+                fl.innerHTML = parts.map(p => {
+                    const v = Number(thisE[p.key] || 0);
+                    const pct = (v / total) * 100;
+                    return `<div class="format-row">
+                        <span class="ico ${p.cls}"><i class="fas fa-${p.key === 'banner' ? 'rectangle-ad' : p.key === 'interstitial' ? 'window-restore' : p.key === 'rewarded' ? 'gift' : 'ellipsis'}"></i></span>
+                        <div class="label">${p.label}<div class="percent" style="text-align:left;">${pct.toFixed(1)}%</div></div>
+                        <div class="amount">${fmtInr(v)}</div>
+                    </div>`;
+                }).join('');
+            }
+
+            // Table
+            const body = document.getElementById('entriesBody');
+            if (entries.length === 0) {
+                body.innerHTML = `<tr><td colspan="7">
+                    <div class="empty-state">
+                        <div class="icon"><i class="fas fa-sack-dollar"></i></div>
+                        <h4>No entries yet</h4>
+                        <p>Click "Add / Edit month" to log revenue.</p>
+                    </div>
+                </td></tr>`;
+                return;
+            }
+            const sorted = [...entries].sort((a, b) => b.id.localeCompare(a.id));
+            body.innerHTML = sorted.map(e => `
+                <tr data-id="${e.id}">
+                    <td><b style="color:#fff">${monthLabel(e.id)}</b><br><span class="text-muted mono">${e.id}</span></td>
+                    <td class="mono">${fmtInr(Number(e.banner || 0))}</td>
+                    <td class="mono">${fmtInr(Number(e.interstitial || 0))}</td>
+                    <td class="mono">${fmtInr(Number(e.rewarded || 0))}</td>
+                    <td><b style="color:#fff">${fmtInr(totalOf(e))}</b></td>
+                    <td class="text-muted">${fmtDate(e.updatedAt)}</td>
+                    <td style="text-align:right">
+                        <button class="row-action" data-edit><i class="fas fa-pen"></i></button>
+                        <button class="row-action danger" data-del><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+            body.querySelectorAll('tr[data-id]').forEach(tr => {
+                const id = tr.dataset.id;
+                tr.querySelector('[data-edit]').addEventListener('click', () => openEditor(id));
+                tr.querySelector('[data-del]').addEventListener('click', () => removeEntry(id));
+            });
+        }
+
+        function openEditor(id) {
+            const now = new Date();
+            const monthValue = id || monthKey(now);
+            document.getElementById('fMonth').value = monthValue;
+            const existing = entries.find(e => e.id === monthValue) || {};
+            document.getElementById('fBanner').value = existing.banner || '';
+            document.getElementById('fInterstitial').value = existing.interstitial || '';
+            document.getElementById('fRewarded').value = existing.rewarded || '';
+            document.getElementById('fOther').value = existing.other || '';
+            document.getElementById('fNotes').value = existing.notes || '';
+            document.getElementById('emTitle').textContent = existing.id ? 'Edit month' : 'Log month revenue';
+            openModal('entryModal');
+        }
+
+        async function saveEntry() {
+            const monthValue = document.getElementById('fMonth').value;
+            if (!monthValue || !/^\d{4}-\d{2}$/.test(monthValue)) {
+                toast('Pick a valid month.', 'err');
+                return;
+            }
+            const banner        = Number(document.getElementById('fBanner').value || 0);
+            const interstitial  = Number(document.getElementById('fInterstitial').value || 0);
+            const rewarded      = Number(document.getElementById('fRewarded').value || 0);
+            const other         = Number(document.getElementById('fOther').value || 0);
+            const notes         = document.getElementById('fNotes').value.trim().slice(0, 500);
+            const total = banner + interstitial + rewarded + other;
+            try {
+                await saveAdIncome(monthValue, { banner, interstitial, rewarded, other, notes, total });
+                const existing = entries.find(e => e.id === monthValue);
+                if (existing) Object.assign(existing, { banner, interstitial, rewarded, other, notes, total, updatedAt: Date.now() });
+                else entries.push({ id: monthValue, banner, interstitial, rewarded, other, notes, total, updatedAt: Date.now() });
+                closeModal('entryModal');
+                toast('Saved.', 'ok');
+                render();
+            } catch (e) {
+                console.error(e); toast('Failed to save entry.', 'err');
+            }
+        }
+
+        async function removeEntry(id) {
+            if (!confirm(`Delete entry for ${monthLabel(id)}?`)) return;
+            try {
+                await deleteAdIncome(id);
+                entries = entries.filter(e => e.id !== id);
+                toast('Deleted.', 'ok');
+                render();
+            } catch (e) {
+                console.error(e); toast('Failed to delete.', 'err');
+            }
+        }
+
+        function exportCsv() {
+            const headers = ['month', 'banner', 'interstitial', 'rewarded', 'other', 'total', 'notes'];
+            const csv = [headers.join(',')].concat(entries.map(e =>
+                headers.map(h => csvCell(h === 'month' ? e.id : e[h])).join(','))).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `caratone-ad-income-${new Date().toISOString().slice(0, 10)}.csv`;
+            document.body.appendChild(a); a.click(); a.remove();
+            URL.revokeObjectURL(url);
+        }
+
+        function csvCell(v) {
+            const s = String(v ?? '');
+            if (/[",\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+            return s;
+        }
+
+        function totalOf(e) {
+            if (!e) return 0;
+            if (e.total != null) return Number(e.total) || 0;
+            return Number(e.banner || 0) + Number(e.interstitial || 0) + Number(e.rewarded || 0) + Number(e.other || 0);
+        }
+        function monthKey(d) {
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            return `${y}-${m}`;
+        }
+        function monthLabel(id) {
+            const [y, m] = id.split('-').map(Number);
+            return new Date(y, m - 1, 1).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+        }
+        function last12Months(now) {
+            const out = [];
+            const d = new Date(now); d.setDate(1); d.setMonth(d.getMonth() - 11);
+            for (let i = 0; i < 12; i++) {
+                out.push(monthKey(d));
+                d.setMonth(d.getMonth() + 1);
+            }
+            return out;
+        }
+        function trailingSum(n, now) {
+            const d = new Date(now); d.setDate(1); d.setMonth(d.getMonth() - n + 1);
+            const start = monthKey(d);
+            return entries
+                .filter(e => e.id >= start && e.id <= monthKey(now))
+                .reduce((a, e) => a + totalOf(e), 0);
+        }
+    </script>
+</body>
+</html>

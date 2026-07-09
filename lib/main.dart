@@ -3,7 +3,8 @@ import 'package:flutter/services.dart';
 
 import 'package:invoice_generator/constants/app_translations.dart';
 import 'package:flutter/foundation.dart'
-    show debugPrint, kIsWeb, defaultTargetPlatform, TargetPlatform;
+    show debugPrint, kIsWeb, defaultTargetPlatform, TargetPlatform,
+         FlutterError, FlutterErrorDetails;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:invoice_generator/viewmodels/sell_view_model.dart';
 import 'package:provider/provider.dart';
@@ -12,6 +13,7 @@ import 'views/auth/auth_wrapper.dart';
 import 'views/splash/splash_view.dart';
 import 'services/notification_service.dart';
 import 'services/ads_service.dart';
+import 'services/analytics_service.dart';
 import 'services/subscription_service.dart';
 import 'viewmodels/subscription_viewmodel.dart';
 import 'services/localization_service.dart';
@@ -98,10 +100,57 @@ Future<void> main() async {
   // The service is a no-op on web/desktop so this is safe everywhere.
   // ignore: unawaited_futures
   AdsService.instance.initialize();
+
+  // Product analytics — installs, sessions, feature use, crashes. Fire-and-
+  // forget so a network hiccup never delays the first frame. Feeds the
+  // /analytics/ RTDB path that the admin panel aggregates for the weekly
+  // performance report.
+  // ignore: unawaited_futures
+  AnalyticsService.instance.initialize();
+
+  // Ship uncaught Flutter errors as analytics crashes so the admin panel
+  // can surface the crash-free-rate signal without needing Crashlytics.
+  final previousOnError = FlutterError.onError;
+  FlutterError.onError = (FlutterErrorDetails details) {
+    previousOnError?.call(details);
+    // ignore: unawaited_futures
+    AnalyticsService.instance.logCrash(
+      details.exceptionAsString(),
+      stack: details.stack?.toString(),
+    );
+  };
 }
 
-class InvoiceApp extends StatelessWidget {
+class InvoiceApp extends StatefulWidget {
   const InvoiceApp({super.key});
+
+  @override
+  State<InvoiceApp> createState() => _InvoiceAppState();
+}
+
+class _InvoiceAppState extends State<InvoiceApp> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Log session end whenever the app is backgrounded or detached so
+    // the admin panel can compute avg-session-length. New sessions are
+    // stamped at cold start by AnalyticsService.initialize().
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
+      // ignore: unawaited_futures
+      AnalyticsService.instance.logSessionEnd();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

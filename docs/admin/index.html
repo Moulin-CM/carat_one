@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign in — Carat One Admin</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#0c1230">
+    <link rel="icon" type="image/png" sizes="48x48" href="../assets/img/favicon-48.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="../assets/img/favicon-192.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/admin.css">
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            position: relative;
+        }
+
+        .login-wrap {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: 1.05fr 1fr;
+            gap: 0;
+            width: 100%;
+            max-width: 980px;
+            min-height: 560px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+            border: 1px solid var(--line-strong);
+            border-radius: 28px;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.55);
+            overflow: hidden;
+            backdrop-filter: blur(24px) saturate(160%);
+            -webkit-backdrop-filter: blur(24px) saturate(160%);
+        }
+
+        /* Left — brand pane */
+        .login-brand {
+            position: relative;
+            padding: 44px 40px 40px;
+            color: #fff;
+            background:
+                radial-gradient(ellipse 90% 60% at 20% 0%, rgba(56,189,248,0.28), transparent 60%),
+                radial-gradient(ellipse 60% 50% at 100% 100%, rgba(167,139,250,0.28), transparent 60%),
+                linear-gradient(180deg, var(--bg-1), var(--bg-2));
+            border-right: 1px solid var(--line);
+            overflow: hidden;
+        }
+        .login-brand::after {
+            content: '';
+            position: absolute; inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+            background-size: 46px 46px;
+            mask-image: radial-gradient(ellipse 100% 90% at 30% 20%, #000 40%, transparent 90%);
+            -webkit-mask-image: radial-gradient(ellipse 100% 90% at 30% 20%, #000 40%, transparent 90%);
+            pointer-events: none;
+        }
+        .login-brand > * { position: relative; z-index: 1; }
+        .login-brand .brand {
+            display: inline-flex; align-items: center; gap: 12px;
+            padding: 0 0 22px;
+            border: none;
+        }
+        .login-brand h2 {
+            margin: 34px 0 12px;
+            font-size: 34px;
+            font-weight: 800;
+            letter-spacing: -1.4px;
+            line-height: 1.05;
+        }
+        .login-brand h2 .accent {
+            font-family: var(--serif);
+            font-style: italic;
+            font-weight: 400;
+            background: var(--grad-text);
+            background-size: 220% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: shimmer 8s linear infinite;
+        }
+        .login-brand p {
+            color: rgba(255,255,255,0.66);
+            font-size: 14.5px;
+            line-height: 1.6;
+            max-width: 340px;
+        }
+        .login-brand .points {
+            margin-top: 26px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .login-brand .points .point {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13.5px;
+            color: rgba(255,255,255,0.78);
+        }
+        .login-brand .points i {
+            width: 28px; height: 28px;
+            border-radius: 9px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid var(--line);
+            display: inline-flex; align-items: center; justify-content: center;
+            color: var(--accent);
+            font-size: 12px;
+        }
+
+        /* Floating decorative badge */
+        .badge-float {
+            position: absolute;
+            padding: 12px 16px;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid var(--line-strong);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+            display: inline-flex; align-items: center; gap: 10px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            animation: bfFloat 6s ease-in-out infinite;
+        }
+        .badge-float i {
+            width: 26px; height: 26px;
+            border-radius: 9px;
+            background: var(--grad-brand);
+            display: inline-flex; align-items: center; justify-content: center;
+            color: #fff;
+        }
+        .badge-float.bf-1 { bottom: 40px; right: -30px; }
+        .badge-float.bf-2 { top: 45%; right: 24px; animation-delay: 1.2s; }
+        @keyframes bfFloat {
+            0%, 100% { transform: translateY(0); }
+            50%      { transform: translateY(-10px); }
+        }
+
+        /* Right — form pane */
+        .login-form {
+            padding: 44px 40px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 22px;
+        }
+        .login-form h1 {
+            margin: 0;
+            color: #fff;
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -0.6px;
+        }
+        .login-form h1 .accent {
+            font-family: var(--serif);
+            font-style: italic;
+            font-weight: 400;
+            background: var(--grad-text);
+            background-size: 220% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: shimmer 8s linear infinite;
+        }
+        .login-form .lead {
+            color: rgba(255,255,255,0.6);
+            font-size: 13.5px;
+            margin: -14px 0 4px;
+        }
+        .password-wrap { position: relative; }
+        .password-wrap .toggle {
+            position: absolute;
+            right: 12px; top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            color: rgba(255,255,255,0.55);
+            font-size: 13px;
+            cursor: pointer;
+            padding: 6px;
+        }
+        .row-between {
+            display: flex; align-items: center; justify-content: space-between;
+            font-size: 12.5px;
+            color: rgba(255,255,255,0.65);
+        }
+        .row-between .check {
+            display: inline-flex; align-items: center; gap: 8px;
+        }
+        .row-between .check input {
+            width: 15px; height: 15px;
+            accent-color: var(--accent);
+        }
+        .row-between a { color: var(--accent); font-weight: 700; }
+        .login-form .btn-primary { justify-content: center; padding: 14px 22px; font-size: 14px; }
+
+        .form-alert {
+            display: none;
+            padding: 12px 14px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            background: rgba(239,68,68,0.14);
+            color: #fca5a5;
+            border: 1px solid rgba(239,68,68,0.35);
+            align-items: center; gap: 10px;
+        }
+        .form-alert.is-shown { display: flex; }
+        .form-alert.ok { background: rgba(16,185,129,0.14); color: #86efac; border-color: rgba(16,185,129,0.35); }
+
+        .foot-note {
+            color: rgba(255,255,255,0.4);
+            font-size: 11.5px;
+            text-align: center;
+            margin-top: 8px;
+        }
+        .foot-note a { color: rgba(255,255,255,0.6); }
+
+        @media (max-width: 860px) {
+            .login-wrap { grid-template-columns: 1fr; max-width: 460px; }
+            .login-brand { padding: 34px 28px; min-height: 220px; }
+            .login-brand .points { display: none; }
+            .badge-float { display: none; }
+            .login-form { padding: 32px 28px 34px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-wrap reveal">
+        <div class="login-brand">
+            <a class="brand" href="../index.html" title="Back to site">
+                <span class="brand-mark"><i class="fas fa-gem"></i></span>
+                <span class="brand-text">
+                    <b>Carat One</b>
+                    <span>Admin Console</span>
+                </span>
+            </a>
+            <h2>The command centre for your <span class="accent">Carat One</span> universe.</h2>
+            <p>Sign in with your admin credentials to manage users, review inquiries, and track weekly performance in one place.</p>
+            <div class="points">
+                <span class="point"><i class="fas fa-shield-halved"></i> Firebase Auth + rules-enforced access</span>
+                <span class="point"><i class="fas fa-bolt"></i> Real-time inquiries &amp; support tickets</span>
+                <span class="point"><i class="fas fa-chart-line"></i> Weekly performance &amp; ad income</span>
+            </div>
+            <span class="badge-float bf-1"><i class="fas fa-lock"></i> End-to-end secured</span>
+            <span class="badge-float bf-2"><i class="fas fa-eye"></i> Live inquiry feed</span>
+        </div>
+
+        <form class="login-form" id="loginForm" autocomplete="on" novalidate>
+            <h1>Welcome <span class="accent">back</span></h1>
+            <p class="lead">Sign in to access the admin dashboard.</p>
+
+            <div class="form-alert" id="formAlert">
+                <i class="fas fa-triangle-exclamation"></i>
+                <span id="formAlertMsg">Invalid credentials.</span>
+            </div>
+
+            <div class="field">
+                <label for="email">Work email</label>
+                <input id="email" name="email" type="email" required autocomplete="username"
+                       placeholder="you@caratone.app">
+            </div>
+            <div class="field">
+                <label for="password">Password</label>
+                <div class="password-wrap">
+                    <input id="password" name="password" type="password" required minlength="6"
+                           autocomplete="current-password" placeholder="••••••••">
+                    <button type="button" class="toggle" id="togglePw" aria-label="Show password">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+            </div>
+            <label class="row-between">
+                <span class="check">
+                    <input type="checkbox" id="remember" checked>
+                    <span>Keep me signed in on this device</span>
+                </span>
+            </label>
+
+            <button type="submit" class="btn btn-primary" id="submitBtn">
+                <i class="fas fa-arrow-right-to-bracket"></i>
+                <span>Sign in</span>
+            </button>
+
+            <p class="foot-note">
+                Trouble signing in? Contact
+                <a href="mailto:caratone62@gmail.com">caratone62@gmail.com</a>
+            </p>
+        </form>
+    </div>
+
+    <script type="module">
+        import {
+            auth, signInWithEmailAndPassword, setPersistence,
+            browserLocalPersistence, browserSessionPersistence,
+            db, ref, get, onAuthStateChanged
+        } from './assets/js/firebase.js';
+        import { bootChrome, toast } from './assets/js/ui.js';
+
+        bootChrome();
+
+        // Flash message from a previous redirect
+        const flash = sessionStorage.getItem('admin:flash');
+        if (flash) {
+            sessionStorage.removeItem('admin:flash');
+            showAlert(flash, 'err');
+        }
+
+        // Already signed in? Bounce to dashboard.
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) return;
+            try {
+                const snap = await get(ref(db, `admins/${user.uid}`));
+                if (snap.exists()) window.location.replace('dashboard.html');
+            } catch { /* ignore */ }
+        });
+
+        // Password visibility
+        const pw = document.getElementById('password');
+        const toggle = document.getElementById('togglePw');
+        toggle.addEventListener('click', () => {
+            const shown = pw.type === 'text';
+            pw.type = shown ? 'password' : 'text';
+            toggle.querySelector('i').className = shown ? 'fas fa-eye' : 'fas fa-eye-slash';
+            toggle.setAttribute('aria-label', shown ? 'Show password' : 'Hide password');
+        });
+
+        // Submit
+        const form = document.getElementById('loginForm');
+        const btn = document.getElementById('submitBtn');
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value.trim();
+            const password = pw.value;
+            const remember = document.getElementById('remember').checked;
+            if (!email || !password) {
+                showAlert('Please enter your email and password.', 'err');
+                return;
+            }
+            setLoading(true);
+            try {
+                await setPersistence(auth,
+                    remember ? browserLocalPersistence : browserSessionPersistence);
+                const cred = await signInWithEmailAndPassword(auth, email, password);
+                // Verify admin membership before continuing.
+                const snap = await get(ref(db, `admins/${cred.user.uid}`));
+                if (!snap.exists()) {
+                    await auth.signOut();
+                    showAlert('This account is not authorised to access the admin panel.', 'err');
+                    setLoading(false);
+                    return;
+                }
+                showAlert('Signed in. Redirecting…', 'ok');
+                setTimeout(() => window.location.replace('dashboard.html'), 350);
+            } catch (err) {
+                setLoading(false);
+                showAlert(mapAuthError(err), 'err');
+            }
+        });
+
+        function setLoading(on) {
+            btn.disabled = on;
+            btn.innerHTML = on
+                ? '<i class="fas fa-circle-notch fa-spin"></i><span>Signing in…</span>'
+                : '<i class="fas fa-arrow-right-to-bracket"></i><span>Sign in</span>';
+        }
+
+        function showAlert(msg, kind = 'err') {
+            const box = document.getElementById('formAlert');
+            box.classList.remove('ok');
+            if (kind === 'ok') box.classList.add('ok');
+            box.querySelector('#formAlertMsg').textContent = msg;
+            box.classList.add('is-shown');
+        }
+
+        function mapAuthError(err) {
+            const code = (err && err.code) || '';
+            switch (code) {
+                case 'auth/invalid-email':      return 'That email looks invalid.';
+                case 'auth/user-disabled':      return 'This account has been disabled.';
+                case 'auth/user-not-found':
+                case 'auth/wrong-password':
+                case 'auth/invalid-credential': return 'Incorrect email or password.';
+                case 'auth/too-many-requests':  return 'Too many attempts. Try again in a moment.';
+                case 'auth/network-request-failed': return 'Network error. Check your connection.';
+                default: return err.message || 'Unable to sign in. Please try again.';
+            }
+        }
+    </script>
+</body>
+</html>

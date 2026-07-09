@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website Inquiries — Carat One Admin</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#0c1230">
+    <link rel="icon" type="image/png" sizes="48x48" href="../assets/img/favicon-48.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/admin.css">
+    <style>
+        .filter-pills {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 4px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--line);
+            border-radius: 999px;
+        }
+        .filter-pill {
+            padding: 8px 16px;
+            border-radius: 999px;
+            font-size: 12.5px;
+            font-weight: 700;
+            color: rgba(255,255,255,0.65);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            transition: color .2s, background .2s;
+            display: inline-flex; align-items: center; gap: 8px;
+        }
+        .filter-pill:hover { color: #fff; }
+        .filter-pill.active {
+            background: linear-gradient(135deg, var(--primary-deep), var(--accent));
+            color: #fff;
+            box-shadow: 0 6px 18px rgba(56,189,248,0.35);
+        }
+        .filter-pill .count {
+            background: rgba(255,255,255,0.14);
+            padding: 1px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 800;
+        }
+        .filter-pill.active .count { background: rgba(255,255,255,0.24); }
+
+        .inquiry-grid {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 22px;
+            min-height: 640px;
+        }
+        .inquiry-list {
+            display: flex; flex-direction: column;
+            max-height: 640px;
+            overflow-y: auto;
+            border-radius: 16px;
+        }
+        .inquiry-item {
+            padding: 16px 18px;
+            border-bottom: 1px solid var(--line);
+            cursor: pointer;
+            transition: background .2s;
+            position: relative;
+        }
+        .inquiry-item:hover { background: rgba(255,255,255,0.03); }
+        .inquiry-item.active { background: linear-gradient(90deg, rgba(56,189,248,0.12), transparent 80%); }
+        .inquiry-item.active::before {
+            content: ''; position: absolute; left: 0; top: 12px; bottom: 12px; width: 3px;
+            background: var(--grad-brand); border-radius: 0 3px 3px 0;
+        }
+        .inquiry-item .row1 { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .inquiry-item .row1 b { color: #fff; font-weight: 700; font-size: 13.5px; }
+        .inquiry-item .row1 .when { color: rgba(255,255,255,0.5); font-size: 11.5px; }
+        .inquiry-item .row2 { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+        .inquiry-item .row2 .subj { color: rgba(255,255,255,0.75); font-size: 12.5px; font-weight: 600; }
+        .inquiry-item .row3 { color: rgba(255,255,255,0.5); font-size: 12px; margin-top: 6px; line-height: 1.4;
+                              overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+        .inquiry-item .unread-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 8px var(--accent);
+            display: inline-block;
+        }
+
+        .inquiry-detail {
+            padding: 24px 26px;
+            min-height: 640px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+        .detail-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+        .detail-head h3 { margin: 0; color: #fff; font-size: 20px; font-weight: 800; letter-spacing: -0.4px; }
+        .detail-head .sub { color: rgba(255,255,255,0.55); font-size: 13px; margin-top: 4px; }
+        .detail-meta {
+            display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px 22px;
+            padding: 16px 18px;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: rgba(255,255,255,0.02);
+        }
+        .detail-meta .m-lbl { color: rgba(255,255,255,0.5); font-size: 11.5px; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; }
+        .detail-meta .m-val { color: #fff; font-size: 13.5px; font-weight: 600; word-break: break-word; }
+        .detail-meta .m-val a { color: var(--accent); }
+        .detail-message {
+            padding: 20px;
+            border-radius: 16px;
+            background: linear-gradient(180deg, rgba(56,189,248,0.06), rgba(56,189,248,0.02));
+            border: 1px solid rgba(56,189,248,0.18);
+            color: rgba(255,255,255,0.9);
+            font-size: 14.5px;
+            line-height: 1.65;
+            white-space: pre-wrap;
+        }
+        .detail-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+        @media (max-width: 1024px) {
+            .inquiry-grid { grid-template-columns: 1fr; }
+            .inquiry-list { max-height: unset; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar"></aside>
+        <main class="main">
+            <header class="topbar"></header>
+            <section class="content">
+                <div class="section-head reveal">
+                    <div>
+                        <h2>Website inquiries</h2>
+                        <div class="sub">Messages sent through the contact form on caratone.com</div>
+                    </div>
+                    <div class="filter-pills" id="filterPills">
+                        <button class="filter-pill active" data-filter="all">All <span class="count" id="cAll">0</span></button>
+                        <button class="filter-pill" data-filter="new">New <span class="count" id="cNew">0</span></button>
+                        <button class="filter-pill" data-filter="in_progress">In progress <span class="count" id="cInp">0</span></button>
+                        <button class="filter-pill" data-filter="closed">Closed <span class="count" id="cCls">0</span></button>
+                    </div>
+                </div>
+
+                <div class="card reveal" style="padding: 0; overflow: hidden;">
+                    <div class="inquiry-grid">
+                        <div class="inquiry-list" id="inqList">
+                            <div class="skeleton" style="height:78px; margin: 8px;"></div>
+                            <div class="skeleton" style="height:78px; margin: 8px;"></div>
+                            <div class="skeleton" style="height:78px; margin: 8px;"></div>
+                        </div>
+                        <div class="inquiry-detail" id="inqDetail">
+                            <div class="empty-state" style="margin: auto;">
+                                <div class="icon"><i class="fas fa-envelope-open-text"></i></div>
+                                <h4>Select an inquiry</h4>
+                                <p>Pick a message on the left to view details and reply.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script type="module">
+        import { renderSidebar, renderTopbar } from './assets/js/shell.js';
+        import { requireAdmin } from './assets/js/auth-guard.js';
+        import { bootChrome, toast, fmtDateTime, relTime, initials, pickAvatarClass } from './assets/js/ui.js';
+        import { subscribeInquiries, updateInquiry, deleteInquiry } from './assets/js/data.js';
+
+        renderSidebar('inquiries');
+        renderTopbar({ title: 'Website Inquiries' });
+        bootChrome();
+
+        const session = await requireAdmin();
+        if (!session) throw new Error('unauthorized');
+
+        let inquiries = [];
+        let selectedId = null;
+        let currentFilter = 'all';
+
+        document.querySelectorAll('.filter-pill').forEach(p => {
+            p.addEventListener('click', () => {
+                currentFilter = p.dataset.filter;
+                document.querySelectorAll('.filter-pill').forEach(x => x.classList.remove('active'));
+                p.classList.add('active');
+                renderList();
+            });
+        });
+
+        subscribeInquiries((list) => {
+            inquiries = list;
+            updateCounts();
+            renderList();
+            if (selectedId && !inquiries.some(i => i.id === selectedId)) {
+                selectedId = null;
+                renderDetail();
+            } else if (selectedId) {
+                renderDetail();
+            }
+        });
+
+        function updateCounts() {
+            const c = { all: inquiries.length, new: 0, in_progress: 0, closed: 0 };
+            for (const i of inquiries) {
+                const s = i.status || 'new';
+                if (c[s] !== undefined) c[s]++;
+            }
+            document.getElementById('cAll').textContent = c.all;
+            document.getElementById('cNew').textContent = c.new;
+            document.getElementById('cInp').textContent = c.in_progress;
+            document.getElementById('cCls').textContent = c.closed;
+        }
+
+        function renderList() {
+            const rows = inquiries.filter(i =>
+                currentFilter === 'all' ? true : (i.status || 'new') === currentFilter);
+            const list = document.getElementById('inqList');
+            if (rows.length === 0) {
+                list.innerHTML = `<div class="empty-state" style="margin: auto;">
+                    <div class="icon"><i class="fas fa-inbox"></i></div>
+                    <h4>Inbox zero</h4>
+                    <p>No inquiries in this bucket.</p>
+                </div>`;
+                return;
+            }
+            list.innerHTML = rows.map(i => {
+                const isNew = (i.status || 'new') === 'new';
+                const isActive = i.id === selectedId;
+                return `<div class="inquiry-item ${isActive ? 'active' : ''}" data-id="${i.id}">
+                    <div class="row1">
+                        <b>${esc(i.name || 'Anonymous')}</b>
+                        <span class="when">${relTime(i.createdAt)}</span>
+                    </div>
+                    <div class="row2">
+                        ${isNew ? '<span class="unread-dot" title="new"></span>' : ''}
+                        <span class="subj">${esc(i.subject || '(no subject)')}</span>
+                    </div>
+                    <div class="row3">${esc((i.message || '').slice(0, 220))}</div>
+                </div>`;
+            }).join('');
+            list.querySelectorAll('.inquiry-item').forEach(el => {
+                el.addEventListener('click', () => selectInquiry(el.dataset.id));
+            });
+        }
+
+        async function selectInquiry(id) {
+            selectedId = id;
+            renderList();
+            renderDetail();
+            const i = inquiries.find(x => x.id === id);
+            if (!i) return;
+            if ((i.status || 'new') === 'new') {
+                try {
+                    await updateInquiry(id, { status: 'in_progress', openedAt: Date.now(), openedBy: session.user.uid });
+                } catch (e) { console.warn(e); }
+            }
+        }
+
+        function renderDetail() {
+            const el = document.getElementById('inqDetail');
+            const i = inquiries.find(x => x.id === selectedId);
+            if (!i) {
+                el.innerHTML = `<div class="empty-state" style="margin: auto;">
+                    <div class="icon"><i class="fas fa-envelope-open-text"></i></div>
+                    <h4>Select an inquiry</h4>
+                    <p>Pick a message on the left to view details and reply.</p>
+                </div>`;
+                return;
+            }
+            const status = i.status || 'new';
+            const chipClass = status === 'new' ? 'info' : status === 'in_progress' ? 'warn' : 'ok';
+            const chipText = { new: 'New', in_progress: 'In progress', closed: 'Closed' }[status] || status;
+            const mailBody = encodeURIComponent(`Hi ${i.name || ''},\n\nThanks for reaching out to Carat One.\n\n— Team Carat One`);
+            const mailSubject = encodeURIComponent(`Re: ${i.subject || 'Your inquiry'}`);
+            const mailto = i.email
+                ? `mailto:${encodeURIComponent(i.email)}?subject=${mailSubject}&body=${mailBody}`
+                : null;
+            el.innerHTML = `
+                <div class="detail-head">
+                    <div>
+                        <div class="avatar-cell" style="align-items:flex-start;">
+                            <span class="avatar ${pickAvatarClass(i.name || i.email || '')}">${initials(i.name || i.email || '?')}</span>
+                            <div>
+                                <h3>${esc(i.subject || '(no subject)')}</h3>
+                                <div class="sub">
+                                    From <b style="color:#fff">${esc(i.name || 'Anonymous')}</b>
+                                    · ${fmtDateTime(i.createdAt)}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div><span class="chip ${chipClass}"><span class="dot"></span> ${chipText}</span></div>
+                </div>
+
+                <div class="detail-meta">
+                    <div>
+                        <div class="m-lbl">Email</div>
+                        <div class="m-val">${i.email ? `<a href="mailto:${esc(i.email)}">${esc(i.email)}</a>` : '—'}</div>
+                    </div>
+                    <div>
+                        <div class="m-lbl">Phone</div>
+                        <div class="m-val">${i.phone ? `<a href="tel:${esc(i.phone)}">${esc(i.phone)}</a>` : '—'}</div>
+                    </div>
+                    <div>
+                        <div class="m-lbl">Reason</div>
+                        <div class="m-val">${esc(i.subject || '—')}</div>
+                    </div>
+                    <div>
+                        <div class="m-lbl">Referrer</div>
+                        <div class="m-val">${esc(i.referrer || '—')}</div>
+                    </div>
+                </div>
+
+                <div class="detail-message">${esc(i.message || '')}</div>
+
+                <div class="detail-actions">
+                    ${mailto ? `<a class="btn btn-primary" href="${mailto}"><i class="fas fa-reply"></i> Reply via email</a>` : ''}
+                    <button class="btn" id="btnMarkClosed" ${status === 'closed' ? 'disabled' : ''}>
+                        <i class="fas fa-check"></i> Mark as closed
+                    </button>
+                    <button class="btn" id="btnMarkNew" ${status === 'new' ? 'disabled' : ''}>
+                        <i class="fas fa-rotate-left"></i> Mark as new
+                    </button>
+                    <button class="btn btn-danger" id="btnDelete">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+            `;
+            const q = (id) => el.querySelector(id);
+            q('#btnMarkClosed').addEventListener('click', async () => {
+                try { await updateInquiry(i.id, { status: 'closed', closedAt: Date.now(), closedBy: session.user.uid }); toast('Marked as closed.', 'ok'); }
+                catch (e) { console.error(e); toast('Failed to update status.', 'err'); }
+            });
+            q('#btnMarkNew').addEventListener('click', async () => {
+                try { await updateInquiry(i.id, { status: 'new' }); toast('Reopened.', 'ok'); }
+                catch (e) { console.error(e); toast('Failed to update status.', 'err'); }
+            });
+            q('#btnDelete').addEventListener('click', async () => {
+                if (!confirm('Delete this inquiry? This cannot be undone.')) return;
+                try {
+                    await deleteInquiry(i.id);
+                    selectedId = null;
+                    toast('Inquiry deleted.', 'ok');
+                } catch (e) { console.error(e); toast('Failed to delete.', 'err'); }
+            });
+        }
+
+        function esc(s) {
+            return String(s ?? '').replace(/[&<>"']/g, c =>
+                ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+    </script>
+</body>
+</html>

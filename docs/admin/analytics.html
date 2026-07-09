@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics — Carat One Admin</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#0c1230">
+    <link rel="icon" type="image/png" sizes="48x48" href="../assets/img/favicon-48.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/admin.css">
+    <style>
+        .range-pills {
+            display: inline-flex; gap: 4px;
+            padding: 4px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--line);
+            border-radius: 999px;
+        }
+        .range-pills button {
+            padding: 8px 14px;
+            border-radius: 999px;
+            border: none;
+            background: transparent;
+            color: rgba(255,255,255,0.65);
+            font-weight: 700;
+            font-size: 12.5px;
+            cursor: pointer;
+            transition: color .2s, background .2s;
+        }
+        .range-pills button:hover { color: #fff; }
+        .range-pills button.active {
+            background: linear-gradient(135deg, var(--primary-deep), var(--accent));
+            color: #fff;
+            box-shadow: 0 6px 18px rgba(56,189,248,0.35);
+        }
+        .perf-row {
+            display: grid; grid-template-columns: 1fr auto; gap: 8px;
+            padding: 12px 0; border-bottom: 1px dashed var(--line);
+        }
+        .perf-row:last-child { border-bottom: none; }
+        .perf-row b { color: #fff; font-weight: 700; font-size: 13.5px; display: block; }
+        .perf-row .sub { color: rgba(255,255,255,0.55); font-size: 12px; margin-top: 2px; }
+        .perf-row .val { color: #fff; font-weight: 800; font-size: 18px; letter-spacing: -0.3px; text-align: right; align-self: center; }
+        .perf-row .val small { color: rgba(255,255,255,0.55); font-size: 11.5px; font-weight: 700; margin-left: 4px; }
+
+        .feature-bar {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 0;
+        }
+        .feature-bar .label { flex: 1; font-size: 13.5px; color: #fff; font-weight: 600; }
+        .feature-bar .rail {
+            flex: 2; height: 8px; border-radius: 999px;
+            background: rgba(255,255,255,0.05);
+            overflow: hidden;
+        }
+        .feature-bar .fill {
+            height: 100%; border-radius: 999px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+        }
+        .feature-bar .n { min-width: 40px; text-align: right; color: rgba(255,255,255,0.75); font-weight: 700; font-size: 13px; }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar"></aside>
+        <main class="main">
+            <header class="topbar"></header>
+            <section class="content">
+                <div class="section-head reveal">
+                    <div>
+                        <h2>Analytics &amp; performance</h2>
+                        <div class="sub" id="rangeSub">Rolling 7-day view of installs, sessions and health signals.</div>
+                    </div>
+                    <div class="range-pills" id="rangePills">
+                        <button data-range="7" class="active">7 days</button>
+                        <button data-range="14">14 days</button>
+                        <button data-range="30">30 days</button>
+                    </div>
+                </div>
+
+                <div class="kpi-grid">
+                    <div class="kpi-card tint-blue reveal">
+                        <div class="kpi-label"><span class="icon"><i class="fas fa-download"></i></span> Installs</div>
+                        <div class="kpi-value" id="kInstalls">—</div>
+                        <span class="kpi-delta flat" id="dInstalls">—</span>
+                    </div>
+                    <div class="kpi-card tint-cyan reveal">
+                        <div class="kpi-label"><span class="icon"><i class="fas fa-play"></i></span> Sessions</div>
+                        <div class="kpi-value" id="kSessions">—</div>
+                        <span class="kpi-delta flat" id="dSessions">—</span>
+                    </div>
+                    <div class="kpi-card tint-violet reveal">
+                        <div class="kpi-label"><span class="icon"><i class="fas fa-user-check"></i></span> Active users</div>
+                        <div class="kpi-value" id="kActive">—</div>
+                        <span class="kpi-delta flat" id="dActive">—</span>
+                    </div>
+                    <div class="kpi-card tint-rose reveal">
+                        <div class="kpi-label"><span class="icon"><i class="fas fa-triangle-exclamation"></i></span> Crashes</div>
+                        <div class="kpi-value" id="kCrashes">—</div>
+                        <span class="kpi-delta flat" id="dCrashes">—</span>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card reveal">
+                        <div class="card-head">
+                            <div>
+                                <h3>Installs vs Sessions</h3>
+                                <span class="hint" id="chartHint">Daily trend</span>
+                            </div>
+                            <div class="chart-legend">
+                                <span><span class="dot" style="background:#38bdf8"></span> Installs</span>
+                                <span><span class="dot" style="background:#a78bfa"></span> Sessions</span>
+                            </div>
+                        </div>
+                        <div class="chart-box"><svg id="mainChart" width="100%" height="100%"></svg></div>
+                    </div>
+                    <div class="card reveal">
+                        <div class="card-head">
+                            <h3>Performance signals</h3>
+                            <span class="hint">Aggregated from client events</span>
+                        </div>
+                        <div class="perf-row">
+                            <div><b>Avg. session length</b><span class="sub">Time spent in-app per session</span></div>
+                            <div class="val" id="pSessLen">—<small>min</small></div>
+                        </div>
+                        <div class="perf-row">
+                            <div><b>Crash-free rate</b><span class="sub">Sessions without a reported crash</span></div>
+                            <div class="val" id="pCrashFree">—<small>%</small></div>
+                        </div>
+                        <div class="perf-row">
+                            <div><b>Purchases</b><span class="sub">In-app subscriptions confirmed</span></div>
+                            <div class="val" id="pPurchases">—</div>
+                        </div>
+                        <div class="perf-row">
+                            <div><b>Retention (D7)</b><span class="sub">% of new users returning by day 7</span></div>
+                            <div class="val" id="pRetention">—<small>%</small></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card reveal">
+                        <div class="card-head">
+                            <h3>Daily active users</h3>
+                            <span class="hint">Unique users signed in</span>
+                        </div>
+                        <div class="chart-box"><svg id="dauChart" width="100%" height="100%"></svg></div>
+                    </div>
+                    <div class="card reveal">
+                        <div class="card-head">
+                            <h3>Top features used</h3>
+                            <span class="hint">Event count by feature</span>
+                        </div>
+                        <div id="featList">
+                            <div class="skeleton" style="height:34px; margin: 8px 0;"></div>
+                            <div class="skeleton" style="height:34px; margin: 8px 0;"></div>
+                            <div class="skeleton" style="height:34px; margin: 8px 0;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card reveal">
+                    <div class="card-head">
+                        <h3>Weekly performance report</h3>
+                        <button class="btn btn-sm" id="downloadReport"><i class="fas fa-download"></i> Download CSV</button>
+                    </div>
+                    <div class="table-wrap" style="border: none;">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Day</th>
+                                    <th>Installs</th>
+                                    <th>Sessions</th>
+                                    <th>Active users</th>
+                                    <th>Features used</th>
+                                    <th>Crashes</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reportBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script type="module">
+        import { renderSidebar, renderTopbar } from './assets/js/shell.js';
+        import { requireAdmin } from './assets/js/auth-guard.js';
+        import { bootChrome, toast, fmtNum } from './assets/js/ui.js';
+        import { lineChart, barChart } from './assets/js/charts.js';
+        import { fetchAnalyticsRange, rollupDaily, fmtDay } from './assets/js/data.js';
+
+        renderSidebar('analytics');
+        renderTopbar({ title: 'Analytics' });
+        bootChrome();
+
+        const session = await requireAdmin();
+        if (!session) throw new Error('unauthorized');
+
+        let currentDays = 7;
+        let currentRollup = [];
+        let currentEvents = []; // flat list for feature/purchase counts
+
+        document.querySelectorAll('#rangePills button').forEach(b => {
+            b.addEventListener('click', () => {
+                document.querySelectorAll('#rangePills button').forEach(x => x.classList.remove('active'));
+                b.classList.add('active');
+                currentDays = Number(b.dataset.range);
+                load();
+            });
+        });
+        document.getElementById('downloadReport').addEventListener('click', downloadCsv);
+
+        await load();
+
+        async function load() {
+            document.getElementById('rangeSub').textContent =
+                `Rolling ${currentDays}-day view of installs, sessions and health signals.`;
+            document.getElementById('chartHint').textContent =
+                `Daily trend · last ${currentDays} days`;
+
+            try {
+                const now = new Date();
+                const start = new Date(now); start.setDate(start.getDate() - (currentDays - 1));
+                const buckets = await fetchAnalyticsRange(start, now);
+
+                // Previous period for delta comparison
+                const prevEnd = new Date(start); prevEnd.setDate(prevEnd.getDate() - 1);
+                const prevStart = new Date(prevEnd); prevStart.setDate(prevStart.getDate() - (currentDays - 1));
+                const prevBuckets = await fetchAnalyticsRange(prevStart, prevEnd);
+
+                currentRollup = rollupDaily(buckets);
+                const prevRollup = rollupDaily(prevBuckets);
+                currentEvents = buckets.flatMap(b => b.events);
+
+                paintKpis(currentRollup, prevRollup);
+                paintCharts(currentRollup);
+                paintPerformance(currentRollup, currentEvents);
+                paintFeatures(currentEvents);
+                paintReport(currentRollup);
+            } catch (e) {
+                console.error(e);
+                toast('Failed to load analytics.', 'err');
+            }
+        }
+
+        function paintKpis(rollup, prev) {
+            const sum = (arr, k) => arr.reduce((a, x) => a + (x[k] || 0), 0);
+            const maxDau = arr => arr.reduce((m, x) => Math.max(m, x.activeUsers || 0), 0);
+
+            const installs = sum(rollup, 'installs');
+            const sessions = sum(rollup, 'sessions');
+            const active = maxDau(rollup);
+            const crashes = sum(rollup, 'crashes');
+
+            const pInstalls = sum(prev, 'installs');
+            const pSessions = sum(prev, 'sessions');
+            const pActive = maxDau(prev);
+            const pCrashes = sum(prev, 'crashes');
+
+            document.getElementById('kInstalls').textContent = fmtNum(installs);
+            document.getElementById('kSessions').textContent = fmtNum(sessions);
+            document.getElementById('kActive').textContent = fmtNum(active);
+            document.getElementById('kCrashes').textContent = fmtNum(crashes);
+
+            setDelta('dInstalls', installs, pInstalls, false);
+            setDelta('dSessions', sessions, pSessions, false);
+            setDelta('dActive', active, pActive, false);
+            setDelta('dCrashes', crashes, pCrashes, true /* lower is better */);
+        }
+
+        function setDelta(id, cur, prev, lowerIsBetter) {
+            const el = document.getElementById(id);
+            if (prev === 0 && cur === 0) {
+                el.className = 'kpi-delta flat';
+                el.innerHTML = '<i class="fas fa-minus"></i> No data yet';
+                return;
+            }
+            if (prev === 0) {
+                el.className = 'kpi-delta up';
+                el.innerHTML = `<i class="fas fa-arrow-trend-up"></i> First data`;
+                return;
+            }
+            const pct = ((cur - prev) / prev) * 100;
+            const up = pct >= 0;
+            const good = lowerIsBetter ? !up : up;
+            el.className = 'kpi-delta ' + (good ? 'up' : 'down');
+            el.innerHTML = `<i class="fas fa-arrow-trend-${up ? 'up' : 'down'}"></i> ${pct.toFixed(1)}% vs previous`;
+        }
+
+        function paintCharts(rollup) {
+            const shortLabel = d => new Date(d + 'T00:00').toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+            const installs = rollup.map(r => ({ label: shortLabel(r.day), value: r.installs }));
+            const sessions = rollup.map(r => ({ label: shortLabel(r.day), value: r.sessions }));
+            const dau      = rollup.map(r => ({ label: shortLabel(r.day), value: r.activeUsers }));
+
+            // Combined chart: installs area + sessions line overlay
+            drawCombined('#mainChart', installs, sessions);
+            barChart('#dauChart', dau, { stroke: '#a78bfa', fillTop: 'rgba(167,139,250,0.85)', fillBot: 'rgba(167,139,250,0.15)' });
+        }
+
+        function drawCombined(sel, aData, bData) {
+            const svg = document.querySelector(sel);
+            if (!svg) return;
+            const w = svg.clientWidth || 640;
+            const h = svg.clientHeight || 260;
+            const padL = 42, padR = 14, padT = 18, padB = 30;
+            const iw = w - padL - padR, ih = h - padT - padB;
+            const allVals = aData.map(d => d.value).concat(bData.map(d => d.value));
+            const max = Math.max(...allVals, 1);
+            const step = aData.length > 1 ? iw / (aData.length - 1) : iw;
+
+            const path = (data, fn) => data.map((d, i) => {
+                const x = padL + i * step;
+                const y = padT + ih - (d.value / max) * ih;
+                return `${i ? 'L' : 'M'}${x.toFixed(1)},${y.toFixed(1)}`;
+            }).join(' ');
+
+            const areaPath = (data) => {
+                const p = data.map((d, i) => {
+                    const x = padL + i * step;
+                    const y = padT + ih - (d.value / max) * ih;
+                    return `${i ? 'L' : 'M'}${x.toFixed(1)},${y.toFixed(1)}`;
+                }).join(' ');
+                return `${p} L${(padL + (data.length - 1) * step).toFixed(1)},${padT + ih} L${padL.toFixed(1)},${padT + ih} Z`;
+            };
+
+            const gridY = [0, 0.25, 0.5, 0.75, 1].map(t => padT + ih * t);
+            const grid = gridY.map(y =>
+                `<line x1="${padL}" x2="${w - padR}" y1="${y}" y2="${y}" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>`).join('');
+            const yTicks = [0, 0.5, 1].map(t => {
+                const v = max * (1 - t);
+                return `<text x="${padL - 8}" y="${padT + ih * t + 4}" fill="rgba(255,255,255,0.5)" font-size="10" text-anchor="end" font-family="Plus Jakarta Sans">${Math.round(v)}</text>`;
+            }).join('');
+            const xTicks = aData.map((d, i) => {
+                if (aData.length > 12 && i % Math.ceil(aData.length / 8) !== 0) return '';
+                return `<text x="${padL + i * step}" y="${h - 10}" fill="rgba(255,255,255,0.5)" font-size="10" text-anchor="middle" font-family="Plus Jakarta Sans">${d.label}</text>`;
+            }).join('');
+
+            const gA = 'a' + Math.random().toString(36).slice(2, 8);
+            svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+            svg.innerHTML = `
+                <defs>
+                    <linearGradient id="${gA}" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="rgba(56,189,248,0.42)"/>
+                        <stop offset="100%" stop-color="rgba(56,189,248,0.02)"/>
+                    </linearGradient>
+                </defs>
+                ${grid}
+                ${yTicks}
+                <path d="${areaPath(aData)}" fill="url(#${gA})"/>
+                <path d="${path(aData)}" fill="none" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="${path(bData)}" fill="none" stroke="#a78bfa" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="6 6"/>
+                ${xTicks}`;
+        }
+
+        function paintPerformance(rollup, events) {
+            const totalSessions = rollup.reduce((a, r) => a + r.sessions, 0);
+            const totalCrashes = rollup.reduce((a, r) => a + r.crashes, 0);
+            const crashFree = totalSessions === 0 ? 100 : Math.max(0, 100 - (totalCrashes / totalSessions) * 100);
+            document.getElementById('pCrashFree').innerHTML = `${crashFree.toFixed(2)}<small>%</small>`;
+
+            // Avg session length from session_end events with duration
+            const durations = events
+                .filter(e => e.type === 'session_end' && Number(e.extras?.duration))
+                .map(e => Number(e.extras.duration));
+            const avg = durations.length === 0 ? 0 : durations.reduce((a, b) => a + b, 0) / durations.length;
+            document.getElementById('pSessLen').innerHTML = `${(avg / 60).toFixed(1)}<small>min</small>`;
+
+            const purchases = events.filter(e => e.type === 'purchase').length;
+            document.getElementById('pPurchases').innerHTML = fmtNum(purchases);
+
+            // D7 retention: users installed at day 0 who had a session ≥7 days later
+            const installEvents = events.filter(e => e.type === 'install' && e.uid && e.at);
+            const activeByUid = new Map();
+            for (const e of events) {
+                if (!e.uid) continue;
+                const set = activeByUid.get(e.uid) || new Set();
+                set.add(fmtDay(new Date(e.at || 0)));
+                activeByUid.set(e.uid, set);
+            }
+            let retained = 0;
+            for (const ie of installEvents) {
+                const targets = new Set();
+                for (let i = 5; i <= 9; i++) {
+                    const d = new Date(ie.at); d.setDate(d.getDate() + i);
+                    targets.add(fmtDay(d));
+                }
+                const active = activeByUid.get(ie.uid);
+                if (active && [...targets].some(t => active.has(t))) retained++;
+            }
+            const ret = installEvents.length === 0 ? 0 : (retained / installEvents.length) * 100;
+            document.getElementById('pRetention').innerHTML = `${ret.toFixed(1)}<small>%</small>`;
+        }
+
+        function paintFeatures(events) {
+            const counts = new Map();
+            for (const e of events) {
+                if (e.type !== 'feature') continue;
+                const name = e.extras?.name || e.name || 'unknown';
+                counts.set(name, (counts.get(name) || 0) + 1);
+            }
+            const rows = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8);
+            const el = document.getElementById('featList');
+            if (rows.length === 0) {
+                el.innerHTML = `<div class="empty-state">
+                    <div class="icon"><i class="fas fa-chart-column"></i></div>
+                    <h4>No feature events yet</h4>
+                    <p>Wire AnalyticsService.logFeature() in the Flutter app to see this.</p>
+                </div>`;
+                return;
+            }
+            const max = rows[0][1];
+            el.innerHTML = rows.map(([name, count]) => `
+                <div class="feature-bar">
+                    <div class="label">${escapeHtml(name)}</div>
+                    <div class="rail"><div class="fill" style="width: ${(count / max) * 100}%"></div></div>
+                    <div class="n">${fmtNum(count)}</div>
+                </div>
+            `).join('');
+        }
+
+        function paintReport(rollup) {
+            const el = document.getElementById('reportBody');
+            el.innerHTML = rollup.map(r => `
+                <tr>
+                    <td><b>${new Date(r.day + 'T00:00').toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' })}</b></td>
+                    <td>${fmtNum(r.installs)}</td>
+                    <td>${fmtNum(r.sessions)}</td>
+                    <td>${fmtNum(r.activeUsers)}</td>
+                    <td>${fmtNum(r.features)}</td>
+                    <td>${r.crashes > 0 ? `<span class="chip err"><span class="dot"></span> ${r.crashes}</span>` : `<span class="text-muted">0</span>`}</td>
+                </tr>`).join('');
+        }
+
+        function downloadCsv() {
+            const headers = ['day', 'installs', 'sessions', 'activeUsers', 'features', 'crashes'];
+            const csv = [headers.join(',')].concat(currentRollup.map(r =>
+                headers.map(h => r[h]).join(','))).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `caratone-performance-${new Date().toISOString().slice(0, 10)}.csv`;
+            document.body.appendChild(a); a.click(); a.remove();
+            URL.revokeObjectURL(url);
+        }
+
+        function escapeHtml(s) {
+            return String(s ?? '').replace(/[&<>"']/g, c =>
+                ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+    </script>
+</body>
+</html>

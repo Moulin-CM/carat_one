@@ -1,0 +1,115 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "admins": {
+      ".read":  "auth != null && root.child('admins').child(auth.uid).exists()",
+      ".write": "auth != null && root.child('admins').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('role').val() === 'owner'",
+      "$uid": {
+        ".validate": "newData.hasChildren(['name', 'role']) && newData.child('role').val().matches(/^(owner|admin|analyst)$/)"
+      }
+    },
+
+    "users": {
+      ".read":  "auth != null && root.child('admins').child(auth.uid).exists()",
+      "$uid": {
+        ".read":  "auth != null && (auth.uid === $uid || root.child('admins').child(auth.uid).exists())",
+        ".write": "auth != null && (auth.uid === $uid || root.child('admins').child(auth.uid).exists())"
+      }
+    },
+
+    "website_inquiries": {
+      ".read":  "auth != null && root.child('admins').child(auth.uid).exists()",
+      "$inquiryId": {
+        ".read":  "auth != null && (root.child('admins').child(auth.uid).exists())",
+        ".write": "auth != null && (root.child('admins').child(auth.uid).exists() || (!data.exists() && newData.exists()))",
+        ".validate": "newData.hasChildren(['name', 'email', 'subject', 'message', 'createdAt'])",
+        "name":      { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 80" },
+        "email":     { ".validate": "newData.isString() && newData.val().matches(/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/) && newData.val().length <= 120" },
+        "phone":     { ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 24)" },
+        "subject":   { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 80" },
+        "message":   { ".validate": "newData.isString() && newData.val().length >= 10 && newData.val().length <= 2000" },
+        "status":    { ".validate": "!newData.exists() || newData.val().matches(/^(new|in_progress|closed)$/)" },
+        "source":    { ".validate": "!newData.exists() || newData.isString()" },
+        "page":      { ".validate": "!newData.exists() || newData.isString()" },
+        "referrer":  { ".validate": "!newData.exists() || newData.isString()" },
+        "userAgent": { ".validate": "!newData.exists() || newData.isString()" },
+        "createdAt":       { ".validate": "newData.isNumber()" },
+        "createdAtServer": { ".validate": "!newData.exists() || newData.isNumber()" },
+        "openedAt":  { ".validate": "!newData.exists() || newData.isNumber()" },
+        "openedBy":  { ".validate": "!newData.exists() || newData.isString()" },
+        "closedAt":  { ".validate": "!newData.exists() || newData.isNumber()" },
+        "closedBy":  { ".validate": "!newData.exists() || newData.isString()" },
+        "$other":    { ".validate": false }
+      }
+    },
+
+    "support_tickets": {
+      ".read":  "auth != null && root.child('admins').child(auth.uid).exists()",
+      "$ticketId": {
+        ".read":  "auth != null && (root.child('admins').child(auth.uid).exists() || (data.exists() && data.child('uid').val() === auth.uid))",
+        ".write": "auth != null && (root.child('admins').child(auth.uid).exists() || (!data.exists() && newData.child('uid').val() === auth.uid) || (data.exists() && data.child('uid').val() === auth.uid))",
+        "uid":     { ".validate": "newData.isString() && newData.val() === auth.uid || root.child('admins').child(auth.uid).exists()" },
+        "email":   { ".validate": "!newData.exists() || newData.isString()" },
+        "userName":{ ".validate": "!newData.exists() || newData.isString()" },
+        "subject": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 120" },
+        "category":{ ".validate": "!newData.exists() || newData.isString()" },
+        "message": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 4000" },
+        "status":  { ".validate": "!newData.exists() || newData.val().matches(/^(open|closed)$/)" },
+        "createdAt": { ".validate": "newData.isNumber()" },
+        "closedAt":  { ".validate": "!newData.exists() || newData.isNumber()" },
+        "closedBy":  { ".validate": "!newData.exists() || newData.isString()" },
+        "reopenedAt":{ ".validate": "!newData.exists() || newData.isNumber()" },
+        "reopenedBy":{ ".validate": "!newData.exists() || newData.isString()" },
+        "lastReplyAt": { ".validate": "!newData.exists() || newData.isNumber()" },
+        "lastReplyBy": { ".validate": "!newData.exists() || newData.val().matches(/^(admin|user)$/)" },
+        "replies": {
+          "$replyId": {
+            "by":        { ".validate": "newData.val().matches(/^(admin|user)$/)" },
+            "adminUid":  { ".validate": "!newData.exists() || newData.isString()" },
+            "adminName": { ".validate": "!newData.exists() || newData.isString()" },
+            "message":   { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 4000" },
+            "createdAt": { ".validate": "newData.isNumber()" },
+            "$other":    { ".validate": false }
+          }
+        },
+        "$other":  { ".validate": false }
+      }
+    },
+
+    "analytics": {
+      ".read":  "auth != null && root.child('admins').child(auth.uid).exists()",
+      "$day": {
+        ".indexOn": ["at", "type", "uid"],
+        "$eventId": {
+          ".write": "auth != null && !data.exists() && newData.exists() && newData.child('type').isString() && newData.child('at').isNumber()",
+          ".validate": "newData.hasChildren(['type', 'at'])",
+          "type":   { ".validate": "newData.val().matches(/^(install|session_start|session_end|feature|crash|purchase)$/)" },
+          "uid":    { ".validate": "!newData.exists() || newData.isString()" },
+          "at":     { ".validate": "newData.isNumber()" },
+          "extras": { ".validate": "!newData.exists() || newData.hasChildren()" },
+          "name":   { ".validate": "!newData.exists() || newData.isString()" },
+          "$other": { ".validate": false }
+        }
+      }
+    },
+
+    "ad_income": {
+      ".read":  "auth != null && root.child('admins').child(auth.uid).exists()",
+      "$month": {
+        ".write":    "auth != null && root.child('admins').child(auth.uid).exists()",
+        ".validate": "$month.matches(/^\\d{4}-(0[1-9]|1[0-2])$/)",
+        "banner":       { ".validate": "!newData.exists() || newData.isNumber()" },
+        "interstitial": { ".validate": "!newData.exists() || newData.isNumber()" },
+        "rewarded":     { ".validate": "!newData.exists() || newData.isNumber()" },
+        "other":        { ".validate": "!newData.exists() || newData.isNumber()" },
+        "total":        { ".validate": "!newData.exists() || newData.isNumber()" },
+        "notes":        { ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 500)" },
+        "month":        { ".validate": "!newData.exists() || newData.isString()" },
+        "updatedAt":    { ".validate": "!newData.exists() || newData.isNumber()" },
+        "$other":       { ".validate": false }
+      }
+    }
+  }
+}

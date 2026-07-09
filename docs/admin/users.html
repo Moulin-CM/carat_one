@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Users — Carat One Admin</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#0c1230">
+    <link rel="icon" type="image/png" sizes="48x48" href="../assets/img/favicon-48.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/admin.css">
+    <style>
+        .filters {
+            display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+        }
+        .filters .field-inline {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 8px 14px; border-radius: 999px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--line);
+            color: #fff;
+            font-size: 13.5px;
+        }
+        .filters .field-inline input, .filters .field-inline select {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #fff;
+            font-family: inherit;
+            font-size: 13.5px;
+        }
+        .filters .field-inline i { color: rgba(255,255,255,0.55); font-size: 12.5px; }
+        .filters .field-inline select option { background: var(--bg-1); }
+
+        .modal .kv {
+            display: grid; grid-template-columns: 130px 1fr; gap: 4px 14px;
+            font-size: 13.5px;
+        }
+        .modal .kv .k { color: rgba(255,255,255,0.55); padding: 8px 0; }
+        .modal .kv .v { color: #fff; padding: 8px 0; border-bottom: 1px dashed var(--line); word-break: break-word; }
+        .modal .kv .v:last-child { border-bottom: none; }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar"></aside>
+        <main class="main">
+            <header class="topbar"></header>
+            <section class="content">
+                <div class="section-head reveal">
+                    <div>
+                        <h2>All users</h2>
+                        <div class="sub" id="usersMeta">Loading…</div>
+                    </div>
+                    <div class="filters">
+                        <label class="field-inline">
+                            <i class="fas fa-magnifying-glass"></i>
+                            <input id="qUsers" placeholder="Search name, company, email…">
+                        </label>
+                        <label class="field-inline">
+                            <i class="fas fa-filter"></i>
+                            <select id="fSort">
+                                <option value="new">Newest signup</option>
+                                <option value="old">Oldest signup</option>
+                                <option value="nameA">Name A → Z</option>
+                                <option value="nameZ">Name Z → A</option>
+                                <option value="companyA">Company A → Z</option>
+                            </select>
+                        </label>
+                        <button class="btn" id="btnExport">
+                            <i class="fas fa-download"></i> Export CSV
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card reveal" style="padding: 0;">
+                    <div class="table-wrap">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Company</th>
+                                    <th>Mobile</th>
+                                    <th>GST / PAN</th>
+                                    <th>Joined</th>
+                                    <th style="text-align:right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersBody">
+                                <tr><td colspan="6">
+                                    <div class="skeleton" style="height: 46px; margin: 4px 0;"></div>
+                                    <div class="skeleton" style="height: 46px; margin: 4px 0;"></div>
+                                    <div class="skeleton" style="height: 46px; margin: 4px 0;"></div>
+                                </td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- User detail modal -->
+    <div class="modal-backdrop" id="userModal">
+        <div class="modal">
+            <div class="modal-head">
+                <div>
+                    <h3 id="umTitle">User profile</h3>
+                    <p id="umSub">Full profile information from Firebase</p>
+                </div>
+                <button class="row-action" data-close aria-label="Close"><i class="fas fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="kv" id="umKv"></div>
+            </div>
+            <div class="modal-foot">
+                <button class="btn btn-danger" id="umDelete"><i class="fas fa-trash"></i> Delete profile</button>
+                <button class="btn" data-close>Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { renderSidebar, renderTopbar } from './assets/js/shell.js';
+        import { requireAdmin } from './assets/js/auth-guard.js';
+        import { bootChrome, toast, fmtDate, initials, pickAvatarClass, openModal, closeModal, wireModal } from './assets/js/ui.js';
+        import { fetchUsers, deleteUserProfile } from './assets/js/data.js';
+
+        renderSidebar('users');
+        renderTopbar({ title: 'Users' });
+        bootChrome();
+        wireModal('userModal');
+
+        const session = await requireAdmin();
+        if (!session) throw new Error('unauthorized');
+
+        let allUsers = [];
+        try {
+            allUsers = await fetchUsers();
+        } catch (e) {
+            console.error(e);
+            toast('Failed to load users.', 'err');
+        }
+
+        const qEl = document.getElementById('qUsers');
+        const sortEl = document.getElementById('fSort');
+        qEl.addEventListener('input', render);
+        sortEl.addEventListener('change', render);
+        document.getElementById('btnExport').addEventListener('click', exportCsv);
+
+        render();
+
+        function render() {
+            const q = qEl.value.trim().toLowerCase();
+            const sort = sortEl.value;
+            let rows = allUsers.filter(u => {
+                if (!q) return true;
+                return [u.userName, u.companyName, u.email, u.mobileNumber, u.gstNo, u.panNo]
+                    .some(v => String(v || '').toLowerCase().includes(q));
+            });
+            rows.sort((a, b) => {
+                switch (sort) {
+                    case 'old':      return (new Date(a.createdAt || 0)) - (new Date(b.createdAt || 0));
+                    case 'nameA':    return String(a.userName || '').localeCompare(String(b.userName || ''));
+                    case 'nameZ':    return String(b.userName || '').localeCompare(String(a.userName || ''));
+                    case 'companyA': return String(a.companyName || '').localeCompare(String(b.companyName || ''));
+                    default:         return (new Date(b.createdAt || 0)) - (new Date(a.createdAt || 0));
+                }
+            });
+
+            document.getElementById('usersMeta').textContent =
+                `${allUsers.length.toLocaleString('en-IN')} total · ${rows.length.toLocaleString('en-IN')} shown`;
+            const body = document.getElementById('usersBody');
+            if (rows.length === 0) {
+                body.innerHTML = `<tr><td colspan="6">
+                    <div class="empty-state">
+                        <div class="icon"><i class="fas fa-user-slash"></i></div>
+                        <h4>No users found</h4>
+                        <p>Try a different search or clear the filters.</p>
+                    </div>
+                </td></tr>`;
+                return;
+            }
+            body.innerHTML = rows.map(u => {
+                const nm = u.userName || u.email || '—';
+                const cls = pickAvatarClass(nm + (u.id || ''));
+                return `<tr data-uid="${u.id}">
+                    <td>
+                        <div class="avatar-cell">
+                            <span class="avatar ${cls}">${initials(nm)}</span>
+                            <div class="meta">
+                                <b>${esc(nm)}</b>
+                                <span>${esc(u.email || '')}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td>${esc(u.companyName || '—')}</td>
+                    <td class="mono">${esc(u.mobileNumber || '—')}</td>
+                    <td>
+                        <div style="display:flex; flex-direction:column; gap:2px; font-size:12px;">
+                            <span class="mono">${esc(u.gstNo || '—')}</span>
+                            <span class="text-muted mono">${esc(u.panNo || '')}</span>
+                        </div>
+                    </td>
+                    <td class="text-muted">${fmtDate(u.createdAt)}</td>
+                    <td style="text-align:right">
+                        <button class="row-action" data-view title="View profile"><i class="fas fa-eye"></i></button>
+                        ${u.email ? `<a class="row-action" href="mailto:${esc(u.email)}" title="Email"><i class="fas fa-envelope"></i></a>` : ''}
+                        <button class="row-action danger" data-del title="Delete profile"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>`;
+            }).join('');
+
+            body.querySelectorAll('tr[data-uid]').forEach(tr => {
+                const uid = tr.dataset.uid;
+                tr.querySelector('[data-view]').addEventListener('click', () => openUser(uid));
+                tr.querySelector('[data-del]').addEventListener('click', () => confirmDelete(uid));
+            });
+        }
+
+        function openUser(uid) {
+            const u = allUsers.find(x => x.id === uid);
+            if (!u) return;
+            document.getElementById('umTitle').textContent = u.userName || u.email || 'User';
+            document.getElementById('umSub').textContent  = `UID · ${uid}`;
+            const rows = [
+                ['Email',     u.email],
+                ['Mobile',    u.mobileNumber],
+                ['Company',   u.companyName],
+                ['Address',   u.companyAddress],
+                ['GST No.',   u.gstNo],
+                ['PAN No.',   u.panNo],
+                ['CST No.',   u.cstNo],
+                ['VAT No.',   u.vatNo],
+                ['IEC No.',   u.iecNo],
+                ['Bank',      u.bankName],
+                ['Branch',    u.branch],
+                ['Account',   u.accountNo],
+                ['IFSC',      u.ifscCode],
+                ['Created',   fmtDate(u.createdAt)],
+                ['Updated',   fmtDate(u.updatedAt)],
+            ];
+            document.getElementById('umKv').innerHTML =
+                rows.filter(([, v]) => v).map(([k, v]) =>
+                    `<div class="k">${esc(k)}</div><div class="v">${esc(v)}</div>`).join('');
+            document.getElementById('umDelete').onclick = () => confirmDelete(uid, true);
+            openModal('userModal');
+        }
+
+        async function confirmDelete(uid, fromModal = false) {
+            const u = allUsers.find(x => x.id === uid);
+            if (!u) return;
+            const name = u.userName || u.email || uid;
+            if (!confirm(`Delete profile for ${name}?\n\nNote: this removes the Realtime Database profile only. The Firebase Auth account is not affected — deploy the Cloud Function stub in /admin/functions to disable Auth users as well.`)) return;
+            try {
+                await deleteUserProfile(uid);
+                allUsers = allUsers.filter(x => x.id !== uid);
+                if (fromModal) closeModal('userModal');
+                toast(`Deleted profile for ${name}.`, 'ok');
+                render();
+            } catch (e) {
+                console.error(e);
+                toast('Failed to delete profile.', 'err');
+            }
+        }
+
+        function exportCsv() {
+            const headers = ['uid', 'userName', 'email', 'mobileNumber', 'companyName',
+                'companyAddress', 'gstNo', 'panNo', 'bankName', 'branch', 'accountNo',
+                'ifscCode', 'createdAt', 'updatedAt'];
+            const csv = [headers.join(',')].concat(allUsers.map(u =>
+                headers.map(h => csvCell(u[h] || (h === 'uid' ? u.id : ''))).join(','))).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `caratone-users-${new Date().toISOString().slice(0, 10)}.csv`;
+            document.body.appendChild(a); a.click(); a.remove();
+            URL.revokeObjectURL(url);
+        }
+
+        function csvCell(v) {
+            const s = String(v ?? '');
+            if (/[",\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+            return s;
+        }
+
+        function esc(s) {
+            return String(s ?? '').replace(/[&<>"']/g, c =>
+                ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+    </script>
+</body>
+</html>

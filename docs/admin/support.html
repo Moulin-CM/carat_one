@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support Tickets — Carat One Admin</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#0c1230">
+    <link rel="icon" type="image/png" sizes="48x48" href="../assets/img/favicon-48.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/admin.css">
+    <style>
+        .ticket-grid {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 22px;
+            min-height: 640px;
+        }
+        .ticket-list {
+            max-height: 720px;
+            overflow-y: auto;
+        }
+        .ticket-item {
+            padding: 16px 18px;
+            border-bottom: 1px solid var(--line);
+            cursor: pointer;
+            position: relative;
+            transition: background .2s;
+        }
+        .ticket-item:hover { background: rgba(255,255,255,0.03); }
+        .ticket-item.active { background: linear-gradient(90deg, rgba(167,139,250,0.14), transparent 80%); }
+        .ticket-item.active::before {
+            content: ''; position: absolute; left: 0; top: 12px; bottom: 12px; width: 3px;
+            background: var(--grad-violet); border-radius: 0 3px 3px 0;
+        }
+        .ticket-item .row1 { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .ticket-item b { color: #fff; font-weight: 700; font-size: 13.5px; }
+        .ticket-item .when { color: rgba(255,255,255,0.5); font-size: 11.5px; }
+        .ticket-item .subj { color: rgba(255,255,255,0.75); font-size: 12.5px; font-weight: 600; margin-top: 4px; }
+        .ticket-item .preview { color: rgba(255,255,255,0.5); font-size: 12px; margin-top: 6px; line-height: 1.4;
+                                overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+
+        .thread {
+            padding: 22px 26px;
+            display: flex; flex-direction: column; gap: 16px;
+            min-height: 640px;
+        }
+        .thread .head { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; }
+        .thread .head h3 { margin: 0; color: #fff; font-size: 20px; font-weight: 800; letter-spacing: -0.4px; }
+
+        .messages { display: flex; flex-direction: column; gap: 12px; }
+        .msg-bubble {
+            padding: 14px 16px;
+            border-radius: 16px;
+            max-width: 78%;
+            font-size: 14px; line-height: 1.55;
+            white-space: pre-wrap;
+        }
+        .msg-bubble.user {
+            align-self: flex-start;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid var(--line);
+            color: #fff;
+        }
+        .msg-bubble.admin {
+            align-self: flex-end;
+            background: linear-gradient(135deg, rgba(37,99,235,0.35), rgba(56,189,248,0.25));
+            border: 1px solid rgba(56,189,248,0.35);
+            color: #fff;
+        }
+        .msg-bubble .meta { display: block; font-size: 11px; color: rgba(255,255,255,0.55); margin-bottom: 4px; letter-spacing: 0.2px; }
+
+        .reply-row { display: flex; gap: 10px; align-items: flex-end; }
+        .reply-row textarea {
+            flex: 1;
+            min-height: 60px;
+            resize: vertical;
+            padding: 12px 14px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--line);
+            color: #fff;
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
+            transition: border-color .2s, background .2s, box-shadow .2s;
+        }
+        .reply-row textarea:focus {
+            border-color: var(--accent);
+            background: rgba(255,255,255,0.06);
+            box-shadow: 0 0 0 4px rgba(56,189,248,0.15);
+        }
+        @media (max-width: 1024px) {
+            .ticket-grid { grid-template-columns: 1fr; }
+            .ticket-list { max-height: unset; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar"></aside>
+        <main class="main">
+            <header class="topbar"></header>
+            <section class="content">
+                <div class="section-head reveal">
+                    <div>
+                        <h2>In-app support tickets</h2>
+                        <div class="sub">Support requests submitted from inside the Carat One mobile app</div>
+                    </div>
+                    <div class="filter-pills" id="filterPills" style="display: inline-flex; gap: 6px; padding: 4px; background: rgba(255,255,255,0.04); border: 1px solid var(--line); border-radius: 999px;">
+                        <button class="filter-pill active" data-filter="all" style="padding: 8px 16px; border: none; background: linear-gradient(135deg, var(--primary-deep), var(--accent)); color: #fff; border-radius: 999px; font-weight: 700; font-size: 12.5px; cursor: pointer;">All <span id="cAll">0</span></button>
+                        <button class="filter-pill" data-filter="open" style="padding: 8px 16px; border: none; background: transparent; color: rgba(255,255,255,0.65); border-radius: 999px; font-weight: 700; font-size: 12.5px; cursor: pointer;">Open <span id="cOpen">0</span></button>
+                        <button class="filter-pill" data-filter="closed" style="padding: 8px 16px; border: none; background: transparent; color: rgba(255,255,255,0.65); border-radius: 999px; font-weight: 700; font-size: 12.5px; cursor: pointer;">Closed <span id="cClosed">0</span></button>
+                    </div>
+                </div>
+
+                <div class="card reveal" style="padding: 0; overflow: hidden;">
+                    <div class="ticket-grid">
+                        <div class="ticket-list" id="tList">
+                            <div class="skeleton" style="height: 78px; margin: 8px;"></div>
+                            <div class="skeleton" style="height: 78px; margin: 8px;"></div>
+                            <div class="skeleton" style="height: 78px; margin: 8px;"></div>
+                        </div>
+                        <div class="thread" id="tThread">
+                            <div class="empty-state" style="margin: auto;">
+                                <div class="icon"><i class="fas fa-life-ring"></i></div>
+                                <h4>Pick a ticket</h4>
+                                <p>Select a support request on the left to view the conversation.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script type="module">
+        import { renderSidebar, renderTopbar } from './assets/js/shell.js';
+        import { requireAdmin } from './assets/js/auth-guard.js';
+        import { bootChrome, toast, fmtDateTime, relTime, initials, pickAvatarClass } from './assets/js/ui.js';
+        import { subscribeSupport, updateTicket, addTicketReply } from './assets/js/data.js';
+
+        renderSidebar('support');
+        renderTopbar({ title: 'In-App Support' });
+        bootChrome();
+
+        const session = await requireAdmin();
+        if (!session) throw new Error('unauthorized');
+
+        let tickets = [];
+        let selectedId = null;
+        let currentFilter = 'all';
+
+        document.querySelectorAll('.filter-pill').forEach(p => {
+            p.addEventListener('click', () => {
+                currentFilter = p.dataset.filter;
+                document.querySelectorAll('.filter-pill').forEach(x => {
+                    x.style.background = 'transparent';
+                    x.style.color = 'rgba(255,255,255,0.65)';
+                    x.classList.remove('active');
+                });
+                p.classList.add('active');
+                p.style.background = 'linear-gradient(135deg, var(--primary-deep), var(--accent))';
+                p.style.color = '#fff';
+                renderList();
+            });
+        });
+
+        subscribeSupport((list) => {
+            tickets = list;
+            updateCounts();
+            renderList();
+            renderThread();
+        });
+
+        function updateCounts() {
+            const c = { all: tickets.length, open: 0, closed: 0 };
+            for (const t of tickets) {
+                const s = (t.status || 'open') === 'closed' ? 'closed' : 'open';
+                c[s]++;
+            }
+            document.getElementById('cAll').textContent = c.all;
+            document.getElementById('cOpen').textContent = c.open;
+            document.getElementById('cClosed').textContent = c.closed;
+        }
+
+        function renderList() {
+            const rows = tickets.filter(t => {
+                const s = (t.status || 'open') === 'closed' ? 'closed' : 'open';
+                return currentFilter === 'all' || s === currentFilter;
+            });
+            const list = document.getElementById('tList');
+            if (rows.length === 0) {
+                list.innerHTML = `<div class="empty-state" style="margin: auto;">
+                    <div class="icon"><i class="fas fa-check"></i></div>
+                    <h4>Nothing here</h4>
+                    <p>No support tickets in this bucket.</p>
+                </div>`;
+                return;
+            }
+            list.innerHTML = rows.map(t => {
+                const active = t.id === selectedId;
+                return `<div class="ticket-item ${active ? 'active' : ''}" data-id="${t.id}">
+                    <div class="row1">
+                        <b>${esc(t.userName || t.email || 'User')}</b>
+                        <span class="when">${relTime(t.createdAt)}</span>
+                    </div>
+                    <div class="subj">${esc(t.subject || t.category || '(no subject)')}</div>
+                    <div class="preview">${esc((t.message || t.description || '').slice(0, 200))}</div>
+                </div>`;
+            }).join('');
+            list.querySelectorAll('.ticket-item').forEach(el => {
+                el.addEventListener('click', () => { selectedId = el.dataset.id; renderList(); renderThread(); });
+            });
+        }
+
+        function renderThread() {
+            const el = document.getElementById('tThread');
+            const t = tickets.find(x => x.id === selectedId);
+            if (!t) {
+                el.innerHTML = `<div class="empty-state" style="margin: auto;">
+                    <div class="icon"><i class="fas fa-life-ring"></i></div>
+                    <h4>Pick a ticket</h4>
+                    <p>Select a support request on the left to view the conversation.</p>
+                </div>`;
+                return;
+            }
+            const status = (t.status || 'open') === 'closed' ? 'closed' : 'open';
+            const replies = t.replies ? Object.entries(t.replies)
+                .map(([id, v]) => ({ id, ...(v || {}) }))
+                .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)) : [];
+            el.innerHTML = `
+                <div class="head">
+                    <div>
+                        <div class="avatar-cell" style="align-items:flex-start;">
+                            <span class="avatar ${pickAvatarClass(t.userName || t.uid || '')}">${initials(t.userName || t.email || '?')}</span>
+                            <div>
+                                <h3>${esc(t.subject || t.category || 'Support request')}</h3>
+                                <div class="text-muted" style="font-size:13px; margin-top:4px;">
+                                    <b style="color:#fff">${esc(t.userName || 'Anonymous')}</b>
+                                    ${t.email ? ` · <a href="mailto:${esc(t.email)}" style="color: var(--accent);">${esc(t.email)}</a>` : ''}
+                                    · ${fmtDateTime(t.createdAt)}
+                                </div>
+                                ${t.uid ? `<div class="text-muted mono" style="font-size:11px; margin-top:2px;">UID · ${esc(t.uid)}</div>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="chip ${status === 'open' ? 'warn' : 'ok'}"><span class="dot"></span> ${status === 'open' ? 'Open' : 'Closed'}</span>
+                    </div>
+                </div>
+
+                <div class="messages">
+                    <div class="msg-bubble user">
+                        <span class="meta">User · ${fmtDateTime(t.createdAt)}</span>
+                        ${esc(t.message || t.description || '')}
+                    </div>
+                    ${replies.map(r => `
+                        <div class="msg-bubble ${r.by === 'admin' ? 'admin' : 'user'}">
+                            <span class="meta">${r.by === 'admin' ? 'Admin' : 'User'}${r.adminName ? ' · ' + esc(r.adminName) : ''} · ${fmtDateTime(r.createdAt)}</span>
+                            ${esc(r.message || '')}
+                        </div>
+                    `).join('')}
+                </div>
+
+                <div class="reply-row">
+                    <textarea id="replyText" placeholder="Type your reply…"></textarea>
+                    <button class="btn btn-primary" id="sendReply">
+                        <i class="fas fa-paper-plane"></i> Send
+                    </button>
+                </div>
+
+                <div class="detail-actions" style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <button class="btn" id="toggleStatus">
+                        <i class="fas fa-${status === 'open' ? 'check' : 'rotate-left'}"></i>
+                        Mark as ${status === 'open' ? 'closed' : 'open'}
+                    </button>
+                    ${t.email ? `<a class="btn" href="mailto:${esc(t.email)}?subject=Re: ${encodeURIComponent(t.subject || 'Your support request')}"><i class="fas fa-envelope"></i> Email user</a>` : ''}
+                </div>
+            `;
+            el.querySelector('#sendReply').addEventListener('click', async () => {
+                const msg = el.querySelector('#replyText').value.trim();
+                if (!msg) return;
+                try {
+                    await addTicketReply(t.id, session.user.uid,
+                        session.admin.name || session.user.email, msg);
+                    el.querySelector('#replyText').value = '';
+                    toast('Reply sent.', 'ok');
+                } catch (e) { console.error(e); toast('Failed to send reply.', 'err'); }
+            });
+            el.querySelector('#toggleStatus').addEventListener('click', async () => {
+                const next = status === 'open' ? 'closed' : 'open';
+                try {
+                    await updateTicket(t.id, {
+                        status: next,
+                        [next === 'closed' ? 'closedAt' : 'reopenedAt']: Date.now(),
+                        [next === 'closed' ? 'closedBy' : 'reopenedBy']: session.user.uid,
+                    });
+                    toast(`Ticket ${next === 'closed' ? 'closed' : 'reopened'}.`, 'ok');
+                } catch (e) { console.error(e); toast('Failed to update ticket.', 'err'); }
+            });
+        }
+
+        function esc(s) {
+            return String(s ?? '').replace(/[&<>"']/g, c =>
+                ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+    </script>
+</body>
+</html>
