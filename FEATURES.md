@@ -27,7 +27,7 @@ CaratOne is a Flutter-based business management app for jewelry/diamond traders.
 
 ---
 
-## 2. Invoice Management
+## 2. Invoice Management (Sales)
 
 ### Invoice Creation
 - Multi-section invoice form
@@ -43,188 +43,151 @@ CaratOne is a Flutter-based business management app for jewelry/diamond traders.
 - Amount-in-words conversion
 - Add / edit / delete items inline
 
-### Editing
-- Load existing invoice data into form
-- Modify buyer, details, or items and re-save
-
-### Search & Filter
+### Search & Listing
 - Search invoices by buyer name, invoice number, or date range
-- Dynamic list filtering
-
-### Deletion
-- Delete with confirmation
-- Cleans up associated reminders
-
-### Listing & Viewing
-- Invoice list with cards (buyer, number, date, total)
-- Recent invoices on dashboard
-- Full invoice detail view
+- List view with cards showing status and totals
+- Full invoice detail view with editing capabilities
 
 ---
 
-## 3. PDF Generation, Printing & Sharing
+## 3. Purchase Management
 
-### PDF Generation
-- Professional invoice PDF matching business template
-- Includes seller, buyer, invoice number/date, itemized table with HSN, tax breakdown (CGST/SGST/IGST), grand total, amount in words, bank details, terms
+### Purchase Tracking
+- Fields: seller, broker, size (e.g. C3/A5), total carat, rate per carat, net amount, discount %, payment type (Cash/Bill), due days, buy date, payment date
 
-### Sharing
-- Share via email client, system share sheet, or direct file share
-- Auto-prompt to email after generation when buyer email exists
+### Purchase Dashboard
+- Summary bar: opening carats, opening amount, profit/loss (color-coded)
+- Real-time stock tracking: remaining carat per purchase lot
 
-### Printing
-- Print directly to connected printers
-- Printer selection and print preview
-
----
-
-## 4. Email Invoicing
-- Send invoices via default email client with PDF attachment
-- Pre-filled recipient, subject, and message body
-- Accessible from invoice list, invoice form app bar, and post-generation prompt
+### Sell-from-Purchase
+- Create invoice directly from a purchase entry
+- Links sales to specific stock lots for precise inventory tracking
+- Validates available carat limits
 
 ---
 
-## 5. Reminders & Notifications
+## 4. Finance & Ledger Management
 
-### Reminder Management
-- Set custom reminders per invoice with date & time
-- Multiple reminders per invoice
-- Cancel individual or all reminders for an invoice
+### Expense Tracking (Ledger)
+- Record Credit and Debit entries
+- Manual "Opening Amount" adjustment for initial balance
+- Real-time balance calculation
+- **Constraint**: Debits cannot exceed available balance (prevents negative ledger)
+- Dismissible entries with deletion confirmation
 
-### Local Notifications
-- Exact-time scheduling (timezone-aware)
-- Works offline and when app is closed
-- Status color coding: red (overdue), orange (due within 24h), blue (future)
+### Pre-mature Withdrawals
+- Track money taken out of the business before maturity
+- Fields: person name, amount, taken date, expected return date
+- Mark as "Returned" when funds are back
+- Deducted from Net Profit calculations until returned
 
-### Reminders Screen
-- Dedicated list of active reminders, sorted by date
-- Quick cancel, refresh, and dashboard shortcut
+---
+
+## 5. Advanced Business Reporting
+
+### Period Modes
+- All reports support **Monthly**, **Yearly**, and **Custom Date Range** filters.
+
+### Expense Statement
+- Itemized list of all ledger entries for a period
+- Net credit/debit summary
+- Grouped by day for easy auditing
+
+### Buy / Sell Report
+- Side-by-side comparison of total purchases vs. total sales
+- Comparison of total carats bought vs. sold
+- Calculation of Net Profit/Loss (Sell - Buy) for the selected period
+
+### Brokerage Report
+- Aggregated data per broker
+- Shows total brokerage charges across all purchases and sales
+- Drill-down into individual entries per broker
+- Tracks buy count, sell count, and total carats handled per broker
 
 ---
 
 ## 6. Inventory Management
 
 ### Inventory Dashboard
-- Stat cards: total items, total carat weight, total inventory value
-- Visual icons and quick navigation
+- Stat cards: total items, total carat weight, total inventory value, average price per carat
+- Monthly stock acquisition summary
 
-### Items
-- Fields: invoice reference, carat weight, price per carat, description, date added, last updated
-- Automatic totals, CGST, SGST, and total-with-GST calculation
-
-### CRUD
-- Add, edit, delete inventory items with confirmation
+### CRUD Operations
+- Fields: invoice reference, carat weight, price per carat, description, date
+- Automatic GST and total value calculations
 - Search by invoice number or description
 
 ---
 
-## 7. Purchase Management
+## 7. PDF Generation, Printing & Sharing
 
-### Purchase Tracking
-- Fields: seller, broker, size (e.g. C3/A5), total carat, rate per carat, net amount, discount %, payment type (Cash/Bill), due days, buy date, payment date
+### Professional PDFs
+- **Invoices**: Tax-compliant layout with HSN, bank details, and terms.
+- **Expense Statements**: Professional ledger reports.
+- **Buy/Sell Reports**: Business performance summaries.
+- **Brokerage Reports**: Detailed broker commission statements.
 
-### Purchase Dashboard
-- Summary bar: opening carats, opening amount, profit/loss (color-coded green/red)
-
-### Purchase List & Details
-- Searchable list with payment status and remaining carat
-- Detail view shows cash-sold, bill-sold, and remaining carat
-
-### Sell-from-Purchase
-- Create invoice directly from a purchase
-- Auto-populates available carat and payment type
-- Validates carat limit; links invoice back to the purchase for tracking
-
-### Purchase Form
-- Create/edit purchases
-- Auto net-amount calculation from gross and discount
-- Date pickers for buy and payment dates
+### Output Actions
+- **Print**: Direct printing with selection and preview.
+- **Share**: System share sheet for WhatsApp, Email, etc.
+- **Email**: Automatic attachment for buyer invoices.
 
 ---
 
-## 8. Settings & Customization
+## 8. Reminders & Notifications
 
-### Tax Configuration
-- Sliders for CGST, SGST, IGST rates (0–10%)
-- Applied to new invoices in real time
+### Reminder Management
+- Set multiple custom reminders per invoice
+- Status color coding: Red (Overdue), Orange (Due within 24h), Blue (Future)
+- Local notifications that work offline and when the app is closed
 
-### Invoice Numbering
-- Custom prefix (e.g. INV), configurable starting number
-- Auto-generation for new invoices; counter reset option
+---
 
-### Default Terms
-- Default terms & conditions applied to new invoices, editable per invoice
+## 9. Settings & Customization
 
-### App Preferences
-- Toggle notifications, toggle auto-save drafts
-- Persisted locally and to Firebase
+### Configuration
+- **Tax**: Adjustable CGST, SGST, IGST rates.
+- **Invoicing**: Custom prefix and auto-increment starting number.
+- **Terms**: Global default terms and conditions.
 
 ### Data Management
-- Export all invoices to JSON
-- Import invoices from JSON backup
-- Reset settings / invoice counter
-
----
-
-## 9. Data Export & Import
-- JSON export including export date, invoice count, and full invoice data
-- Timestamped backup filenames
-- File picker import with format validation and success/error tracking
-- Share backups via email or cloud services
+- Full JSON Export/Import for backups.
+- Reset options for settings and counters.
 
 ---
 
 ## 10. Dashboard & Analytics
 
-### Main Dashboard
-- Stat cards: total invoices, total revenue, this-month invoices, this-month revenue
-- Recent 5 invoices (tap to edit)
-- Quick actions: New Invoice, View All Invoices
-- Pull-to-refresh, gradient visual design
-
-### Bottom Navigation
-- Dashboard, Purchases, Invoices, Settings
+### Unified View
+- **Quick Stats**: Total Sells, Total Purchases, Net Profit/Loss, Remaining Carat.
+- **Finance Hub**: Quick access to Expenses, Withdrawals, and all Reports.
+- **Recent Activity**: List of latest sells for quick access.
+- **Quick Actions**: "Sell" and "All Sells" shortcuts.
 
 ---
 
 ## 11. Force Update System
-- Automatic version check at startup via `AuthWrapper`
-- Compares current version to minimum and latest versions in Firebase Realtime DB
-- **Force update dialog**: non-dismissible, blocks app, links to TestFairy download
-- **Optional update dialog**: dismissible
-- Configurable: min version, min build, latest version, force flag, message, download URL
+- Version check at startup via Firebase Realtime DB.
+- Force update blocks app for critical versions; optional update for minor releases.
+- Links to latest download source.
 
 ---
 
-## 12. Business Profile Data
+## 12. Technical Specifications
 
-**Company**: name, address, mobile, email, GST, PAN, CST, VAT, IEC
-**Bank**: bank name, branch, account number, IFSC
-**Buyer**: name, contact person, phone, email, address, GST, PAN, VAT, CST, state name, state code, place of supply
-
----
-
-## 13. Technical & Platform Features
-
-- **Architecture**: MVVM with Provider / ChangeNotifier
-- **Cloud**: Firebase Realtime Database with per-user data isolation, real-time sync
-- **Local storage**: SharedPreferences for settings and temporary files
+- **Architecture**: MVVM with Provider
+- **Cloud**: Firebase Realtime Database (Sync & Persistence)
+- **Security**: Per-user data isolation
 - **Platforms**: Android, iOS, Windows, macOS, Web
-- **Localization**: `intl` for date, currency (INR), and number formatting; structured for multi-language
-- **UI**: Material Design 3, custom blue theme (#4F8AF4), reusable widgets (`AppBarFactory`, `CustomButton`, `CustomCard`, `CustomSection`, `CustomTextField`, `CustomInfoRow`, `ForceUpdateDialog`), loading states, empty states, portrait lock on mobile
+- **Localization**: INR currency formatting, metric carat units
 
 ---
 
-## 14. Validation & Error Handling
-- Validation for email, password, numeric fields, GST/PAN, bank account, phone, required fields
-- Graceful handling of network, Firebase, notification, and import errors
-- Data consistency checks on import
+## 13. Navigation Map
 
----
-
-## 15. Navigation Map
-
-Welcome → Login / Sign-Up → Version Check → Main Shell
-Main Shell tabs: Dashboard · Purchases · Invoices · Settings
-Additional screens: Profile, Invoice Form, Invoice Details, Purchase Form, Purchase Details, Inventory List, Inventory Form, Reminders, Export/Import
+**Login/Sign-Up** → **Dashboard**
+- **Finance**: Expenses · Withdrawals · Buy/Sell Report · Brokerage Report
+- **Inventory**: Stock Dashboard · Item List · Add Stock
+- **Purchases**: Purchase List · Purchase Details · Add Purchase
+- **Invoices**: Invoice List · Invoice Details · Create Invoice
+- **Settings**: Profile · Tax Settings · Export/Import · Reminders

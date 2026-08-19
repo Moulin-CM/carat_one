@@ -69,7 +69,14 @@
       "Bash(flutter create *)",
       "Bash(gh api *)",
       "Bash(gh auth *)",
-      "Bash(flutter run *)"
+      "Bash(flutter run *)",
+      "Bash(mkdir -p /tmp/aab_check)",
+      "Bash(unzip -q -o \"E:/Pappa/carat_one_updated/build/app/outputs/bundle/prodRelease/app-prod-release.aab\")",
+      "Bash(/c/Users/Moulin/AppData/Local/Android/Sdk/build-tools/36.0.0/zipalign.exe -v -c -P 16 4 /tmp/aab_check/apks_out/universal.apk)",
+      "Bash(python *)",
+      "Bash(firebase *)",
+      "Bash(curl -sI \"https://moulin-cm.github.io/carat_one/admin/\")",
+      "Bash(curl -sI \"https://moulin-cm.github.io/carat_one/admin/assets/js/firebase.js\")"
     ]
   }
 }

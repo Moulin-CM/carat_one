@@ -77,3 +77,7 @@ macos/Flutter/Flutter-Release.xcconfig
 macos/Flutter/GeneratedPluginRegistrant.swift
 macos/Flutter/ephemeral/
 
+
+# Local build tooling and flavour release outputs (large binaries)
+tools/*.jar
+/android/app/*/release/
