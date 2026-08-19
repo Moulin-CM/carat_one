@@ -14,6 +14,9 @@ class LedgerEntry {
   final bool isDebit;
   final bool isCashMode;
 
+  /// True when this row is a Debit the user tagged as a business expense.
+  final bool isBusinessExpense;
+
   const LedgerEntry({
     required this.id,
     required this.kind,
@@ -25,5 +28,6 @@ class LedgerEntry {
     required this.paymentStatus,
     required this.isDebit,
     required this.isCashMode,
+    this.isBusinessExpense = false,
   });
 }

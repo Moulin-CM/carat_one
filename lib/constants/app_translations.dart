@@ -54,6 +54,23 @@ class AppTranslations {
     'Total Sell Amount': 'Total Sell Amount',
     'Finance': 'Finance',
     'Expenses': 'Expenses',
+    'Roj mel': 'Roj mel',
+    'Total Expenses': 'Total Expenses',
+    'Tagged Debits + outstanding withdrawals':
+        'Tagged Debits + outstanding withdrawals',
+    'Open Roj mel, add a Debit and tag it as Expense to see it here':
+        'Open Roj mel, add a Debit and tag it as Expense to see it here',
+    'Of which Business Expenses (Dr-E) — deducted from Net Profit':
+        'Of which Business Expenses (Dr-E) — deducted from Net Profit',
+    'No expenses yet': 'No expenses yet',
+    'Debit Type': 'Debit Type',
+    'Normal Debit': 'Normal Debit',
+    'Day-book only': 'Day-book only',
+    'Expense': 'Expense',
+    'Reduces Net Profit': 'Reduces Net Profit',
+    'Business Expenses': 'Business Expenses',
+    'Tagged Debits from Roj mel': 'Tagged Debits from Roj mel',
+    'Withdrawals Outstanding': 'Withdrawals Outstanding',
     'Manage': 'Manage',
     'Withdrawals': 'Withdrawals',
     'Buy / Sell': 'Buy / Sell',
@@ -587,6 +604,8 @@ class AppTranslations {
     'Net Position': 'Net Position',
     'Pending from Buyers − Pending to Sellers':
         'Pending from Buyers − Pending to Sellers',
+    'Stock Valuation + Net Profit / Loss':
+        'Stock Valuation + Net Profit / Loss',
     'Out until marked returned': 'Out until marked returned',
     'Taken': 'Taken',
     'Return': 'Return',
@@ -632,6 +651,23 @@ class AppTranslations {
     'Total Sell Amount': 'कुल बिक्री राशि',
     'Finance': 'वित्त',
     'Expenses': 'खर्च',
+    'Roj mel': 'रोज मेल',
+    'Total Expenses': 'कुल खर्च',
+    'Tagged Debits + outstanding withdrawals':
+        'चिन्हित डेबिट + बकाया निकासी',
+    'Open Roj mel, add a Debit and tag it as Expense to see it here':
+        'रोज मेल खोलें, डेबिट जोड़ें और उसे खर्च के रूप में चिन्हित करें',
+    'Of which Business Expenses (Dr-E) — deducted from Net Profit':
+        'जिसमें व्यापारिक खर्च (Dr-E) — शुद्ध लाभ से घटाया गया',
+    'No expenses yet': 'अभी कोई खर्च नहीं',
+    'Debit Type': 'डेबिट प्रकार',
+    'Normal Debit': 'सामान्य डेबिट',
+    'Day-book only': 'केवल रोजनामचा',
+    'Expense': 'खर्च',
+    'Reduces Net Profit': 'शुद्ध लाभ घटाता है',
+    'Business Expenses': 'व्यापारिक खर्च',
+    'Tagged Debits from Roj mel': 'रोज मेल से चिन्हित डेबिट',
+    'Withdrawals Outstanding': 'बकाया निकासी',
     'Manage': 'प्रबंधित करें',
     'Withdrawals': 'निकासी',
     'Buy / Sell': 'खरीद / बिक्री',
@@ -1169,6 +1205,8 @@ class AppTranslations {
     'Net Position': 'शुद्ध स्थिति',
     'Pending from Buyers − Pending to Sellers':
         'खरीदारों से बकाया − विक्रेताओं को देय',
+    'Stock Valuation + Net Profit / Loss':
+        'स्टॉक मूल्यांकन + शुद्ध लाभ / हानि',
     'Out until marked returned': 'वापसी चिन्हित होने तक बाहर',
     'Taken': 'लिया गया',
     'Return': 'वापसी',
@@ -1214,6 +1252,23 @@ class AppTranslations {
     'Total Sell Amount': 'કુલ વેચાણ રકમ',
     'Finance': 'નાણાં',
     'Expenses': 'ખર્ચ',
+    'Roj mel': 'રોજ મેળ',
+    'Total Expenses': 'કુલ ખર્ચ',
+    'Tagged Debits + outstanding withdrawals':
+        'ચિહ્નિત ડેબિટ + બાકી ઉપાડ',
+    'Open Roj mel, add a Debit and tag it as Expense to see it here':
+        'રોજમેળ ખોલો, ડેબિટ ઉમેરો અને તેને ખર્ચ તરીકે ચિહ્નિત કરો',
+    'Of which Business Expenses (Dr-E) — deducted from Net Profit':
+        'જેમાં વ્યાપારિક ખર્ચ (Dr-E) — ચોખ્ખા નફામાંથી બાદ',
+    'No expenses yet': 'હજી કોઈ ખર્ચ નથી',
+    'Debit Type': 'ડેબિટ પ્રકાર',
+    'Normal Debit': 'સામાન્ય ડેબિટ',
+    'Day-book only': 'ફક્ત રોજમેળ',
+    'Expense': 'ખર્ચ',
+    'Reduces Net Profit': 'ચોખ્ખો નફો ઘટાડે છે',
+    'Business Expenses': 'વ્યાપારિક ખર્ચ',
+    'Tagged Debits from Roj mel': 'રોજમેળમાંથી ચિહ્નિત ડેબિટ',
+    'Withdrawals Outstanding': 'બાકી ઉપાડ',
     'Manage': 'સંચાલન કરો',
     'Withdrawals': 'ઉપાડ',
     'Buy / Sell': 'ખરીદી / વેચાણ',
@@ -1751,6 +1806,8 @@ class AppTranslations {
     'Net Position': 'ચોખ્ખી સ્થિતિ',
     'Pending from Buyers − Pending to Sellers':
         'ખરીદનાર પાસેથી બાકી − વેચનારને દેવાનું',
+    'Stock Valuation + Net Profit / Loss':
+        'સ્ટોક મૂલ્યાંકન + ચોખ્ખો નફો / ખોટ',
     'Out until marked returned': 'પરત ચિહ્નિત થાય ત્યાં સુધી બહાર',
     'Taken': 'લિધેલ',
     'Return': 'પરત',

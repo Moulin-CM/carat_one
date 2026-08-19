@@ -110,6 +110,11 @@ class _ExpenseReportContentState extends State<_ExpenseReportContent> {
       .where((e) => e.isDebit)
       .fold(0.0, (s, e) => s + e.amount);
 
+  /// Subset of the debits the user tagged as business expenses.
+  double _expenseTotalOf(List<LedgerEntry> items) => items
+      .where((e) => e.isBusinessExpense)
+      .fold(0.0, (s, e) => s + e.amount);
+
   Map<String, List<LedgerEntry>> _groupByDay(List<LedgerEntry> items) {
     final map = <String, List<LedgerEntry>>{};
     for (final e in items) {
@@ -387,6 +392,7 @@ class _ExpenseReportContentState extends State<_ExpenseReportContent> {
     final count = filtered.length;
     final creditTotal = _creditTotalOf(filtered);
     final debitTotal = _debitTotalOf(filtered);
+    final expenseTotal = _expenseTotalOf(filtered);
     final net = creditTotal - debitTotal;
     final netStr =
         '${net >= 0 ? '+' : '-'} ${_currencyFmt.format(net.abs())}';
@@ -428,8 +434,22 @@ class _ExpenseReportContentState extends State<_ExpenseReportContent> {
             ],
           ),
           const SizedBox(height: 6),
-          Text('$count ${count == 1 ? 'entry'.tr : 'entries'.tr}',
-              style: const TextStyle(color: Colors.white54, fontSize: 11)),
+          Row(
+            children: [
+              Text('$count ${count == 1 ? 'entry'.tr : 'entries'.tr}',
+                  style: const TextStyle(color: Colors.white54, fontSize: 11)),
+              if (expenseTotal > 0) ...[
+                const Spacer(),
+                Text(
+                  '${'Business Expenses'.tr}: - ${_currencyFmt.format(expenseTotal)}',
+                  style: const TextStyle(
+                      color: Colors.orangeAccent,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700),
+                ),
+              ],
+            ],
+          ),
         ],
       ),
     );
@@ -497,15 +517,19 @@ class _ExpenseReportContentState extends State<_ExpenseReportContent> {
   }
 
   Widget _entryRow(LedgerEntry e) {
-    final color = e.isDebit ? Colors.red : Colors.green;
+    final color = e.isBusinessExpense
+        ? Colors.deepOrange
+        : (e.isDebit ? Colors.red : Colors.green);
     final icon = e.isDebit
         ? Icons.trending_down_rounded
         : Icons.trending_up_rounded;
     final sign = e.isDebit ? '-' : '+';
     final name = e.title.isNotEmpty ? e.title : 'Entry'.tr;
-    final source = e.subtitle.isNotEmpty
-        ? e.subtitle
-        : (e.isDebit ? 'Debit'.tr : 'Credit'.tr);
+    final source = e.isBusinessExpense
+        ? 'Expense'.tr
+        : (e.subtitle.isNotEmpty
+            ? e.subtitle
+            : (e.isDebit ? 'Debit'.tr : 'Credit'.tr));
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),

@@ -2,11 +2,13 @@ import 'package:flutter/foundation.dart';
 import '../models/invoice_model.dart';
 import '../models/purchase_model.dart';
 import '../models/withdrawal_model.dart';
+import '../models/expense_model.dart';
 import '../models/app_settings_model.dart';
 import '../models/user_profile_model.dart';
 import '../services/invoice_storage_service.dart';
 import '../services/purchase_storage_service.dart';
 import '../services/withdrawal_storage_service.dart';
+import '../services/expense_storage_service.dart';
 import '../services/settings_service.dart';
 import '../services/auth_service.dart';
 import '../services/user_service.dart';
@@ -17,6 +19,7 @@ class DashboardViewModel extends ChangeNotifier {
   List<InvoiceModel> _invoices = [];
   List<PurchaseModel> _purchases = [];
   List<WithdrawalModel> _withdrawals = [];
+  List<ExpenseModel> _expenses = [];
   AppSettingsModel _settings = AppSettingsModel();
   UserProfileModel? _userProfile;
   bool _isLoading = false;
@@ -35,11 +38,18 @@ class DashboardViewModel extends ChangeNotifier {
   /// Number of purchase entries across all time.
   int get totalPurchases => _purchases.length;
 
-  /// Remaining (unsold) carat in stock for the current financial year.
-  /// Mirrors the figure on the Purchase tab. "For Other" purchases are
-  /// excluded.
-  double get totalRemainingCarat =>
-      _purchasesInCurrentYear.fold(0.0, (sum, p) => sum + p.remainingCarat);
+  /// Carats still on hand for the current FY. Mirrors the Purchase tab's
+  /// Remaining tile: opening carats (in-FY purchases + manual carry-forward)
+  /// minus sold carats (in-FY invoices + manual carry-forward), so the two
+  /// screens never disagree even when sales draw from prior-year stock.
+  double get totalRemainingCarat {
+    final opening = _settings.manualOpeningCarat +
+        _purchasesInCurrentYear.fold(0.0, (sum, p) => sum + p.totalCarat);
+    final sold = _settings.manualOpeningSellCarat +
+        _invoicesInCurrentYear.fold(0.0, (sum, inv) => sum + inv.totalCarat);
+    final diff = opening - sold;
+    return diff < 0 ? 0 : diff;
+  }
 
   DateTime? get _yearStart => _settings.currentYearStart();
 
@@ -83,6 +93,24 @@ class DashboardViewModel extends ChangeNotifier {
   /// Net Profit = Sales Profit − Outstanding Withdrawals. Expenses are
   /// intentionally excluded — they only affect the Expenses screen itself.
   double get netProfitOrLoss => totalSalesProfit - outstandingWithdrawals;
+
+  /// Value of unsold inventory as manually valued on the Purchase tab.
+  /// Mirrors the Purchase header's Stock Valuation tile.
+  double get stockValuationTotal => _settings.stockValuationItems
+      .fold(0.0, (sum, item) => sum + item.totalValue);
+
+  /// Roj mel debits the user tagged as business expenses. Ordinary day-book
+  /// debits are ignored here — only tagged entries hit profitability.
+  double get businessExpensesTotal => _expenses
+      .where((e) => !e.isCredit && e.isBusinessExpense)
+      .fold(0.0, (sum, e) => sum + e.amount);
+
+  /// Net Profit including unsold stock = Stock Valuation + Net Profit/Loss
+  /// − tagged business expenses. A running loss is subtracted from the stock
+  /// value, a running profit is added on top, and business expenses come off
+  /// the result, so this is the true bottom line once inventory is counted.
+  double get netProfitWithStock =>
+      stockValuationTotal + netProfitOrLoss - businessExpensesTotal;
 
   /// Money still receivable from buyers across all in-FY invoices.
   /// Each invoice's outstanding amount uses its own average rate, so mixed
@@ -186,6 +214,7 @@ class DashboardViewModel extends ChangeNotifier {
         PurchaseStorageService.getAllPurchases(),
         WithdrawalStorageService.getAllWithdrawals(),
         SettingsService.getSettings(),
+        ExpenseStorageService.getAllExpenses(),
         if (!_hasLoadedOnce && uid != null) _userService.getUserProfile(uid),
       ];
 
@@ -194,8 +223,9 @@ class DashboardViewModel extends ChangeNotifier {
       _purchases = results[1] as List<PurchaseModel>;
       _withdrawals = results[2] as List<WithdrawalModel>;
       _settings = results[3] as AppSettingsModel;
+      _expenses = results[4] as List<ExpenseModel>;
       if (!_hasLoadedOnce && uid != null) {
-        _userProfile = results[4] as UserProfileModel?;
+        _userProfile = results[5] as UserProfileModel?;
       }
       _isLoading = false;
       _hasLoadedOnce = true;

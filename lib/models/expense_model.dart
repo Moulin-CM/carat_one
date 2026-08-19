@@ -3,6 +3,12 @@ class ExpenseModel {
   String personName = '';
   double amount = 0.0;
   bool isCredit = false;
+
+  /// Marks a Debit as a real business expense (as opposed to an ordinary
+  /// day-book debit). Business expenses are subtracted from the dashboard's
+  /// Net Profit and are mirrored into the Expenses screen. Always false for
+  /// Credits — the Add form only offers the choice on Debits.
+  bool isBusinessExpense = false;
   DateTime expenseDate = DateTime.now();
   DateTime createdAt = DateTime.now();
 
@@ -15,6 +21,8 @@ class ExpenseModel {
             : (json['type'] as String? ?? ''),
         amount = (json['amount'] ?? 0.0).toDouble(),
         isCredit = json['isCredit'] == true,
+        isBusinessExpense =
+            json['isCredit'] != true && json['isBusinessExpense'] == true,
         expenseDate = _parseDate(json['expenseDate']),
         createdAt = _parseDate(json['createdAt']);
 
@@ -35,6 +43,7 @@ class ExpenseModel {
         'type': personName,
         'amount': amount,
         'isCredit': isCredit,
+        'isBusinessExpense': isBusinessExpense,
         'expenseDate': expenseDate.toIso8601String(),
         'createdAt': createdAt.toIso8601String(),
       };

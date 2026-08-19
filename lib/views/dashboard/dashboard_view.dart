@@ -709,6 +709,9 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
     final netPosition = viewModel.netPositionAmount;
     final netPositionColor =
         netPosition >= 0 ? const Color(0xFF1B8A4F) : Colors.red;
+    final netProfitWithStock = viewModel.netProfitWithStock;
+    final netProfitColor =
+        netProfitWithStock >= 0 ? const Color(0xFF1B8A4F) : Colors.red;
 
     return Container(
       padding: const EdgeInsets.all(18),
@@ -834,6 +837,76 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
                         currencyFormat.format(netPosition.abs()),
                     style: TextStyle(
                         color: netPositionColor,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  netProfitColor.withOpacity(0.12),
+                  netProfitColor.withOpacity(0.04),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: netProfitColor.withOpacity(0.35)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: netProfitColor.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    netProfitWithStock >= 0
+                        ? Icons.trending_up_rounded
+                        : Icons.trending_down_rounded,
+                    color: netProfitColor,
+                    size: 22,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        netProfitWithStock >= 0
+                            ? 'Net Profit'.tr
+                            : 'Net Loss'.tr,
+                        style: TextStyle(
+                            color: Colors.grey[700],
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Stock Valuation + Net Profit / Loss'.tr,
+                        style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 10,
+                            fontWeight: FontWeight.w500),
+                      ),
+                    ],
+                  ),
+                ),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    (netProfitWithStock >= 0 ? '' : '- ') +
+                        currencyFormat.format(netProfitWithStock.abs()),
+                    style: TextStyle(
+                        color: netProfitColor,
                         fontSize: 20,
                         fontWeight: FontWeight.w800),
                   ),
@@ -973,7 +1046,7 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
                 child: _buildFinanceTile(
                   context,
                   icon: Icons.receipt_long_rounded,
-                  title: 'Expenses'.tr,
+                  title: 'Roj mel'.tr,
                   value: 'Manage'.tr,
                   color: Colors.blueGrey,
                   onTap: () async {
@@ -990,9 +1063,9 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
                 child: _buildFinanceTile(
                   context,
                   icon: Icons.account_balance_wallet_rounded,
-                  title: 'Withdrawals'.tr,
+                  title: 'Expenses'.tr,
                   value:
-                      '- ${currencyFormat.format(viewModel.outstandingWithdrawals)}',
+                      '- ${currencyFormat.format(viewModel.outstandingWithdrawals + viewModel.businessExpensesTotal)}',
                   color: Colors.orange,
                   onTap: () async {
                     await Navigator.push(

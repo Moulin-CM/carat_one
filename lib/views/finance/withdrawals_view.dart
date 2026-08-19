@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../../models/withdrawal_model.dart';
+import '../../models/expense_model.dart';
 import '../../services/withdrawal_storage_service.dart';
+import '../../services/expense_storage_service.dart';
 import '../../widgets/app_bar_factory.dart';
 
 import '../../widgets/list_skeleton.dart';
@@ -23,6 +24,9 @@ class _WithdrawalsViewState extends State<WithdrawalsView> {
   static const _deep = Color(0xFF1E3C72);
 
   List<WithdrawalModel> _items = [];
+  /// Roj mel debits tagged as business expenses. Mirrored here read-only —
+  /// they are created, edited and deleted on the Roj mel screen.
+  List<ExpenseModel> _businessExpenses = [];
   bool _loading = true;
 
   final _dateFmt = DateFormat('dd MMM yyyy'.tr);
@@ -36,10 +40,18 @@ class _WithdrawalsViewState extends State<WithdrawalsView> {
 
   Future<void> _load() async {
     setState(() => _loading = true);
-    final list = await WithdrawalStorageService.getAllWithdrawals();
+    final results = await Future.wait([
+      WithdrawalStorageService.getAllWithdrawals(),
+      ExpenseStorageService.getAllExpenses(),
+    ]);
     if (!mounted) return;
+    final expenses = (results[1] as List<ExpenseModel>)
+        .where((e) => !e.isCredit && e.isBusinessExpense)
+        .toList()
+      ..sort((a, b) => b.expenseDate.compareTo(a.expenseDate));
     setState(() {
-      _items = list;
+      _items = results[0] as List<WithdrawalModel>;
+      _businessExpenses = expenses;
       _loading = false;
     });
   }
@@ -52,12 +64,15 @@ class _WithdrawalsViewState extends State<WithdrawalsView> {
   double get _outstanding =>
       _active.fold(0.0, (sum, w) => sum + w.amount);
 
+  double get _businessExpenseTotal =>
+      _businessExpenses.fold(0.0, (sum, e) => sum + e.amount);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBarFactory.build(
-        title: 'Pre-mature Withdrawals'.tr,
+        title: 'Expenses'.tr,
         onBackPress: () => Navigator.pop(context),
       ),
       body: Stack(
@@ -70,15 +85,21 @@ class _WithdrawalsViewState extends State<WithdrawalsView> {
                 Expanded(
                   child: _loading
                       ? const ListSkeleton()
-                      : (_items.isEmpty
+                      : (_items.isEmpty && _businessExpenses.isEmpty
                           ? _emptyState()
                           : RefreshIndicator(
                               onRefresh: _load,
                               child: ListView(
                                 padding: const EdgeInsets.fromLTRB(
-                                    16, 8, 16, 100),
+                                    16, 8, 16, 24),
                                 children: [
+                                  if (_businessExpenses.isNotEmpty) ...[
+                                    _sectionTitle('Business Expenses'.tr),
+                                    ..._businessExpenses.map(_expenseRow),
+                                  ],
                                   if (_active.isNotEmpty) ...[
+                                    if (_businessExpenses.isNotEmpty)
+                                      const SizedBox(height: 12),
                                     _sectionTitle('Outstanding'.tr),
                                     ..._active.map(_row),
                                   ],
@@ -96,17 +117,11 @@ class _WithdrawalsViewState extends State<WithdrawalsView> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _openAddSheet,
-        icon: const Icon(Icons.add_rounded),
-        label: Text('Add Withdrawal'.tr),
-        backgroundColor: _accent,
-      ),
-
     );
   }
 
   Widget _totalCard() {
+    final hasWithdrawals = _outstanding > 0;
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -114,33 +129,133 @@ class _WithdrawalsViewState extends State<WithdrawalsView> {
         gradient: const LinearGradient(colors: [_deep, _accent]),
         borderRadius: BorderRadius.circular(16),
       ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _cardRow(
+            icon: Icons.trending_down_rounded,
+            label: 'Total Expenses'.tr,
+            helper: hasWithdrawals
+                ? 'Tagged Debits + outstanding withdrawals'.tr
+                : 'Tagged Debits from Roj mel'.tr,
+            amount: _businessExpenseTotal + _outstanding,
+          ),
+          // Withdrawals can no longer be created, but historical entries still
+          // count toward the total — broken out so the figure reconciles.
+          if (hasWithdrawals) ...[
+            const SizedBox(height: 10),
+            Divider(color: Colors.white.withOpacity(0.25), height: 1),
+            const SizedBox(height: 10),
+            _cardRow(
+              icon: Icons.account_balance_wallet_rounded,
+              label: 'Withdrawals Outstanding'.tr,
+              helper: 'Out until marked returned'.tr,
+              amount: _outstanding,
+              dense: true,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _cardRow({
+    required IconData icon,
+    required String label,
+    required String helper,
+    required double amount,
+    bool dense = false,
+  }) {
+    return Row(
+      children: [
+        Container(
+          padding: EdgeInsets.all(dense ? 8 : 10),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(icon, color: Colors.white, size: dense ? 18 : 20),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label,
+                  style: TextStyle(
+                      color: Colors.white70, fontSize: dense ? 11 : 12)),
+              Text(helper,
+                  style: const TextStyle(color: Colors.white54, fontSize: 10)),
+            ],
+          ),
+        ),
+        const SizedBox(width: 8),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text('- ${_currencyFmt.format(amount)}',
+              style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                  fontSize: dense ? 15 : 18)),
+        ),
+      ],
+    );
+  }
+
+  /// Read-only mirror of a Roj mel debit tagged as a business expense.
+  /// Editing and deleting stay on the Roj mel screen so there is one source
+  /// of truth for the day book.
+  Widget _expenseRow(ExpenseModel e) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
+              color: Colors.deepOrange.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(Icons.account_balance_wallet_rounded,
-                color: Colors.white, size: 20),
+            child: const Icon(Icons.trending_down_rounded,
+                color: Colors.deepOrange, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Outstanding'.tr,
-                    style: const TextStyle(color: Colors.white70, fontSize: 12)),
-                Text('Out until marked returned'.tr,
-                    style: const TextStyle(color: Colors.white54, fontSize: 10)),
+                Text(e.personName.isNotEmpty ? e.personName : 'Expense'.tr,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 15,
+                        color: _deep)),
+                const SizedBox(height: 2),
+                Text(
+                  '${'Roj mel'.tr} · ${_dateFmt.format(e.expenseDate)}',
+                  style: TextStyle(color: Colors.grey[600], fontSize: 11),
+                ),
               ],
             ),
           ),
-          Text('- ${_currencyFmt.format(_outstanding)}'.tr,
-            style: const TextStyle(
-                color: Colors.white, fontWeight: FontWeight.w800, fontSize: 18),
-          ),
+          Text('- ${_currencyFmt.format(e.amount)}',
+              style: const TextStyle(
+                  color: Colors.deepOrange,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 15)),
         ],
       ),
     );
@@ -309,11 +424,11 @@ class _WithdrawalsViewState extends State<WithdrawalsView> {
     return ListView(
       children: [
         const SizedBox(height: 80),
-        Icon(Icons.account_balance_wallet_outlined,
+        Icon(Icons.trending_down_rounded,
             size: 64, color: Colors.grey[300]),
         const SizedBox(height: 16),
         Center(
-          child: Text('No withdrawals yet'.tr,
+          child: Text('No expenses yet'.tr,
               style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
@@ -321,8 +436,14 @@ class _WithdrawalsViewState extends State<WithdrawalsView> {
         ),
         const SizedBox(height: 8),
         Center(
-          child: Text('Tap Add Withdrawal to record a pre-mature payout'.tr,
-              style: TextStyle(color: Colors.grey[500])),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Text(
+                'Open Roj mel, add a Debit and tag it as Expense to see it here'
+                    .tr,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey[500])),
+          ),
         ),
       ],
     );
@@ -339,251 +460,4 @@ class _WithdrawalsViewState extends State<WithdrawalsView> {
       ),
     );
   }
-
-  Future<void> _openAddSheet() async {
-    final added = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => const _AddWithdrawalSheet(),
-    );
-    if (added == true) {
-      await _load();
-    }
-  }
-}
-
-class _AddWithdrawalSheet extends StatefulWidget {
-  const _AddWithdrawalSheet();
-
-  @override
-  State<_AddWithdrawalSheet> createState() => _AddWithdrawalSheetState();
-}
-
-class _AddWithdrawalSheetState extends State<_AddWithdrawalSheet> {
-  static const _accent = Color(0xFF4F8AF4);
-  static const _deep = Color(0xFF1E3C72);
-
-  final _formKey = GlobalKey<FormState>();
-  final _personCtrl = TextEditingController();
-  final _amountCtrl = TextEditingController();
-  DateTime _taken = DateTime.now();
-  DateTime _return = DateTime.now().add(const Duration(days: 30));
-  bool _saving = false;
-
-  final _dateFmt = DateFormat('dd MMM yyyy'.tr);
-
-  @override
-  void dispose() {
-    _personCtrl.dispose();
-    _amountCtrl.dispose();
-    super.dispose();
-  }
-
-  Future<void> _save() async {
-    if (!(_formKey.currentState?.validate() ?? false)) return;
-    setState(() => _saving = true);
-    try {
-      final w = WithdrawalModel()
-        ..personName = _personCtrl.text.trim()
-        ..amount = double.tryParse(_amountCtrl.text.trim()) ?? 0
-        ..takenDate = _taken
-        ..returnDate = _return;
-      await WithdrawalStorageService.saveWithdrawal(w);
-      if (mounted) Navigator.pop(context, true);
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text('${'Failed to save'.tr}: $e'),
-            backgroundColor: Colors.red),
-      );
-    } finally {
-      if (mounted) setState(() => _saving = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final bottom = MediaQuery.of(context).viewInsets.bottom;
-    return Padding(
-      padding: EdgeInsets.only(bottom: bottom),
-      child: SafeArea(
-        top: false,
-        child: Container(
-          margin: const EdgeInsets.all(12),
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text('Pre-mature Withdrawal'.tr,
-                    style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        color: _deep)),
-                const SizedBox(height: 4),
-                Text(
-                    'Deducted from Net Profit until you mark it returned.'.tr,
-                    style:
-                        TextStyle(color: Colors.grey[600], fontSize: 13)),
-                const SizedBox(height: 16),
-                _label('Person Name'.tr),
-                TextFormField(
-                  controller: _personCtrl,
-                  textCapitalization: TextCapitalization.words,
-                  decoration: _decoration('e.g. Rohan'.tr),
-                  validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Required'.tr : null,
-                ),
-                const SizedBox(height: 12),
-                _label('Amount'.tr),
-                TextFormField(
-                  controller: _amountCtrl,
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(
-                        RegExp(r'^\d*\.?\d{0,2}')),
-                  ],
-                  decoration: _decoration('0', prefix: '₹ '),
-                  validator: (v) {
-                    final n = double.tryParse(v?.trim() ?? '');
-                    if (n == null || n <= 0) return 'Enter valid amount'.tr;
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _label('Taken Date'.tr),
-                          _datePicker(_taken, (d) => setState(() {
-                                _taken = d;
-                                if (_return.isBefore(_taken)) _return = _taken;
-                              })),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _label('Return Date'.tr),
-                          _datePicker(_return, (d) => setState(() => _return = d),
-                              firstDate: _taken),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: _saving ? null : _save,
-                    icon: _saving
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(
-                                strokeWidth: 2, color: Colors.white))
-                        : const Icon(Icons.save_rounded),
-                    label: Text(_saving ? 'Saving…'.tr : 'Save'.tr),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _accent,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _datePicker(DateTime value, void Function(DateTime) onPick,
-      {DateTime? firstDate}) {
-    return InkWell(
-      onTap: () async {
-        final d = await showDatePicker(
-          context: context,
-          initialDate: value,
-          firstDate: firstDate ?? DateTime(2020),
-          lastDate: DateTime(2100),
-        );
-        if (d != null) onPick(d);
-      },
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF4F7FC),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.calendar_today_rounded,
-                color: _accent, size: 16),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(_dateFmt.format(value),
-                  style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: _deep),
-                  overflow: TextOverflow.ellipsis),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _label(String text) => Padding(
-        padding: const EdgeInsets.only(bottom: 6),
-        child: Text(text,
-            style: const TextStyle(
-                color: _deep, fontSize: 13, fontWeight: FontWeight.w700)),
-      );
-
-  InputDecoration _decoration(String hint, {String? prefix}) => InputDecoration(
-        hintText: hint,
-        prefixText: prefix,
-        filled: true,
-        fillColor: const Color(0xFFF4F7FC),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-      );
 }

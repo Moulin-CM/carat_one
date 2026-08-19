@@ -103,14 +103,21 @@ class PurchaseViewModel extends ChangeNotifier {
     return sum + manualOpeningAmount;
   }
 
-  double get totalRemainingCarat =>
-      _purchasesInCurrentYear.fold(0.0, (sum, p) => sum + p.remainingCarat);
+  /// Carats still on hand this FY = opening − sold, where sold mirrors the
+  /// Sell tab so the Purchase header stays internally consistent (opening =
+  /// sold + remaining) even when invoices draw from prior-year stock.
+  double get totalRemainingCarat {
+    final diff = openingTotalCarat - totalSoldCarat;
+    return diff < 0 ? 0 : diff;
+  }
 
-  /// Total carats sold out of this year's purchase lots. Computed from the
-  /// purchase side (as opposed to summing invoice carats) so the figure
-  /// lines up with [totalRemainingCarat] — i.e. opening = sold + remaining.
+  /// Total carats sold this FY. Mirrors the Sell tab's Opening Carats —
+  /// manual carry-forward plus every in-FY invoice's totalCarat — so the
+  /// Purchase and Sell screens agree, including sales drawn from prior-year
+  /// stock or the manual opening pool.
   double get totalSoldCarat =>
-      _purchasesInCurrentYear.fold(0.0, (sum, p) => sum + p.totalSoldCarat);
+      _settings.manualOpeningSellCarat +
+      _sellInvoicesInCurrentYear.fold(0.0, (sum, inv) => sum + inv.totalCarat);
 
   /// Carats still owed to sellers across all in-FY purchases.
   double get totalPendingPaymentCarat =>
@@ -165,6 +172,7 @@ class PurchaseViewModel extends ChangeNotifier {
         paymentStatus: LedgerPaymentStatus.notApplicable,
         isDebit: !e.isCredit,
         isCashMode: true,
+        isBusinessExpense: e.isBusinessExpense,
       ));
     }
 

@@ -55,7 +55,7 @@ class _ExpensesContentState extends State<_ExpensesContent> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBarFactory.build(
-        title: 'Expenses'.tr,
+        title: 'Roj mel'.tr,
         onBackPress: () => Navigator.pop(context),
         actions: [
           IconButton(
@@ -392,11 +392,37 @@ class _ExpensesContentState extends State<_ExpensesContent> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(entry.title,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 15,
-                        color: _deep)),
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(entry.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                              color: _deep)),
+                    ),
+                    if (entry.isBusinessExpense) ...[
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.deepOrange.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                              color: Colors.deepOrange.withOpacity(0.4)),
+                        ),
+                        child: Text('Expense'.tr,
+                            style: const TextStyle(
+                                color: Colors.deepOrange,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 9)),
+                      ),
+                    ],
+                  ],
+                ),
                 const SizedBox(height: 2),
                 Text(
                   entry.subtitle.isNotEmpty
@@ -676,6 +702,8 @@ class _AddExpenseSheetState extends State<_AddExpenseSheet> {
   final _amountCtrl = TextEditingController();
   DateTime _date = DateTime.now();
   bool _saving = false;
+  /// Debits only: true when the user tags this row as a business expense.
+  bool _isBusinessExpense = false;
 
   final _dateFmt = DateFormat('dd MMM yyyy'.tr);
   final _balanceFmt = NumberFormat.currency(symbol: '₹', decimalDigits: 0);
@@ -718,6 +746,7 @@ class _AddExpenseSheetState extends State<_AddExpenseSheet> {
         ..personName = _personCtrl.text.trim()
         ..amount = amount
         ..isCredit = widget.isCredit
+        ..isBusinessExpense = !widget.isCredit && _isBusinessExpense
         ..expenseDate = _date;
       await ExpenseStorageService.saveExpense(exp);
       if (mounted) Navigator.pop(context, true);
@@ -821,6 +850,35 @@ class _AddExpenseSheetState extends State<_AddExpenseSheet> {
                       ],
                     ),
                   ),
+                  const SizedBox(height: 16),
+                  _label('Debit Type'.tr),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _debitTypeTile(
+                          label: 'Normal Debit'.tr,
+                          helper: 'Day-book only'.tr,
+                          icon: Icons.receipt_long_rounded,
+                          color: _deep,
+                          selected: !_isBusinessExpense,
+                          onTap: () =>
+                              setState(() => _isBusinessExpense = false),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _debitTypeTile(
+                          label: 'Expense'.tr,
+                          helper: 'Reduces Net Profit'.tr,
+                          icon: Icons.trending_down_rounded,
+                          color: Colors.deepOrange,
+                          selected: _isBusinessExpense,
+                          onTap: () =>
+                              setState(() => _isBusinessExpense = true),
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
                 const SizedBox(height: 16),
                 _label('Person Name'.tr),
@@ -914,6 +972,67 @@ class _AddExpenseSheetState extends State<_AddExpenseSheet> {
             style: const TextStyle(
                 color: _deep, fontSize: 13, fontWeight: FontWeight.w700)),
       );
+
+  Widget _debitTypeTile({
+    required String label,
+    required String helper,
+    required IconData icon,
+    required Color color,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        decoration: BoxDecoration(
+          color: selected ? color.withOpacity(0.10) : const Color(0xFFF4F7FC),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: selected ? color.withOpacity(0.6) : Colors.transparent,
+            width: 1.4,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon,
+                    size: 18,
+                    color: selected ? color : Colors.grey.shade500),
+                const Spacer(),
+                Icon(
+                  selected
+                      ? Icons.radio_button_checked_rounded
+                      : Icons.radio_button_unchecked_rounded,
+                  size: 16,
+                  color: selected ? color : Colors.grey.shade400,
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                    color: selected ? color : _deep,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800)),
+            const SizedBox(height: 2),
+            Text(helper,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 10,
+                    fontWeight: FontWeight.w500)),
+          ],
+        ),
+      ),
+    );
+  }
 
   InputDecoration _decoration(String hint, {String? prefix}) =>
       InputDecoration(
