@@ -3,6 +3,11 @@ import '../models/subscription_plan.dart';
 class SubscriptionConstants {
   SubscriptionConstants._();
 
+  // ── Free trial ─────────────────────────────────────────────────────────────
+  /// Length of the free trial granted to a brand-new account.
+  static const int trialDurationDays = 30;
+  static const Duration trialDuration = Duration(days: trialDurationDays);
+
   // ── Google Play Console Product IDs ────────────────────────────────────────
   static const String starterProductId  = 'monthly_499';
   static const String proProductId      = 'pro_999';

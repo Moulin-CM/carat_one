@@ -122,7 +122,7 @@ class SubscriptionService {
     final s = SubscriptionStatus(
       plan: SubscriptionTier.trial,
       trialStartedAt: now,
-      trialEndsAt: now.add(const Duration(days: 7)),
+      trialEndsAt: now.add(SubscriptionConstants.trialDuration),
     );
     await _db.child('users/$uid/subscription').set(s.toMap());
   }

@@ -31,7 +31,7 @@
 New Sign-up
     │
     ▼
-🎁 Free Trial — 7 days, ALL features unlocked
+🎁 Free Trial — 30 days, ALL features unlocked
     │
     ▼ (Day 8)
 Trial Expired ──► Tries to add Purchase/Sell ──► Paywall Dialog
@@ -64,7 +64,7 @@ We recommend **3 tiers** (industry standard — gives upgrade headroom without a
 
 ## 3. Feature Gating Matrix
 
-| Feature | Free Trial (7d) | Starter ₹149 | Pro ₹299 | Business ₹599 | After trial (no plan) |
+| Feature | Free Trial (30d) | Starter ₹149 | Pro ₹299 | Business ₹599 | After trial (no plan) |
 |---|---|---|---|---|---|
 | **Add Purchase** | ✅ Unlimited | 30/month | ✅ Unlimited | ✅ Unlimited | ❌ Blocked (or +1 per ad) |
 | **Add Sell (Invoice)** | ✅ Unlimited | 30/month | ✅ Unlimited | ✅ Unlimited | ❌ Blocked (or +1 per ad) |
@@ -119,7 +119,7 @@ Store on Firebase under `users/{uid}/subscription/`:
 ```json
 {
   "trialStartedAt": "<Firebase ServerValue.timestamp>",
-  "trialEndsAt":    "<trialStartedAt + 7 days>",
+  "trialEndsAt":    "<trialStartedAt + 30 days>",
   "plan": "trial | starter | pro | business | expired",
   "platform": "android | ios",
   "purchaseToken": "...",
@@ -227,7 +227,7 @@ Push notification 2 days before renewal so users don't feel surprise-charged →
 | User cancels mid-cycle | Access until `expiryDate`, then drop to restricted |
 | Refund issued | Cloud Function listens to RTDN → immediately sets `plan: expired` |
 | User on plane / offline | Last verified state cached for 7 days; after that, requires online check |
-| Existing users (rolled out today) | **Grandfather decision:** give them all a fresh 7-day trial starting on update install — generates good will + lets them experience the full app before deciding |
+| Existing users (rolled out today) | **Grandfather decision:** give them all a fresh 30-day trial starting on update install — generates good will + lets them experience the full app before deciding |
 | Plan downgrade (Pro → Starter) | Apply at next renewal, not immediately |
 | Family sharing / shared device | Tied to Firebase UID, not device — works automatically |
 | GST on subscription | Google Play / App Store handles GST collection & invoicing in India — we receive the net amount |
@@ -319,7 +319,7 @@ crypto: ^3.0.3            # for receipt hashing if needed
 
 ## 13. Suggestions / Watch-outs
 
-1. **Don't paywall existing users immediately** — they'll uninstall. Give them a 7-day trial on update.
+1. **Don't paywall existing users immediately** — they'll uninstall. Give them a 30-day trial on update.
 2. **Show the price in INR with ₹** — users are India-focused; "$1.99" feels foreign.
 3. **Highlight Pro as "Most Popular"** — anchoring effect; most pick the middle option.
 4. **Avoid yearly plans for now** ✅ (monthly recurring revenue is more predictable for a young app, and yearly creates refund-risk concentration).
@@ -343,7 +343,7 @@ If this plan is approved, the recommended kickoff is:
 
 - [ ] Plan tier names + prices (Starter ₹149 / Pro ₹299 / Business ₹599)?
 - [ ] Daily ad-credit cap (proposed: 5/day)?
-- [ ] Existing-user grandfather policy (proposed: fresh 7-day trial on update)?
+- [ ] Existing-user grandfather policy (proposed: fresh 30-day trial on update)?
 - [ ] Grace period on payment failure (proposed: 3 days)?
 - [ ] Localization — paywall in Hindi/Gujarati at launch, or English-only first?
 
