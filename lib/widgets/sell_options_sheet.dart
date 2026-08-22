@@ -54,36 +54,51 @@ class _SellOptionsSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            Text(
-              'How is this sell being made?'.tr,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: _deep,
+            // Scrolls instead of overflowing when the device font scale is large,
+            // so the Cancel button below always stays reachable.
+            Flexible(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.zero,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      'How is this sell being made?'.tr,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: _deep,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Pick a mode — Cash skips the invoice/PDF, In Account creates a full GST invoice.'
+                          .tr,
+                      style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                    ),
+                    const SizedBox(height: 20),
+                    _OptionTile(
+                      icon: Icons.payments_rounded,
+                      color: const Color(0xFF2E7D32),
+                      title: 'By Cash'.tr,
+                      subtitle:
+                          'Save a cash sell entry. No invoice/PDF generated.'.tr,
+                      onTap: () => Navigator.pop(context, true),
+                    ),
+                    const SizedBox(height: 12),
+                    _OptionTile(
+                      icon: Icons.account_balance_rounded,
+                      color: _accent,
+                      title: 'By In Account'.tr,
+                      subtitle:
+                          'Create a GST invoice with PDF and payment tracking.'
+                              .tr,
+                      onTap: () => Navigator.pop(context, false),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Pick a mode — Cash skips the invoice/PDF, In Account creates a full GST invoice.'
-                  .tr,
-              style: TextStyle(color: Colors.grey[600], fontSize: 13),
-            ),
-            const SizedBox(height: 20),
-            _OptionTile(
-              icon: Icons.payments_rounded,
-              color: const Color(0xFF2E7D32),
-              title: 'By Cash'.tr,
-              subtitle: 'Save a cash sell entry. No invoice/PDF generated.'.tr,
-              onTap: () => Navigator.pop(context, true),
-            ),
-            const SizedBox(height: 12),
-            _OptionTile(
-              icon: Icons.account_balance_rounded,
-              color: _accent,
-              title: 'By In Account'.tr,
-              subtitle:
-                  'Create a GST invoice with PDF and payment tracking.'.tr,
-              onTap: () => Navigator.pop(context, false),
             ),
             const SizedBox(height: 8),
             TextButton(

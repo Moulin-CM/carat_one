@@ -565,69 +565,89 @@ class _PickKindSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            Text('Choose Type'.tr,
-                style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    color: _deep)),
-            const SizedBox(height: 4),
-            Text(
-                'Credits add money in. Debits can only spend what Credits have made available.'.tr,
-                style: TextStyle(color: Colors.grey[600], fontSize: 13)),
-            const SizedBox(height: 12),
-            Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF4F7FC),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.account_balance_wallet_outlined,
-                      color: _deep, size: 18),
-                  const SizedBox(width: 8),
-                  Text('Available Balance'.tr,
-                      style: const TextStyle(
-                          color: _deep,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600)),
-                  const Spacer(),
-                  Text(currencyFmt.format(availableBalance),
-                      style: TextStyle(
-                          color: availableBalance > 0
-                              ? Colors.green.shade700
-                              : Colors.red,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 14)),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: _kindTile(
-                    label: 'Credit'.tr,
-                    icon: Icons.north_east_rounded,
-                    color: Colors.green,
-                    onTap: () => Navigator.pop(context, true),
-                  ),
+            // Scrolls instead of overflowing when the device font scale is large.
+            Flexible(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.zero,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text('Choose Type'.tr,
+                        style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            color: _deep)),
+                    const SizedBox(height: 4),
+                    Text(
+                        'Credits add money in. Debits can only spend what Credits have made available.'.tr,
+                        style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF4F7FC),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.account_balance_wallet_outlined,
+                              color: _deep, size: 18),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text('Available Balance'.tr,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                    color: _deep,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600)),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(currencyFmt.format(availableBalance),
+                              style: TextStyle(
+                                  color: availableBalance > 0
+                                      ? Colors.green.shade700
+                                      : Colors.red,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 14)),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    IntrinsicHeight(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Expanded(
+                            child: _kindTile(
+                              label: 'Credit'.tr,
+                              icon: Icons.north_east_rounded,
+                              color: Colors.green,
+                              onTap: () => Navigator.pop(context, true),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _kindTile(
+                              label: 'Debit'.tr,
+                              icon: Icons.south_west_rounded,
+                              color: Colors.red,
+                              disabled: debitDisabled,
+                              subLabel:
+                                  debitDisabled ? 'Insufficient balance'.tr : null,
+                              onTap: debitDisabled
+                                  ? null
+                                  : () => Navigator.pop(context, false),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _kindTile(
-                    label: 'Debit'.tr,
-                    icon: Icons.south_west_rounded,
-                    color: Colors.red,
-                    disabled: debitDisabled,
-                    subLabel: debitDisabled ? 'Insufficient balance'.tr : null,
-                    onTap: debitDisabled
-                        ? null
-                        : () => Navigator.pop(context, false),
-                  ),
-                ),
-              ],
+              ),
             ),
           ],
         ),
@@ -656,10 +676,14 @@ class _PickKindSheet extends StatelessWidget {
               color: effectiveColor.withOpacity(0.4), width: 1.2),
         ),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, color: effectiveColor, size: 30),
             const SizedBox(height: 8),
             Text(label,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                     color: effectiveColor,
                     fontWeight: FontWeight.w800,
@@ -781,6 +805,8 @@ class _AddExpenseSheetState extends State<_AddExpenseSheet> {
           child: Form(
             key: _formKey,
             autovalidateMode: AutovalidateMode.onUserInteraction,
+            // The fields sit in a scrollable middle section so a large device
+            // font scale can never push the Save button off the screen.
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -796,142 +822,166 @@ class _AddExpenseSheetState extends State<_AddExpenseSheet> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Text('Add Entry'.tr,
-                        style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            color: _deep)),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: kindColor.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: kindColor.withOpacity(0.4)),
-                      ),
-                      child: Text(kindLabel,
-                          style: TextStyle(
-                              color: kindColor,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 11)),
-                    ),
-                  ],
-                ),
-                if (!widget.isCredit) ...[
-                  const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF4F7FC),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Row(
+                Flexible(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.zero,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const Icon(Icons.account_balance_wallet_outlined,
-                            color: _deep, size: 18),
-                        const SizedBox(width: 8),
-                        Text('Available Balance'.tr,
-                            style: const TextStyle(
-                                color: _deep,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600)),
-                        const Spacer(),
-                        Text(_balanceFmt.format(widget.availableBalance),
-                            style: TextStyle(
-                                color: widget.availableBalance > 0
-                                    ? Colors.green.shade700
-                                    : Colors.red,
-                                fontWeight: FontWeight.w800,
-                                fontSize: 14)),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  _label('Debit Type'.tr),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _debitTypeTile(
-                          label: 'Normal Debit'.tr,
-                          helper: 'Day-book only'.tr,
-                          icon: Icons.receipt_long_rounded,
-                          color: _deep,
-                          selected: !_isBusinessExpense,
-                          onTap: () =>
-                              setState(() => _isBusinessExpense = false),
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text('Add Entry'.tr,
+                                  style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w800,
+                                      color: _deep)),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: kindColor.withOpacity(0.12),
+                                borderRadius: BorderRadius.circular(20),
+                                border:
+                                    Border.all(color: kindColor.withOpacity(0.4)),
+                              ),
+                              child: Text(kindLabel,
+                                  style: TextStyle(
+                                      color: kindColor,
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 11)),
+                            ),
+                          ],
                         ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: _debitTypeTile(
-                          label: 'Expense'.tr,
-                          helper: 'Reduces Net Profit'.tr,
-                          icon: Icons.trending_down_rounded,
-                          color: Colors.deepOrange,
-                          selected: _isBusinessExpense,
-                          onTap: () =>
-                              setState(() => _isBusinessExpense = true),
+                        if (!widget.isCredit) ...[
+                          const SizedBox(height: 12),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF4F7FC),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.account_balance_wallet_outlined,
+                                    color: _deep, size: 18),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text('Available Balance'.tr,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                          color: _deep,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600)),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(_balanceFmt.format(widget.availableBalance),
+                                    style: TextStyle(
+                                        color: widget.availableBalance > 0
+                                            ? Colors.green.shade700
+                                            : Colors.red,
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 14)),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          _label('Debit Type'.tr),
+                          IntrinsicHeight(
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Expanded(
+                                  child: _debitTypeTile(
+                                    label: 'Normal Debit'.tr,
+                                    helper: 'Day-book only'.tr,
+                                    icon: Icons.receipt_long_rounded,
+                                    color: _deep,
+                                    selected: !_isBusinessExpense,
+                                    onTap: () => setState(
+                                        () => _isBusinessExpense = false),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: _debitTypeTile(
+                                    label: 'Expense'.tr,
+                                    helper: 'Reduces Net Profit'.tr,
+                                    icon: Icons.trending_down_rounded,
+                                    color: Colors.deepOrange,
+                                    selected: _isBusinessExpense,
+                                    onTap: () => setState(
+                                        () => _isBusinessExpense = true),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 16),
+                        _label('Person Name'.tr),
+                        TextFormField(
+                          controller: _personCtrl,
+                          textCapitalization: TextCapitalization.words,
+                          decoration: _decoration('e.g. Ramesh, Suresh'.tr),
+                          validator: (v) => (v == null || v.trim().isEmpty)
+                              ? 'Required'.tr
+                              : null,
                         ),
-                      ),
-                    ],
-                  ),
-                ],
-                const SizedBox(height: 16),
-                _label('Person Name'.tr),
-                TextFormField(
-                  controller: _personCtrl,
-                  textCapitalization: TextCapitalization.words,
-                  decoration: _decoration('e.g. Ramesh, Suresh'.tr),
-                  validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Required'.tr : null,
-                ),
-                const SizedBox(height: 12),
-                _label('Amount'.tr),
-                TextFormField(
-                  controller: _amountCtrl,
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(
-                        RegExp(r'^\d*\.?\d{0,2}')),
-                  ],
-                  decoration: _decoration('0', prefix: '₹ '),
-                  validator: _validateAmount,
-                ),
-                const SizedBox(height: 12),
-                _label('Date'.tr),
-                InkWell(
-                  onTap: () async {
-                    final d = await showDatePicker(
-                      context: context,
-                      initialDate: _date,
-                      firstDate: DateTime(2020),
-                      lastDate: DateTime(2100),
-                    );
-                    if (d != null) setState(() => _date = d);
-                  },
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 14),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF4F7FC),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.calendar_today_rounded,
-                            color: _accent, size: 18),
-                        const SizedBox(width: 10),
-                        Text(_dateFmt.format(_date),
-                            style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: _deep)),
+                        const SizedBox(height: 12),
+                        _label('Amount'.tr),
+                        TextFormField(
+                          controller: _amountCtrl,
+                          keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true),
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(
+                                RegExp(r'^\d*\.?\d{0,2}')),
+                          ],
+                          decoration: _decoration('0', prefix: '₹ '),
+                          validator: _validateAmount,
+                        ),
+                        const SizedBox(height: 12),
+                        _label('Date'.tr),
+                        InkWell(
+                          onTap: () async {
+                            final d = await showDatePicker(
+                              context: context,
+                              initialDate: _date,
+                              firstDate: DateTime(2020),
+                              lastDate: DateTime(2100),
+                            );
+                            if (d != null) setState(() => _date = d);
+                          },
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 14, vertical: 14),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF4F7FC),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.calendar_today_rounded,
+                                    color: _accent, size: 18),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(_dateFmt.format(_date),
+                                      style: const TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                          color: _deep)),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -1014,7 +1064,7 @@ class _AddExpenseSheetState extends State<_AddExpenseSheet> {
             ),
             const SizedBox(height: 8),
             Text(label,
-                maxLines: 1,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                     color: selected ? color : _deep,
@@ -1022,7 +1072,7 @@ class _AddExpenseSheetState extends State<_AddExpenseSheet> {
                     fontWeight: FontWeight.w800)),
             const SizedBox(height: 2),
             Text(helper,
-                maxLines: 1,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                     color: Colors.grey[600],
