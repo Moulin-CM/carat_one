@@ -730,8 +730,8 @@ class _PaymentStatus extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Pending from Buyers − Pending to Sellers'.tr,
-                        maxLines: 2,
+                        'Pending from Buyers − Pending to Sellers + Available'.tr,
+                        maxLines: 3,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: Colors.white.withValues(alpha: 0.6),

@@ -821,7 +821,7 @@ class _DashboardViewContentState extends State<_DashboardViewContent> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Pending from Buyers − Pending to Sellers'.tr,
+                        'Pending from Buyers − Pending to Sellers + Available'.tr,
                         style: TextStyle(
                             color: Colors.grey[600],
                             fontSize: 10,

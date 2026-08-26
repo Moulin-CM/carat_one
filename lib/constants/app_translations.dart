@@ -604,6 +604,8 @@ class AppTranslations {
     'Net Position': 'Net Position',
     'Pending from Buyers − Pending to Sellers':
         'Pending from Buyers − Pending to Sellers',
+    'Pending from Buyers − Pending to Sellers + Available':
+        'Pending from Buyers − Pending to Sellers + Available',
     'Stock Valuation + Net Profit / Loss':
         'Stock Valuation + Net Profit / Loss',
     'Out until marked returned': 'Out until marked returned',
@@ -1205,6 +1207,8 @@ class AppTranslations {
     'Net Position': 'शुद्ध स्थिति',
     'Pending from Buyers − Pending to Sellers':
         'खरीदारों से बकाया − विक्रेताओं को देय',
+    'Pending from Buyers − Pending to Sellers + Available':
+        'खरीदारों से बकाया − विक्रेताओं को देय + उपलब्ध',
     'Stock Valuation + Net Profit / Loss':
         'स्टॉक मूल्यांकन + शुद्ध लाभ / हानि',
     'Out until marked returned': 'वापसी चिन्हित होने तक बाहर',
@@ -1806,6 +1810,8 @@ class AppTranslations {
     'Net Position': 'ચોખ્ખી સ્થિતિ',
     'Pending from Buyers − Pending to Sellers':
         'ખરીદનાર પાસેથી બાકી − વેચનારને દેવાનું',
+    'Pending from Buyers − Pending to Sellers + Available':
+        'ખરીદનાર પાસેથી બાકી − વેચનારને દેવાનું + ઉપલબ્ધ',
     'Stock Valuation + Net Profit / Loss':
         'સ્ટોક મૂલ્યાંકન + ચોખ્ખો નફો / ખોટ',
     'Out until marked returned': 'પરત ચિહ્નિત થાય ત્યાં સુધી બહાર',

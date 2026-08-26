@@ -155,11 +155,26 @@ class DashboardViewModel extends ChangeNotifier {
     return list;
   }
 
-  /// Net pending position: Pending from Buyers − Pending to Sellers.
-  /// Positive means buyers owe more than is owed to sellers (room to start
-  /// paying sellers); negative means more is owed to sellers than is
-  /// receivable from buyers (collect from buyers first).
-  double get netPositionAmount => pendingSellAmount - pendingPurchaseAmount;
+  /// Cash sitting in the Roj mel day-book: Credits received minus Debits
+  /// paid out. Mirrors the "Available" tile on the Roj mel screen, so the
+  /// two never disagree. The Opening Amount is reference-only and is
+  /// deliberately excluded here as well.
+  double get ledgerAvailableAmount {
+    final credits = _expenses
+        .where((e) => e.isCredit)
+        .fold(0.0, (sum, e) => sum + e.amount);
+    final debits = _expenses
+        .where((e) => !e.isCredit)
+        .fold(0.0, (sum, e) => sum + e.amount);
+    return credits - debits;
+  }
+
+  /// Net pending position: Pending from Buyers − Pending to Sellers +
+  /// Available. Positive means receivables plus cash on hand cover what is
+  /// owed to sellers; negative means more is owed to sellers than is
+  /// receivable from buyers and held in the day-book combined.
+  double get netPositionAmount =>
+      pendingSellAmount - pendingPurchaseAmount + ledgerAvailableAmount;
 
   double get thisMonthRevenue {
     final now = DateTime.now();
